@@ -6,4 +6,6 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -y
 
 yarn build:wasm
 
+yarn install
+
 yarn build
