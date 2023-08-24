@@ -20,6 +20,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:wasm": "cd ../wasm && ~/.cargo/bin/wasm-pack build --target web",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
