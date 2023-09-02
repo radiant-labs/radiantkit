@@ -1,32 +1,19 @@
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
+use winit::{event_loop::EventLoop, window::WindowBuilder};
 
-fn main() {
+async fn run() {
     env_logger::init();
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
-                        ..
-                    },
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            _ => {}
-        },
-        _ => {}
+    let mut app = radiant_main::RadiantApp::default();
+    app.init(window).await;
+
+    event_loop.run(move |event, _, control_flow| {
+        app.handle_event(event, control_flow);
     });
+}
+
+fn main() {
+    pollster::block_on(run());
 }
