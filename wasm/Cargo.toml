@@ -1,5 +1,5 @@
 [package]
-name = "rucan-wasm"
+name = "radiant-wasm"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,5 +10,16 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2.87"
-rucan-main = { path = "../main" }
+console_log = "1.0"
+console_error_panic_hook = "0.1.6"
+winit = "0.28"
+env_logger = "0.10"
+log = "0.4"
+radiant-main = { path = "../main" }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.30"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+]}

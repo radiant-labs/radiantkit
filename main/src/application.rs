@@ -1,8 +1,8 @@
-pub struct RucanApp {
+pub struct RadiantApp {
 
 }
 
-impl Default for RucanApp {
+impl Default for RadiantApp {
     fn default() -> Self {
         Self {}
     }

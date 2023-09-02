@@ -8006,7 +8006,7 @@ rollup@^2.43.1:
   optionalDependencies:
     fsevents "~2.3.2"
 
-"rucan-wasm@file:../wasm/pkg":
+"radiant-wasm@file:../wasm/pkg":
   version "0.1.0"
 
 run-parallel@^1.1.9:

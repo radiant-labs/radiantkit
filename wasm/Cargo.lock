@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rucan-wasm"
+name = "radiant-wasm"
 version = "0.1.0"
 dependencies = [
  "wasm-bindgen",

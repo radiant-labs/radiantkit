@@ -1,1 +1,1 @@
-# Rucan Example
+# Radiant Example
