@@ -1,10 +1,6 @@
 use wasm_bindgen::prelude::*;
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
 use winit::platform::web::EventLoopExtWebSys;
+use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 #[wasm_bindgen]
 pub fn hello() {
@@ -13,8 +9,7 @@ pub fn hello() {
     // radiant_main::run();
 }
 
-#[wasm_bindgen(start)]
-pub fn run() {
+async fn run() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Debug).expect("Couldn't initialize logger");
     log::info!("Hello from rust!");
@@ -26,7 +21,7 @@ pub fn run() {
     // the size manually when on web.
     use winit::dpi::PhysicalSize;
     window.set_inner_size(PhysicalSize::new(450, 400));
-    
+
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()
         .and_then(|win| win.document())
@@ -38,23 +33,15 @@ pub fn run() {
         })
         .expect("Couldn't append canvas to document body.");
 
-    event_loop.spawn(move |event, _, control_flow| match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
-                        ..
-                    },
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            _ => {}
-        },
-        _ => {}
+    let mut app = radiant_main::RadiantApp::default();
+    app.init(window).await;
+
+    event_loop.spawn(move |event, _, control_flow| {
+        app.handle_event(event, control_flow);
     });
+}
+
+#[wasm_bindgen(start)]
+pub fn start() {
+    pollster::block_on(run());
 }
