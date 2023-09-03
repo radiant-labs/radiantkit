@@ -1,11 +1,12 @@
+use radiant_core::{RadiantDocumentNode, RadiantNodeRenderable};
 use winit::event::WindowEvent;
 use winit::window::Window;
 
 pub struct RenderState {
     surface: wgpu::Surface,
-    device: wgpu::Device,
+    pub device: wgpu::Device,
     queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
+    pub config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
     window: Window,
 }
@@ -101,7 +102,7 @@ impl RenderState {
 
     pub fn update(&mut self) {}
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, document: &RadiantDocumentNode) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
 
         let view = output
@@ -115,7 +116,7 @@ impl RenderState {
             });
 
         {
-            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
@@ -132,6 +133,8 @@ impl RenderState {
                 })],
                 depth_stencil_attachment: None,
             });
+
+            document.render(&mut render_pass);
         }
 
         // submit will accept anything that implements IntoIter
