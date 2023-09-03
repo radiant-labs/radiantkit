@@ -22,9 +22,6 @@ impl RadiantApp {
     pub async fn init(&mut self, window: Window) {
         let render_state = RenderState::new(window).await;
 
-        let node = RadiantRectangleNode::new(&render_state.device, &render_state.config);
-        self.document.add(Box::new(node));
-
         self.render_state = Some(render_state);
     }
 
@@ -86,6 +83,12 @@ impl RadiantApp {
                             state,
                         } => {
                             let is_pressed = state == ElementState::Pressed;
+                            if is_pressed {
+                                if let Some(render_state) = &self.render_state {
+                                    let node = RadiantRectangleNode::new(&render_state.device, &render_state.config);
+                                    self.document.add(Box::new(node));
+                                }
+                            }
                             // self.is_drag_rotate = is_pressed;
                             println!("Left Mouse Button: {:?}", is_pressed);
                         }
