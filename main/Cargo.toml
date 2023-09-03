@@ -16,6 +16,7 @@ env_logger = "0.10"
 log = "0.4"
 wgpu = "0.17"
 pollster = "0.3"
+radiant-core = { path = "../core" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"

@@ -191,6 +191,20 @@ name = "bytemuck"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17febce684fd15d89027105661fec94afb475cb995fbc59d2865198446ba2eea"
+dependencies = [
+ "bytemuck_derive",
+]
+
+[[package]]
+name = "bytemuck_derive"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdde5c9cd29ebd706ce1b35600920a33550e402fc998a2e53ad3b42c3c47a192"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.29",
+]
 
 [[package]]
 name = "calloop"
@@ -1091,6 +1105,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "radiant-core"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "wgpu",
+]
+
+[[package]]
 name = "radiant-main"
 version = "0.1.0"
 dependencies = [
@@ -1100,6 +1122,7 @@ dependencies = [
  "env_logger",
  "log",
  "pollster",
+ "radiant-core",
  "wgpu",
  "winit",
 ]
