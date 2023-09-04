@@ -132,7 +132,7 @@ impl RadiantRectangleNode {
 
 impl RadiantNodeRenderable for RadiantRectangleNode {
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
-        println!("Rendering rectangle");
+        log::debug!("Rendering rectangle");
 
         render_pass.set_pipeline(&self.render_pipeline); // 2.
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
