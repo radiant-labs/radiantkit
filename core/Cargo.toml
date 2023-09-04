@@ -9,3 +9,4 @@ edition = "2021"
 wgpu = { version = "0.17", features = ["webgl"]}
 bytemuck = { version = "1.12", features = [ "derive" ] }
 log = "0.4"
+cgmath = "0.18"

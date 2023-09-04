@@ -6,6 +6,7 @@ use winit::{event::*, event_loop::ControlFlow};
 pub struct RadiantApp {
     pub document: RadiantDocumentNode,
     pub render_state: Option<RenderState>,
+    mouse_position: [f32; 2],
 }
 
 impl Default for RadiantApp {
@@ -13,6 +14,7 @@ impl Default for RadiantApp {
         Self {
             document: RadiantDocumentNode::new(),
             render_state: None,
+            mouse_position: [0.0, 0.0],
         }
     }
 }
@@ -54,13 +56,26 @@ impl RadiantApp {
                                 let is_pressed = *state == ElementState::Pressed;
                                 if is_pressed {
                                     if let Some(render_state) = &self.render_state {
-                                        let node = RadiantRectangleNode::new(&render_state.device, &render_state.config);
+                                        let node = RadiantRectangleNode::new(
+                                            &render_state.device,
+                                            &render_state.config,
+                                            self.mouse_position,
+                                        );
                                         self.document.add(Box::new(node));
                                         render_state.window().request_redraw();
                                     }
                                 }
                                 // self.is_drag_rotate = is_pressed;
                                 log::info!("Left Mouse Button: {:?}", is_pressed);
+                            }
+                            WindowEvent::CursorMoved { position, .. } => {
+                                log::debug!("Cursor Moved: {:?}", position);
+                                self.mouse_position = [
+                                    (position.x as f32 / render_state.size.width as f32 - 0.5)
+                                        * 2.0,
+                                    (0.5 - position.y as f32 / render_state.size.height as f32)
+                                        * 2.0,
+                                ];
                             }
                             _ => {}
                         }
