@@ -11,7 +11,7 @@ pub fn hello() {
 
 async fn run() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    console_log::init_with_level(log::Level::Debug).expect("Couldn't initialize logger");
+    console_log::init_with_level(log::Level::Info).expect("Couldn't initialize logger");
     log::info!("Hello from rust!");
 
     let event_loop = EventLoop::new();
