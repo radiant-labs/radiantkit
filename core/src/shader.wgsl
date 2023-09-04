@@ -1,4 +1,9 @@
 // Vertex shader
+struct ModelUniform {
+    model_view: mat4x4<f32>,
+};
+@group(0) @binding(0) // 1.
+var<uniform> model_uniform: ModelUniform;
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -16,7 +21,7 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.color = model.color;
-    out.clip_position = vec4<f32>(model.position, 1.0);
+    out.clip_position = model_uniform.model_view * vec4<f32>(model.position, 1.0);
     return out;
 }
 
