@@ -10,6 +10,31 @@ struct Vertex {
     color: [f32; 3],
 }
 
+// We need this for Rust to store our data correctly for the shaders
+#[repr(C)]
+// This is so we can store this in a buffer
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct ModelUniform {
+    // We can't use cgmath with bytemuck directly so we'll have
+    // to convert the Matrix4 into a 4x4 f32 array
+    model_view: [[f32; 4]; 4],
+}
+
+impl ModelUniform {
+    fn new() -> Self {
+        use cgmath::SquareMatrix;
+        Self {
+            model_view: cgmath::Matrix4::identity().into(),
+        }
+    }
+
+    fn translate(&mut self, position: &[f32; 2]) {
+        self.model_view =
+            cgmath::Matrix4::from_translation(cgmath::Vector3::new(position[0], position[1], 0.0))
+                .into();
+    }
+}
+
 // lib.rs
 impl Vertex {
     const ATTRIBS: [wgpu::VertexAttribute; 2] =
@@ -48,20 +73,70 @@ const VERTICES: &[Vertex] = &[
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
 pub struct RadiantRectangleNode {
+    pub position: [f32; 2],
     render_pipeline: Arc<wgpu::RenderPipeline>,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32,
+    model_bind_group: wgpu::BindGroup,
 }
 
 impl RadiantRectangleNode {
-    pub fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        config: &wgpu::SurfaceConfiguration,
+        position: [f32; 2],
+    ) -> Self {
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
+
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(VERTICES),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Index Buffer"),
+            contents: bytemuck::cast_slice(INDICES),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+
+        let num_indices = INDICES.len() as u32;
+
+        let mut model_uniform = ModelUniform::new();
+        model_uniform.translate(&position);
+        let model_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Model Buffer"),
+            contents: bytemuck::cast_slice(&[model_uniform]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+        let model_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+                label: Some("model_bind_group_layout"),
+            });
+        let model_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &model_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model_buffer.as_entire_binding(),
+            }],
+            label: Some("model_bind_group"),
+        });
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[],
+                bind_group_layouts: &[&model_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -107,25 +182,13 @@ impl RadiantRectangleNode {
             })
             .into();
 
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
-            usage: wgpu::BufferUsages::INDEX,
-        });
-
-        let num_indices = INDICES.len() as u32;
-
         Self {
+            position,
             render_pipeline,
             vertex_buffer,
             index_buffer,
             num_indices,
+            model_bind_group,
         }
     }
 }
@@ -135,6 +198,7 @@ impl RadiantNodeRenderable for RadiantRectangleNode {
         log::debug!("Rendering rectangle");
 
         render_pass.set_pipeline(&self.render_pipeline); // 2.
+        render_pass.set_bind_group(0, &self.model_bind_group, &[]);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
