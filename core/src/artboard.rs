@@ -17,7 +17,7 @@ impl RadiantArtboardNode {
 
 impl RadiantNodeRenderable for RadiantArtboardNode {
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
-        println!("Rendering artboard");
+        log::debug!("Rendering artboard");
         // self.nodes.iter().for_each(|node| node.render(render_pass));
         for node in &self.nodes {
             node.render(render_pass);

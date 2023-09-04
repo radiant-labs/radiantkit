@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 wgpu = { version = "0.17", features = ["webgl"]}
 bytemuck = { version = "1.12", features = [ "derive" ] }
+log = "0.4"
