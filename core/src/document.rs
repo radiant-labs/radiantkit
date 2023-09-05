@@ -23,10 +23,10 @@ impl RadiantDocumentNode {
 }
 
 impl RadiantNodeRenderable for RadiantDocumentNode {
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
         log::debug!("Rendering document");
         if let Some(artboard) = self.artboards.get(self.active_artboard_id) {
-            artboard.render(render_pass);
+            artboard.render(render_pass, offscreen);
         }
     }
 }

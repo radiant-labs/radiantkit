@@ -8,7 +8,7 @@ pub use rectangle::*;
 
 pub trait RadiantNodeRenderable {
     // fn new(device: wgpu::Device, config: wgpu::SurfaceConfiguration) -> Self;
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>);
+    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
 }
 
 pub trait RadiantNode: RadiantNodeRenderable {}
