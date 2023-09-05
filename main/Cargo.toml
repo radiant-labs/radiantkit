@@ -17,6 +17,8 @@ log = "0.4"
 wgpu = "0.17"
 pollster = "0.3"
 radiant-core = { path = "../core" }
+image = "0.23"
+futures-intrusive = "0.5"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
