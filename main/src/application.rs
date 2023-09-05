@@ -64,6 +64,11 @@ impl RadiantApp {
                                         self.document.add(Box::new(node));
                                         render_state.window().request_redraw();
                                     }
+                                } else {
+                                    if let Some(render_state) = &self.render_state {
+                                        log::info!("Will select");
+                                        pollster::block_on(render_state.select(&self.document));
+                                    }
                                 }
                                 // self.is_drag_rotate = is_pressed;
                                 log::info!("Left Mouse Button: {:?}", is_pressed);
