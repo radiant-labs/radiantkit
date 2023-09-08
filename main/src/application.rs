@@ -1,5 +1,5 @@
 use super::renderer::RenderState;
-use radiant_core::{RadiantDocumentNode, RadiantRectangleNode};
+use radiant_core::{RadiantDocumentNode, RadiantRectangleNode, RadiantNode};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -52,35 +52,55 @@ impl RadiantApp {
                             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                                 render_state.resize(**new_inner_size);
                             }
-                            WindowEvent::MouseInput { state, .. } => {
+                            WindowEvent::MouseInput { state, button, .. } => {
                                 let is_pressed = *state == ElementState::Pressed;
-                                if is_pressed {
+                                if button == &MouseButton::Left && is_pressed {
+                                    log::info!("Left Mouse Button: {:?}", is_pressed);
                                     if let Some(render_state) = &self.render_state {
-                                        let node = RadiantRectangleNode::new(
+                                        let mut node = RadiantRectangleNode::new(
                                             &render_state.device,
                                             &render_state.config,
-                                            self.mouse_position,
+                                            // self.mouse_position,
+                                            [
+                                                (self.mouse_position[0] / render_state.size.width as f32 - 0.5)
+                                                    * 2.0,
+                                                (0.5 - self.mouse_position[1] / render_state.size.height as f32)
+                                                    * 2.0,
+                                            ]
                                         );
+                                        if let Some(artboard) = self.document.get_active_artboard() {
+                                            node.set_id(artboard.counter);
+                                        }
                                         self.document.add(Box::new(node));
                                         render_state.window().request_redraw();
                                     }
-                                } else {
-                                    if let Some(render_state) = &self.render_state {
-                                        log::info!("Will select");
-                                        pollster::block_on(render_state.select(&self.document));
-                                    }
                                 }
+                                
+                                // if button == &MouseButton::Right && is_pressed {
+                                //     log::info!("Right Mouse Button: {:?}", is_pressed);
+                                //     if let Some(render_state) = &mut self.render_state {
+                                //         log::info!("Will select");
+                                //         pollster::block_on(render_state.select(&self.document, self.mouse_position));
+                                //     }
+                                // }
                                 // self.is_drag_rotate = is_pressed;
-                                log::info!("Left Mouse Button: {:?}", is_pressed);
                             }
                             WindowEvent::CursorMoved { position, .. } => {
                                 log::debug!("Cursor Moved: {:?}", position);
-                                self.mouse_position = [
-                                    (position.x as f32 / render_state.size.width as f32 - 0.5)
-                                        * 2.0,
-                                    (0.5 - position.y as f32 / render_state.size.height as f32)
-                                        * 2.0,
-                                ];
+                                // self.mouse_position = [
+                                //     (position.x as f32 / render_state.size.width as f32 - 0.5)
+                                //         * 2.0,
+                                //     (0.5 - position.y as f32 / render_state.size.height as f32)
+                                //         * 2.0,
+                                // ];
+                                self.mouse_position = [position.x as f32, position.y as f32];
+                                if let Some(render_state) = &self.render_state {
+                                    log::info!("Will select");
+                                    let id = pollster::block_on(render_state.select(&self.document, self.mouse_position));
+                                    if id > 0 {
+                                        self.document.select(id - 1);
+                                    }
+                                }
                             }
                             _ => {}
                         }
@@ -88,7 +108,7 @@ impl RadiantApp {
                 }
                 Event::RedrawRequested(window_id) if window_id == render_state.window().id() => {
                     render_state.update();
-                    match render_state.render(&self.document) {
+                    match render_state.render(&mut self.document) {
                         Ok(_) => {}
                         // Reconfigure the surface if lost
                         Err(wgpu::SurfaceError::Lost) => render_state.resize(render_state.size),
