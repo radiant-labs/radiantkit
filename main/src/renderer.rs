@@ -9,6 +9,9 @@ pub struct RenderState {
     pub config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
     window: Window,
+    offscreen_texture: Option<wgpu::Texture>,
+    offscreen_texture_view: Option<wgpu::TextureView>,
+    offscreen_buffer: Option<wgpu::Buffer>
 }
 
 impl RenderState {
@@ -80,6 +83,9 @@ impl RenderState {
             queue,
             config,
             size,
+            offscreen_texture: None,
+            offscreen_texture_view: None,
+            offscreen_buffer: None,
         }
     }
 
@@ -88,11 +94,47 @@ impl RenderState {
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        log::info!("Resizing to {:?}", new_size);
         if new_size.width > 0 && new_size.height > 0 {
             self.size = new_size;
             self.config.width = new_size.width;
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
+
+            let texture_width = self.size.width;
+            let texture_height = self.size.height;
+    
+            let texture_desc = wgpu::TextureDescriptor {
+                size: wgpu::Extent3d {
+                    width: texture_width,
+                    height: texture_height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
+                label: None,
+                view_formats: &[],
+            };
+            let texture = self.device.create_texture(&texture_desc);
+            self.offscreen_texture_view = Some(texture.create_view(&Default::default()));
+            self.offscreen_texture = Some(texture);
+    
+            // we need to store this for later
+            let u32_size = std::mem::size_of::<u32>() as u32;
+    
+            let output_buffer_size = (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
+            let output_buffer_desc = wgpu::BufferDescriptor {
+                size: output_buffer_size,
+                usage: wgpu::BufferUsages::COPY_DST
+                    // this tells wpgu that we want to read this buffer from the cpu
+                    | wgpu::BufferUsages::MAP_READ,
+                label: None,
+                mapped_at_creation: false,
+            };
+            self.offscreen_buffer = Some(self.device.create_buffer(&output_buffer_desc));
         }
     }
 
@@ -102,7 +144,9 @@ impl RenderState {
 
     pub fn update(&mut self) {}
 
-    pub fn render(&mut self, document: &RadiantDocumentNode) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, document: &mut RadiantDocumentNode) -> Result<(), wgpu::SurfaceError> {
+        document.update(&mut self.queue);
+
         let output = self.surface.get_current_texture()?;
 
         let view = output
@@ -144,40 +188,12 @@ impl RenderState {
         Ok(())
     }
 
-    pub async fn select(&self, document: &RadiantDocumentNode) {
+    pub async fn select(&self, document: &RadiantDocumentNode, position: [f32; 2]) -> u64 {
         log::info!("Selecting...");
-        let texture_size = 256u32;
-
-        let texture_desc = wgpu::TextureDescriptor {
-            size: wgpu::Extent3d {
-                width: texture_size,
-                height: texture_size,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: None,
-            view_formats: &[],
-        };
-        let texture = self.device.create_texture(&texture_desc);
-        let texture_view = texture.create_view(&Default::default());
-
-        // we need to store this for later
+    
+        let texture_width = self.size.width;
+        let texture_height = self.size.height;
         let u32_size = std::mem::size_of::<u32>() as u32;
-
-        let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
-        let output_buffer_desc = wgpu::BufferDescriptor {
-            size: output_buffer_size,
-            usage: wgpu::BufferUsages::COPY_DST
-                // this tells wpgu that we want to read this buffer from the cpu
-                | wgpu::BufferUsages::MAP_READ,
-            label: None,
-            mapped_at_creation: false,
-        };
-        let output_buffer = self.device.create_buffer(&output_buffer_desc);
 
         let mut encoder = self
             .device
@@ -187,7 +203,7 @@ impl RenderState {
             let render_pass_desc = wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &texture_view,
+                    view: &self.offscreen_texture_view.as_ref().unwrap(),
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -209,27 +225,34 @@ impl RenderState {
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
                 aspect: wgpu::TextureAspect::All,
-                texture: &texture,
+                texture: &self.offscreen_texture.as_ref().unwrap(),
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             wgpu::ImageCopyBuffer {
-                buffer: &output_buffer,
+                buffer: &self.offscreen_buffer.as_ref().unwrap(),
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: Some(u32_size * texture_size),
-                    rows_per_image: Some(texture_size),
+                    bytes_per_row: Some(u32_size * texture_width),
+                    rows_per_image: Some(texture_height),
                 },
             },
-            texture_desc.size,
+            wgpu::Extent3d {
+                width: texture_width,
+                height: texture_height,
+                depth_or_array_layers: 1,
+            },
         );
 
         self.queue.submit(Some(encoder.finish()));
 
+        let mut id = 0u64;
+
         // We need to scope the mapping variables so that we can
         // unmap the buffer
         {
-            let buffer_slice = output_buffer.slice(..);
+            let buffer = self.offscreen_buffer.as_ref().unwrap();
+            let buffer_slice = buffer.slice(..);
 
             // NOTE: We have to create the mapping THEN device.poll() before await
             // the future. Otherwise the application will freeze.
@@ -242,13 +265,34 @@ impl RenderState {
 
             let data = buffer_slice.get_mapped_range();
 
-            use image::{ImageBuffer, Rgba};
-            let buffer =
-                ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
-            log::info!("Saving image.png");
-            #[cfg(not(target_arch = "wasm32"))]
-            buffer.save("image.png").unwrap();
+            let posx: u32 = position[0].round() as u32;
+            let posy: u32 = position[1].round() as u32;
+            let index = (posy * texture_width * 4 + posx * 4) as usize;
+            log::info!("mouse: {} {}", posx, posy);
+            log::info!("data: {} {} {} {}", data.get(index).unwrap(), data.get(index+1).unwrap(), data.get(index+2).unwrap(), data.get(index+3).unwrap());
+
+            id = *data.get(index).unwrap() as u64;
+            // id += (*data.get(index+1).unwrap() as u64) << 8;
+            // id += (*data.get(index+2).unwrap() as u64) << 16;
+            log::info!("id: {}", id);
+
+            // use image::{ImageBuffer, Rgba};
+            // let buffer =
+            //     ImageBuffer::<Rgba<u8>, _>::from_raw(texture_width, texture_height, data).unwrap();
+            // let px = buffer.get_pixel(posx, posy);
+            // log::info!("px: {:?}", px);
+
+            // let mut id = px.0[0] as u64;
+            // id += (px.0[1] as u64) << 8;
+            // id += (px.0[2] as u64) << 16;
+            // log::info!("id: {}", id);
+
+            // log::info!("Saving image.png");
+            // #[cfg(not(target_arch = "wasm32"))]
+            // buffer.save("image.png").unwrap();
         }
-        output_buffer.unmap();
+        self.offscreen_buffer.as_ref().unwrap().unmap();
+
+        id
     }
 }
