@@ -1,40 +1,52 @@
-use crate::{RadiantComponent, RadiantObservable, RadiantObserver};
+use crate::{RadiantComponent, RadiantObservable, RadiantObserver, RadiantMessage};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum SelectionMessage {
-    SetSelected(bool),
-    SetId(u64),
+    SetSelected(u64, bool),
+    HandleSelection(u64, bool),
+}
+
+impl From<SelectionMessage> for RadiantMessage {
+    fn from(message: SelectionMessage) -> Self {
+        RadiantMessage::Selection(message)
+    }
+}
+
+impl TryFrom<RadiantMessage> for SelectionMessage {
+    type Error = ();
+
+    fn try_from(message: RadiantMessage) -> Result<Self, Self::Error> {
+        match message {
+            RadiantMessage::Selection(message) => Ok(message),
+            _ => Err(()),
+        }
+    }
 }
 
 pub struct SelectionComponent {
-    selected: bool,
     id: u64,
-    observers: Vec<Box<dyn RadiantObserver<SelectionMessage>>>,
+    selected: bool,
+    observers: Vec<Box<dyn RadiantObserver<RadiantMessage>>>,
 }
 
 impl SelectionComponent {
-    pub fn new() -> Self {
+    pub fn new(id: u64) -> Self {
         Self {
+            id,
             selected: false,
-            id: 0,
             observers: Vec::new(),
         }
     }
 
     pub fn set_selected(&mut self, selected: bool) {
         self.selected = selected;
-        self.notify(&SelectionMessage::SetSelected(self.selected));
-    }
-
-    pub fn set_id(&mut self, id: u64) {
-        self.id = id;
-        self.notify(&SelectionMessage::SetId(self.id));
+        self.notify(SelectionMessage::HandleSelection(self.id, self.selected).into());
     }
 }
 
-impl RadiantComponent<SelectionMessage> for SelectionComponent {
-    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<SelectionMessage>>> {
+impl RadiantComponent<RadiantMessage> for SelectionComponent {
+    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<RadiantMessage>>> {
         &mut self.observers
     }
 }

@@ -5,13 +5,13 @@ use winit::{event_loop::EventLoop, window::WindowBuilder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum RadiantNodeMessage {
+pub enum RadiantMessage {
     Render,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Message {
-    RadiantNodeMessage(RadiantNodeMessage),
+    RadiantMessage(RadiantMessage),
 }
 
 #[wasm_bindgen(js_name = MessageController)]
@@ -28,7 +28,7 @@ impl MessageController {
 
     #[wasm_bindgen(js_name = setJSMessageHandler)]
     pub fn set_js_message_handler(f: &js_sys::Function) {
-        let message = Message::RadiantNodeMessage(RadiantNodeMessage::Render);
+        let message = Message::RadiantMessage(RadiantMessage::Render);
         let this = JsValue::null();
         let _ = f.call1(&this, &serde_wasm_bindgen::to_value(&message).unwrap());
     }

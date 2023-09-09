@@ -10,7 +10,7 @@ function App() {
         console.log("Message", message);
       });
       MessageController.handleMessage({
-        RadiantNodeMessage: "Render"
+        RadiantMessage: "Render"
       });
     } catch (error) {
       console.log(error);

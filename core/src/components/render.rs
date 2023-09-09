@@ -1,10 +1,7 @@
-use crate::{RadiantComponent, RadiantObservable, RadiantObserver, RadiantVertex};
+use crate::{RadiantComponent, RadiantObservable, RadiantObserver, RadiantVertex, RadiantMessage, SelectionMessage};
+use super::TransformMessage;
 use serde::{Deserialize, Serialize};
 use wgpu::util::DeviceExt;
-
-pub struct RenderMessage {
-    pub offscreen: bool,
-}
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -42,6 +39,7 @@ impl FragmentUniform {
 }
 
 pub struct RenderComponent {
+    id: u64,
     vertex_uniform: VertexUniform,
     fragment_uniform: FragmentUniform,
     vertex_buffer: wgpu::Buffer,
@@ -52,12 +50,13 @@ pub struct RenderComponent {
     fragment_uniform_buffer: wgpu::Buffer,
     fragment_uniform_bind_group: wgpu::BindGroup,
     render_pipeline: wgpu::RenderPipeline,
-    observers: Vec<Box<dyn RadiantObserver<RenderMessage>>>,
+    observers: Vec<Box<dyn RadiantObserver<RadiantMessage>>>,
     dirty: bool,
 }
 
 impl RenderComponent {
     pub fn new(
+        id: u64,
         device: &wgpu::Device,
         target_texture_format: wgpu::TextureFormat,
         vertices: &[RadiantVertex],
@@ -194,6 +193,7 @@ impl RenderComponent {
             .into();
 
         Self {
+            id,
             vertex_uniform,
             fragment_uniform,
             vertex_buffer,
@@ -245,8 +245,37 @@ impl RenderComponent {
     }
 }
 
-impl RadiantComponent<RenderMessage> for RenderComponent {
-    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<RenderMessage>>> {
+impl RadiantComponent<RadiantMessage> for RenderComponent {
+    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<RadiantMessage>>> {
         &mut self.observers
+    }
+}
+
+impl RadiantObserver<RadiantMessage> for RenderComponent {
+    fn on_notify(&mut self, message: RadiantMessage) {
+        if let Ok(message) = message.try_into() {
+            match message {
+                TransformMessage::HandlePosition(id, position) => {
+                    if id == self.id {
+                        self.set_position(&[position[0], position[1]]);
+                    }
+                }
+                _ => {}
+            }
+        } else if let Ok(message) = message.try_into() {
+            match message {
+                SelectionMessage::HandleSelection(id, selected) => {
+                    if id == self.id {
+                        self.set_selection_color([
+                            ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
+                            ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
+                            ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
+                            if selected { 1.0 } else { 0.0 },
+                        ]);
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 }

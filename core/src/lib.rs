@@ -8,21 +8,23 @@ pub use components::*;
 pub use document::*;
 pub use rectangle::*;
 
+use serde::{Deserialize, Serialize};
+
 pub trait RadiantObserver<M> {
-    fn on_notify(&self, message: &M);
+    fn on_notify(&mut self, message: M);
 }
 
 pub trait RadiantObservable<M> {
     fn subscribe(&mut self, observer: Box<dyn RadiantObserver<M>>);
     fn unsubscribe(&mut self, observer: Box<dyn RadiantObserver<M>>);
-    fn notify(&mut self, message: &M);
+    fn notify(&mut self, message: M);
 }
 
 trait RadiantComponent<M> {
     fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<M>>>;
 }
 
-impl<M, T: RadiantComponent<M>> RadiantObservable<M> for T {
+impl<M: Copy, T: RadiantComponent<M>> RadiantObservable<M> for T {
     fn subscribe(&mut self, observer: Box<dyn RadiantObserver<M>>) {
         self.observers().push(observer);
     }
@@ -31,7 +33,7 @@ impl<M, T: RadiantComponent<M>> RadiantObservable<M> for T {
         // self.observers().retain(|x| *x != observer);
     }
 
-    fn notify(&mut self, message: &M) {
+    fn notify(&mut self, message: M) {
         for observer in self.observers() {
             observer.on_notify(message);
         }
@@ -44,9 +46,9 @@ pub trait RadiantNodeRenderable {
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
 }
 
-pub trait RadiantNode: RadiantNodeRenderable {
+pub trait RadiantNode: RadiantNodeRenderable  {
+    fn get_id(&self) -> u64;
     fn set_selected(&mut self, selected: bool);
-    fn set_id(&mut self, id: u64);
 }
 
 #[repr(C)]
@@ -69,4 +71,10 @@ impl RadiantVertex {
             attributes: &Self::ATTRIBS,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum RadiantMessage {
+    Transform(TransformMessage),
+    Selection(SelectionMessage),
 }
