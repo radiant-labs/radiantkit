@@ -1,4 +1,4 @@
-use super::{RadiantNodeRenderable, RadiantNode};
+use super::{RadiantNode, RadiantNodeRenderable};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
@@ -267,13 +267,14 @@ impl RadiantRectangleNode {
             }],
             label: Some("selection_bind_group"),
         });
-        let selection_shader = device.create_shader_module(wgpu::include_wgsl!("shader_selection.wgsl"));
+        let selection_shader =
+            device.create_shader_module(wgpu::include_wgsl!("shader_selection.wgsl"));
         let selection_render_pipeline_layout =
-        device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&model_bind_group_layout, &selection_bind_group_layout_2],
-            push_constant_ranges: &[],
-        });
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Render Pipeline Layout"),
+                bind_group_layouts: &[&model_bind_group_layout, &selection_bind_group_layout_2],
+                push_constant_ranges: &[],
+            });
         let offscreen_render_pipeline = device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("Render Pipeline"),
@@ -317,7 +318,7 @@ impl RadiantRectangleNode {
             .into();
 
         Self {
-            dirty:false,
+            dirty: false,
             model_uniform,
             model_buffer,
             position,
@@ -332,7 +333,7 @@ impl RadiantRectangleNode {
             selection_bind_group,
             selection_uniform_2,
             selection_buffer_2,
-            selection_bind_group_2
+            selection_bind_group_2,
         }
     }
 }
@@ -344,9 +345,9 @@ impl RadiantNode for RadiantRectangleNode {
     }
 
     fn set_id(&mut self, id: u64) {
-        self.selection_uniform_2.selected[0] = (((id + 1 >>  0) & 0xFF)) as f32 / 0xFF as f32;
-        self.selection_uniform_2.selected[1] = (((id + 1 >>  8) & 0xFF)) as f32 / 0xFF as f32;
-        self.selection_uniform_2.selected[2] = (((id + 1 >>  16) & 0xFF)) as f32 / 0xFF as f32;
+        self.selection_uniform_2.selected[0] = ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32;
+        self.selection_uniform_2.selected[1] = ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32;
+        self.selection_uniform_2.selected[2] = ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32;
         self.dirty = true;
 
         // log::info!("id: {}", id);
@@ -361,9 +362,21 @@ impl RadiantNode for RadiantRectangleNode {
 impl RadiantNodeRenderable for RadiantRectangleNode {
     fn update(&mut self, queue: &mut wgpu::Queue) {
         if self.dirty {
-            queue.write_buffer(&self.model_buffer, 0, bytemuck::cast_slice(&[self.model_uniform]));
-            queue.write_buffer(&self.selection_buffer, 0, bytemuck::cast_slice(&[self.selection_uniform]));
-            queue.write_buffer(&self.selection_buffer_2, 0, bytemuck::cast_slice(&[self.selection_uniform_2]));
+            queue.write_buffer(
+                &self.model_buffer,
+                0,
+                bytemuck::cast_slice(&[self.model_uniform]),
+            );
+            queue.write_buffer(
+                &self.selection_buffer,
+                0,
+                bytemuck::cast_slice(&[self.selection_uniform]),
+            );
+            queue.write_buffer(
+                &self.selection_buffer_2,
+                0,
+                bytemuck::cast_slice(&[self.selection_uniform_2]),
+            );
             self.dirty = false;
         }
     }

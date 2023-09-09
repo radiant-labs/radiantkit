@@ -33,13 +33,9 @@ impl RadiantDocumentNode {
 }
 
 impl RadiantNode for RadiantDocumentNode {
-    fn set_selected(&mut self, selected: bool) {
+    fn set_selected(&mut self, selected: bool) {}
 
-    }
-    
-    fn set_id(&mut self, id: u64) {
-
-    }
+    fn set_id(&mut self, id: u64) {}
 }
 
 impl RadiantNodeRenderable for RadiantDocumentNode {

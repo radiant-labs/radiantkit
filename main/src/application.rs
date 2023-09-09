@@ -1,5 +1,5 @@
 use super::renderer::RenderState;
-use radiant_core::{RadiantDocumentNode, RadiantRectangleNode, RadiantNode};
+use radiant_core::{RadiantDocumentNode, RadiantNode, RadiantRectangleNode};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -62,20 +62,24 @@ impl RadiantApp {
                                             &render_state.config,
                                             // self.mouse_position,
                                             [
-                                                (self.mouse_position[0] / render_state.size.width as f32 - 0.5)
+                                                (self.mouse_position[0]
+                                                    / render_state.size.width as f32
+                                                    - 0.5)
                                                     * 2.0,
-                                                (0.5 - self.mouse_position[1] / render_state.size.height as f32)
+                                                (0.5 - self.mouse_position[1]
+                                                    / render_state.size.height as f32)
                                                     * 2.0,
-                                            ]
+                                            ],
                                         );
-                                        if let Some(artboard) = self.document.get_active_artboard() {
+                                        if let Some(artboard) = self.document.get_active_artboard()
+                                        {
                                             node.set_id(artboard.counter);
                                         }
                                         self.document.add(Box::new(node));
                                         render_state.window().request_redraw();
                                     }
                                 }
-                                
+
                                 // if button == &MouseButton::Right && is_pressed {
                                 //     log::info!("Right Mouse Button: {:?}", is_pressed);
                                 //     if let Some(render_state) = &mut self.render_state {
@@ -96,7 +100,9 @@ impl RadiantApp {
                                 self.mouse_position = [position.x as f32, position.y as f32];
                                 if let Some(render_state) = &self.render_state {
                                     log::info!("Will select");
-                                    let id = pollster::block_on(render_state.select(&self.document, self.mouse_position));
+                                    let id = pollster::block_on(
+                                        render_state.select(&self.document, self.mouse_position),
+                                    );
                                     if id > 0 {
                                         self.document.select(id - 1);
                                     }

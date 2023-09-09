@@ -11,7 +11,7 @@ pub struct RenderState {
     window: Window,
     offscreen_texture: Option<wgpu::Texture>,
     offscreen_texture_view: Option<wgpu::TextureView>,
-    offscreen_buffer: Option<wgpu::Buffer>
+    offscreen_buffer: Option<wgpu::Buffer>,
 }
 
 impl RenderState {
@@ -103,7 +103,7 @@ impl RenderState {
 
             let texture_width = self.size.width;
             let texture_height = self.size.height;
-    
+
             let texture_desc = wgpu::TextureDescriptor {
                 size: wgpu::Extent3d {
                     width: texture_width,
@@ -121,11 +121,12 @@ impl RenderState {
             let texture = self.device.create_texture(&texture_desc);
             self.offscreen_texture_view = Some(texture.create_view(&Default::default()));
             self.offscreen_texture = Some(texture);
-    
+
             // we need to store this for later
             let u32_size = std::mem::size_of::<u32>() as u32;
-    
-            let output_buffer_size = (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
+
+            let output_buffer_size =
+                (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
             let output_buffer_desc = wgpu::BufferDescriptor {
                 size: output_buffer_size,
                 usage: wgpu::BufferUsages::COPY_DST
@@ -190,7 +191,7 @@ impl RenderState {
 
     pub async fn select(&self, document: &RadiantDocumentNode, position: [f32; 2]) -> u64 {
         log::info!("Selecting...");
-    
+
         let texture_width = self.size.width;
         let texture_height = self.size.height;
         let u32_size = std::mem::size_of::<u32>() as u32;
@@ -269,7 +270,13 @@ impl RenderState {
             let posy: u32 = position[1].round() as u32;
             let index = (posy * texture_width * 4 + posx * 4) as usize;
             log::info!("mouse: {} {}", posx, posy);
-            log::info!("data: {} {} {} {}", data.get(index).unwrap(), data.get(index+1).unwrap(), data.get(index+2).unwrap(), data.get(index+3).unwrap());
+            log::info!(
+                "data: {} {} {} {}",
+                data.get(index).unwrap(),
+                data.get(index + 1).unwrap(),
+                data.get(index + 2).unwrap(),
+                data.get(index + 3).unwrap()
+            );
 
             id = *data.get(index).unwrap() as u64;
             // id += (*data.get(index+1).unwrap() as u64) << 8;

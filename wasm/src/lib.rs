@@ -2,6 +2,32 @@ use wasm_bindgen::prelude::*;
 use winit::platform::web::EventLoopExtWebSys;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum RadiantNodeMessage {
+    Render,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Message {
+    RadiantNodeMessage(RadiantNodeMessage),
+}
+
+#[wasm_bindgen(js_name = handleMessage)]
+pub fn handle_message(message: JsValue) {
+    log::info!("Received message: {:?}", message);
+    let v: Message = serde_wasm_bindgen::from_value(message).unwrap();
+    log::info!("Deserialized message: {:?}", v);
+}
+
+#[wasm_bindgen(js_name = setJSMessageHandler)]
+pub fn set_js_message_handler(f: &js_sys::Function) {
+    let message = Message::RadiantNodeMessage(RadiantNodeMessage::Render);
+    let this = JsValue::null();
+    let _ = f.call1(&this, &serde_wasm_bindgen::to_value(&message).unwrap());
+}
+
 #[wasm_bindgen]
 pub fn hello() {
     // println!("Hello from Rust!");
