@@ -2,6 +2,7 @@ use super::{RadiantNode, RadiantNodeRenderable};
 use crate::RadiantArtboardNode;
 
 pub struct RadiantDocumentNode {
+    pub counter: u64,
     pub artboards: Vec<RadiantArtboardNode>,
     pub active_artboard_id: usize,
 }
@@ -10,6 +11,7 @@ impl RadiantDocumentNode {
     pub fn new() -> Self {
         let artboards = vec![RadiantArtboardNode::new()];
         Self {
+            counter: 0,
             artboards,
             active_artboard_id: 0,
         }
@@ -18,6 +20,7 @@ impl RadiantDocumentNode {
     pub fn add(&mut self, node: Box<dyn RadiantNode>) {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id) {
             artboard.add(node);
+            self.counter += 1;
         }
     }
 
@@ -34,8 +37,7 @@ impl RadiantDocumentNode {
 
 impl RadiantNode for RadiantDocumentNode {
     fn set_selected(&mut self, selected: bool) {}
-
-    fn set_id(&mut self, id: u64) {}
+    fn get_id(&self) -> u64 { 0 }
 }
 
 impl RadiantNodeRenderable for RadiantDocumentNode {
