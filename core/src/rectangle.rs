@@ -1,4 +1,4 @@
-use super::{RadiantNode, RadiantNodeRenderable};
+use super::{RadiantNode, RadiantNodeRenderable, TransformComponent};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
@@ -91,8 +91,8 @@ const VERTICES: &[Vertex] = &[
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
 pub struct RadiantRectangleNode {
+    pub transform: TransformComponent,
     dirty: bool,
-    pub position: [f32; 2],
     render_pipeline: Arc<wgpu::RenderPipeline>,
     offscreen_render_pipeline: Arc<wgpu::RenderPipeline>,
     vertex_buffer: wgpu::Buffer,
@@ -115,6 +115,9 @@ impl RadiantRectangleNode {
         config: &wgpu::SurfaceConfiguration,
         position: [f32; 2],
     ) -> Self {
+        let mut transform = TransformComponent::new();
+        transform.set_xy(&position);
+
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -318,10 +321,10 @@ impl RadiantRectangleNode {
             .into();
 
         Self {
+            transform,
             dirty: false,
             model_uniform,
             model_buffer,
-            position,
             render_pipeline,
             offscreen_render_pipeline,
             vertex_buffer,
