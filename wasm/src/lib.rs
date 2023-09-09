@@ -14,19 +14,25 @@ pub enum Message {
     RadiantNodeMessage(RadiantNodeMessage),
 }
 
-#[wasm_bindgen(js_name = handleMessage)]
-pub fn handle_message(message: JsValue) {
-    log::info!("Received message: {:?}", message);
-    let v: Message = serde_wasm_bindgen::from_value(message).unwrap();
-    log::info!("Deserialized message: {:?}", v);
-}
+#[wasm_bindgen(js_name = MessageController)]
+pub struct MessageController;
 
-#[wasm_bindgen(js_name = setJSMessageHandler)]
-pub fn set_js_message_handler(f: &js_sys::Function) {
-    let message = Message::RadiantNodeMessage(RadiantNodeMessage::Render);
-    let this = JsValue::null();
-    let _ = f.call1(&this, &serde_wasm_bindgen::to_value(&message).unwrap());
-}
+#[wasm_bindgen(js_class = MessageController)]
+impl MessageController {
+    #[wasm_bindgen(js_name = handleMessage)]
+    pub fn handle_message(message: JsValue) {
+        log::info!("Received message: {:?}", message);
+        let v: Message = serde_wasm_bindgen::from_value(message).unwrap();
+        log::info!("Deserialized message: {:?}", v);
+    }
+
+    #[wasm_bindgen(js_name = setJSMessageHandler)]
+    pub fn set_js_message_handler(f: &js_sys::Function) {
+        let message = Message::RadiantNodeMessage(RadiantNodeMessage::Render);
+        let this = JsValue::null();
+        let _ = f.call1(&this, &serde_wasm_bindgen::to_value(&message).unwrap());
+    }
+    }
 
 #[wasm_bindgen]
 pub fn hello() {
