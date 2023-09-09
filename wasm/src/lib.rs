@@ -32,7 +32,7 @@ impl MessageController {
         let this = JsValue::null();
         let _ = f.call1(&this, &serde_wasm_bindgen::to_value(&message).unwrap());
     }
-    }
+}
 
 #[wasm_bindgen]
 pub fn hello() {
