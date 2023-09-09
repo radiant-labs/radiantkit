@@ -1,4 +1,4 @@
-import init, { hello, setJSMessageHandler, handleMessage } from "radiant-wasm";
+import init, { hello, MessageController } from "radiant-wasm";
 import './App.css';
 
 function App() {
@@ -6,10 +6,10 @@ function App() {
     console.log("Hello from wasm");
     try {
       await init();
-      setJSMessageHandler((message: string) => {
+      MessageController.setJSMessageHandler((message: string) => {
         console.log("Message", message);
       });
-      handleMessage({
+      MessageController.handleMessage({
         RadiantNodeMessage: "Render"
       });
     } catch (error) {
