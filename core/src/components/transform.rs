@@ -1,5 +1,5 @@
+use crate::{RadiantComponent, RadiantObservable, RadiantObserver};
 use serde::{Deserialize, Serialize};
-use crate::{RadiantComponent, RadiantObserver, RadiantObservable};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TransformMessage {
@@ -35,4 +35,3 @@ impl RadiantComponent<TransformMessage> for TransformComponent {
         &mut self.observers
     }
 }
-
