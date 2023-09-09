@@ -1,8 +1,7 @@
-use super::{RadiantNode, RadiantNodeRenderable};
+use super::{RadiantNode, RadiantNodeRenderable, RadiantMessage, RadiantObserver};
 use std::collections::{HashMap, HashSet};
 
 pub struct RadiantArtboardNode {
-    pub counter: u64,
     pub nodes: HashMap<u64, Box<dyn RadiantNode>>,
     pub selected_node_ids: HashSet<u64>,
 }
@@ -10,15 +9,13 @@ pub struct RadiantArtboardNode {
 impl RadiantArtboardNode {
     pub fn new() -> Self {
         Self {
-            counter: 0,
             nodes: HashMap::new(),
             selected_node_ids: HashSet::new(),
         }
     }
 
     pub fn add(&mut self, node: Box<dyn RadiantNode>) {
-        self.nodes.insert(self.counter, node);
-        self.counter += 1;
+        self.nodes.insert(node.get_id(), node);
     }
 
     pub fn select(&mut self, id: u64) {
@@ -36,8 +33,7 @@ impl RadiantArtboardNode {
 
 impl RadiantNode for RadiantArtboardNode {
     fn set_selected(&mut self, selected: bool) {}
-
-    fn set_id(&mut self, id: u64) {}
+    fn get_id(&self) -> u64 { 0 }
 }
 
 impl RadiantNodeRenderable for RadiantArtboardNode {
@@ -52,5 +48,11 @@ impl RadiantNodeRenderable for RadiantArtboardNode {
         for node in self.nodes.values() {
             node.render(render_pass, offscreen);
         }
+    }
+}
+
+impl RadiantObserver<RadiantMessage> for RadiantArtboardNode {
+    fn on_notify(&mut self, message: RadiantMessage) {
+        
     }
 }

@@ -58,6 +58,7 @@ impl RadiantApp {
                                     log::info!("Left Mouse Button: {:?}", is_pressed);
                                     if let Some(render_state) = &self.render_state {
                                         let mut node = RadiantRectangleNode::new(
+                                            self.document.counter,
                                             &render_state.device,
                                             &render_state.config,
                                             // self.mouse_position,
@@ -71,10 +72,6 @@ impl RadiantApp {
                                                     * 2.0,
                                             ],
                                         );
-                                        if let Some(artboard) = self.document.get_active_artboard()
-                                        {
-                                            node.set_id(artboard.counter);
-                                        }
                                         self.document.add(Box::new(node));
                                         render_state.window().request_redraw();
                                     }

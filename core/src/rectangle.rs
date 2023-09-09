@@ -1,4 +1,4 @@
-use crate::RenderComponent;
+use crate::{RenderComponent, RadiantMessage, RadiantObserver};
 
 use super::{RadiantNode, RadiantNodeRenderable, RadiantVertex, TransformComponent};
 use std::sync::Arc;
@@ -30,29 +30,38 @@ pub struct RadiantRectangleNode {
     pub transform: TransformComponent,
     pub renderer: RenderComponent,
     pub offscreen_renderer: RenderComponent,
+    observers: Vec<Box<dyn RadiantObserver<RadiantMessage>>>,
 }
 
 impl RadiantRectangleNode {
     pub fn new(
+        id: u64,
         device: &wgpu::Device,
         config: &wgpu::SurfaceConfiguration,
         position: [f32; 2],
     ) -> Self {
-        let mut transform = TransformComponent::new();
+        let mut transform = TransformComponent::new(id);
         transform.set_xy(&position);
 
-        let mut renderer = RenderComponent::new(device, config.format, &VERTICES, &INDICES);
+        let mut renderer = RenderComponent::new(id, device, config.format, &VERTICES, &INDICES);
         renderer.set_position(&position);
 
         let mut offscreen_renderer =
-            RenderComponent::new(device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
+            RenderComponent::new(id, device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
         offscreen_renderer.set_position(&position);
+        offscreen_renderer.set_selection_color([
+            ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
+            ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
+            ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
+            1.0,
+        ]);
 
         Self {
-            id: 0,
+            id,
             transform,
             renderer,
             offscreen_renderer,
+            observers: Vec::new(),
         }
     }
 }
@@ -63,14 +72,8 @@ impl RadiantNode for RadiantRectangleNode {
             .set_selection_color([1.0, 0.0, 0.0, if selected { 1.0 } else { 0.0 }]);
     }
 
-    fn set_id(&mut self, id: u64) {
-        self.id = id;
-        self.offscreen_renderer.set_selection_color([
-            ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
-            ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
-            ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
-            1.0,
-        ]);
+    fn get_id(&self) -> u64 {
+        return self.id;
     }
 }
 
