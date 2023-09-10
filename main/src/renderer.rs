@@ -247,7 +247,7 @@ impl RenderState {
 
         self.queue.submit(Some(encoder.finish()));
 
-        let id: u64;
+        let mut id: u64;
 
         // We need to scope the mapping variables so that we can
         // unmap the buffer
@@ -269,32 +269,16 @@ impl RenderState {
             let posx: u32 = position[0].round() as u32;
             let posy: u32 = position[1].round() as u32;
             let index = (posy * texture_width * 4 + posx * 4) as usize;
-            log::info!("mouse: {} {}", posx, posy);
-            log::info!(
-                "data: {} {} {} {}",
-                data.get(index).unwrap(),
-                data.get(index + 1).unwrap(),
-                data.get(index + 2).unwrap(),
-                data.get(index + 3).unwrap()
-            );
 
             id = *data.get(index).unwrap() as u64;
-            // id += (*data.get(index+1).unwrap() as u64) << 8;
-            // id += (*data.get(index+2).unwrap() as u64) << 16;
+            id += (*data.get(index+1).unwrap() as u64) << 8;
+            id += (*data.get(index+2).unwrap() as u64) << 16;
             log::info!("id: {}", id);
 
             // use image::{ImageBuffer, Rgba};
             // let buffer =
             //     ImageBuffer::<Rgba<u8>, _>::from_raw(texture_width, texture_height, data).unwrap();
-            // let px = buffer.get_pixel(posx, posy);
-            // log::info!("px: {:?}", px);
 
-            // let mut id = px.0[0] as u64;
-            // id += (px.0[1] as u64) << 8;
-            // id += (px.0[2] as u64) << 16;
-            // log::info!("id: {}", id);
-
-            // log::info!("Saving image.png");
             // #[cfg(not(target_arch = "wasm32"))]
             // buffer.save("image.png").unwrap();
         }
