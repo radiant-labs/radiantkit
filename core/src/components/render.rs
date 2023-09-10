@@ -1,6 +1,4 @@
-use crate::{RadiantComponent, RadiantObservable, RadiantObserver, RadiantVertex, RadiantMessage, SelectionMessage};
-use super::TransformMessage;
-use serde::{Deserialize, Serialize};
+use crate::RadiantVertex;
 use wgpu::util::DeviceExt;
 
 #[repr(C)]
@@ -39,7 +37,6 @@ impl FragmentUniform {
 }
 
 pub struct RenderComponent {
-    id: u64,
     vertex_uniform: VertexUniform,
     fragment_uniform: FragmentUniform,
     vertex_buffer: wgpu::Buffer,
@@ -50,13 +47,11 @@ pub struct RenderComponent {
     fragment_uniform_buffer: wgpu::Buffer,
     fragment_uniform_bind_group: wgpu::BindGroup,
     render_pipeline: wgpu::RenderPipeline,
-    observers: Vec<Box<dyn RadiantObserver<RadiantMessage>>>,
     dirty: bool,
 }
 
 impl RenderComponent {
     pub fn new(
-        id: u64,
         device: &wgpu::Device,
         target_texture_format: wgpu::TextureFormat,
         vertices: &[RadiantVertex],
@@ -193,7 +188,6 @@ impl RenderComponent {
             .into();
 
         Self {
-            id,
             vertex_uniform,
             fragment_uniform,
             vertex_buffer,
@@ -204,7 +198,6 @@ impl RenderComponent {
             fragment_uniform_buffer,
             fragment_uniform_bind_group,
             render_pipeline,
-            observers: Vec::new(),
             dirty: false,
         }
     }
@@ -235,47 +228,12 @@ impl RenderComponent {
         }
     }
 
-    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
+    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, &self.vertex_uniform_bind_group, &[]);
         render_pass.set_bind_group(1, &self.fragment_uniform_bind_group, &[]);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
-    }
-}
-
-impl RadiantComponent<RadiantMessage> for RenderComponent {
-    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<RadiantMessage>>> {
-        &mut self.observers
-    }
-}
-
-impl RadiantObserver<RadiantMessage> for RenderComponent {
-    fn on_notify(&mut self, message: RadiantMessage) {
-        if let Ok(message) = message.try_into() {
-            match message {
-                TransformMessage::HandlePosition(id, position) => {
-                    if id == self.id {
-                        self.set_position(&[position[0], position[1]]);
-                    }
-                }
-                _ => {}
-            }
-        } else if let Ok(message) = message.try_into() {
-            match message {
-                SelectionMessage::HandleSelection(id, selected) => {
-                    if id == self.id {
-                        self.set_selection_color([
-                            ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
-                            ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
-                            ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
-                            if selected { 1.0 } else { 0.0 },
-                        ]);
-                    }
-                }
-                _ => {}
-            }
-        }
     }
 }

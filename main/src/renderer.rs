@@ -1,4 +1,4 @@
-use radiant_core::{RadiantDocumentNode, RadiantNodeRenderable};
+use radiant_core::{RadiantDocumentNode, RadiantRenderable};
 use winit::event::WindowEvent;
 use winit::window::Window;
 
@@ -247,7 +247,7 @@ impl RenderState {
 
         self.queue.submit(Some(encoder.finish()));
 
-        let mut id = 0u64;
+        let id: u64;
 
         // We need to scope the mapping variables so that we can
         // unmap the buffer
