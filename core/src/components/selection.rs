@@ -13,9 +13,7 @@ pub struct SelectionComponent {
 
 impl SelectionComponent {
     pub fn new() -> Self {
-        Self {
-            selected: false,
-        }
+        Self { selected: false }
     }
 
     pub fn is_selected(&self) -> bool {

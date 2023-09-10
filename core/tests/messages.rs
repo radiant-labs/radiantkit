@@ -1,4 +1,4 @@
-use radiant_core::{RadiantMessage, RadiantMessageHandler, RadiantDocumentNode};
+use radiant_core::{RadiantDocumentNode, RadiantMessage, RadiantMessageHandler};
 
 #[test]
 fn test_messages() {

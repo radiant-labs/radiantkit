@@ -1,9 +1,9 @@
 use super::{RadiantNodeType, RadiantRenderable};
+use crate::RadiantScene;
 use crate::{RadiantArtboardNode, RadiantIdentifiable, RadiantSelectable};
 use serde::{Deserialize, Serialize};
-use crate::RadiantScene;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantDocumentNode {
     pub counter: u64,
     pub artboards: Vec<RadiantArtboardNode>,
@@ -61,7 +61,9 @@ impl RadiantDocumentNode {
 }
 
 impl RadiantIdentifiable for RadiantDocumentNode {
-    fn get_id(&self) -> u64 { 0 }
+    fn get_id(&self) -> u64 {
+        0
+    }
 }
 
 impl RadiantSelectable for RadiantDocumentNode {
