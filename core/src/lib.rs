@@ -25,6 +25,8 @@ pub trait RadiantSelectable {
 }
 
 pub trait RadiantRenderable {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene);
+    fn detach(&mut self);
     fn update(&mut self, queue: &mut wgpu::Queue);
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
 }
@@ -57,6 +59,22 @@ impl RadiantSelectable for RadiantNodeType {
 }
 
 impl RadiantNodeType {
+    pub fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+        match self {
+            RadiantNodeType::Document(node) => node.attach_to_scene(scene),
+            RadiantNodeType::Artboard(node) => node.attach_to_scene(scene),
+            RadiantNodeType::Rectangle(node) => node.attach_to_scene(scene),
+        }
+    }
+
+    pub fn detach(&mut self) {
+        match self {
+            RadiantNodeType::Document(node) => node.detach(),
+            RadiantNodeType::Artboard(node) => node.detach(),
+            RadiantNodeType::Rectangle(node) => node.detach(),
+        }
+    }
+
     pub fn update(&mut self, queue: &mut wgpu::Queue) {
         match self {
             RadiantNodeType::Document(node) => node.update(queue),
