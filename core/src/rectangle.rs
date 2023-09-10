@@ -1,8 +1,9 @@
-use crate::{RenderComponent, RadiantMessage, RadiantObserver};
-
-use super::{RadiantNode, RadiantNodeRenderable, RadiantVertex, TransformComponent};
-use std::sync::Arc;
-use wgpu::util::DeviceExt;
+use crate::{RenderComponent, SelectionComponent, RadiantIdentifiable, RadiantSelectable};
+use crate::RadiantMessageHandler;
+use crate::SelectionMessage;
+use crate::TransformMessage;
+use super::{RadiantRenderable, RadiantVertex, TransformComponent};
+use serde::{Deserialize, Serialize};
 
 const VERTICES: &[RadiantVertex] = &[
     RadiantVertex {
@@ -25,12 +26,18 @@ const VERTICES: &[RadiantVertex] = &[
 
 const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum RadiantRectangleMessage {
+    Transform(TransformMessage),
+    Selection(SelectionMessage),
+}
+
 pub struct RadiantRectangleNode {
     pub id: u64,
     pub transform: TransformComponent,
+    pub selection: SelectionComponent,
     pub renderer: RenderComponent,
     pub offscreen_renderer: RenderComponent,
-    observers: Vec<Box<dyn RadiantObserver<RadiantMessage>>>,
 }
 
 impl RadiantRectangleNode {
@@ -40,14 +47,14 @@ impl RadiantRectangleNode {
         config: &wgpu::SurfaceConfiguration,
         position: [f32; 2],
     ) -> Self {
-        let mut transform = TransformComponent::new(id);
+        let mut transform = TransformComponent::new();
         transform.set_xy(&position);
 
-        let mut renderer = RenderComponent::new(id, device, config.format, &VERTICES, &INDICES);
+        let mut renderer = RenderComponent::new( device, config.format, &VERTICES, &INDICES);
         renderer.set_position(&position);
 
         let mut offscreen_renderer =
-            RenderComponent::new(id, device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
+            RenderComponent::new(device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
         offscreen_renderer.set_position(&position);
         offscreen_renderer.set_selection_color([
             ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
@@ -56,28 +63,33 @@ impl RadiantRectangleNode {
             1.0,
         ]);
 
+        let selection = SelectionComponent::new();
+
         Self {
             id,
             transform,
+            selection,
             renderer,
-            offscreen_renderer,
-            observers: Vec::new(),
+            offscreen_renderer
         }
     }
 }
 
-impl RadiantNode for RadiantRectangleNode {
-    fn set_selected(&mut self, selected: bool) {
-        self.renderer
-            .set_selection_color([1.0, 0.0, 0.0, if selected { 1.0 } else { 0.0 }]);
-    }
-
+impl RadiantIdentifiable for RadiantRectangleNode {
     fn get_id(&self) -> u64 {
         return self.id;
     }
 }
 
-impl RadiantNodeRenderable for RadiantRectangleNode {
+impl RadiantSelectable for RadiantRectangleNode {
+    fn set_selected(&mut self, selected: bool) {
+        self.selection.set_selected(selected);
+        self.renderer
+            .set_selection_color([1.0, 0.0, 0.0, if selected { 1.0 } else { 0.0 }]);
+    }
+}
+
+impl RadiantRenderable for RadiantRectangleNode {
     fn update(&mut self, queue: &mut wgpu::Queue) {
         self.renderer.update(queue);
         self.offscreen_renderer.update(queue);
@@ -85,11 +97,27 @@ impl RadiantNodeRenderable for RadiantRectangleNode {
 
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
         log::debug!("Rendering rectangle");
-
         if offscreen {
-            self.offscreen_renderer.render(render_pass, offscreen);
+            self.offscreen_renderer.render(render_pass);
         } else {
-            self.renderer.render(render_pass, offscreen);
+            self.renderer.render(render_pass);
+        }
+    }
+}
+
+impl RadiantMessageHandler<RadiantRectangleMessage> for RadiantRectangleNode {
+    fn handle_message(&mut self, message: RadiantRectangleMessage) {
+        match message {
+            RadiantRectangleMessage::Transform(message) => {
+                self.transform.handle_message(message);
+                self.renderer.set_position(&self.transform.get_xy());
+                self.offscreen_renderer.set_position(&self.transform.get_xy());
+            }
+            RadiantRectangleMessage::Selection(message) => {
+                self.selection.handle_message(message);
+                self.renderer
+                    .set_selection_color([1.0, 0.0, 0.0, if self.selection.is_selected() { 1.0 } else { 0.0 }]);
+            }
         }
     }
 }
