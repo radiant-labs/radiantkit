@@ -1,6 +1,7 @@
 use super::{RadiantNodeType, RadiantRenderable};
 use crate::{RadiantArtboardNode, RadiantIdentifiable, RadiantSelectable};
 use serde::{Deserialize, Serialize};
+use crate::RadiantScene;
 
 #[derive(Serialize, Deserialize)]
 pub struct RadiantDocumentNode {
@@ -68,6 +69,18 @@ impl RadiantSelectable for RadiantDocumentNode {
 }
 
 impl RadiantRenderable for RadiantDocumentNode {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
+            artboard.attach_to_scene(scene);
+        }
+    }
+
+    fn detach(&mut self) {
+        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
+            artboard.detach();
+        }
+    }
+
     fn update(&mut self, queue: &mut wgpu::Queue) {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
             artboard.update(queue);

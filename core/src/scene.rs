@@ -1,6 +1,8 @@
 use crate::{RadiantDocumentNode, RadiantRenderable};
+use crate::RadiantNodeType;
 
 pub struct RadiantScene {
+    pub config: wgpu::SurfaceConfiguration,
     pub surface: wgpu::Surface,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -8,8 +10,9 @@ pub struct RadiantScene {
 }
 
 impl RadiantScene {
-    pub fn new(surface: wgpu::Surface, device: wgpu::Device, queue: wgpu::Queue) -> Self {
+    pub fn new(config: wgpu::SurfaceConfiguration, surface: wgpu::Surface, device: wgpu::Device, queue: wgpu::Queue) -> Self {
         Self {
+            config,
             surface,
             device,
             queue,
@@ -19,6 +22,11 @@ impl RadiantScene {
 }
 
 impl RadiantScene {
+    pub fn add(&mut self, mut node: RadiantNodeType) {
+        node.attach_to_scene(self);
+        self.document.add(node);
+    }
+
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.document.update(&mut self.queue);
 

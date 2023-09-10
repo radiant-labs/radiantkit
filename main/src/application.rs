@@ -7,7 +7,6 @@ pub struct RadiantApp {
     pub size: winit::dpi::PhysicalSize<u32>,
     pub scene: RadiantScene,
 
-    config: wgpu::SurfaceConfiguration,
     offscreen_texture: Option<wgpu::Texture>,
     offscreen_texture_view: Option<wgpu::TextureView>,
     offscreen_buffer: Option<wgpu::Buffer>,
@@ -77,14 +76,13 @@ impl RadiantApp {
         };
         surface.configure(&device, &config);
 
-        let scene = RadiantScene::new(surface, device, queue);
+        let scene = RadiantScene::new(config, surface, device, queue);
         let mouse_position = [0.0, 0.0];
 
         Self {
             window,
             size,
             scene,
-            config,
             mouse_position,
             offscreen_texture: None,
             offscreen_texture_view: None,
@@ -95,9 +93,9 @@ impl RadiantApp {
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if new_size.width > 0 && new_size.height > 0 {
             self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.scene.surface.configure(&self.scene.device, &self.config);
+            self.scene.config.width = new_size.width;
+            self.scene.config.height = new_size.height;
+            self.scene.surface.configure(&self.scene.device, &self.scene.config);
 
             let texture_width = self.size.width;
             let texture_height = self.size.height;
@@ -269,8 +267,6 @@ impl RadiantApp {
                             if button == &MouseButton::Left && is_pressed {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
-                                    &self.scene.device,
-                                    &self.config,
                                     [
                                         (self.mouse_position[0]
                                             / self.size.width as f32
@@ -281,7 +277,7 @@ impl RadiantApp {
                                             * 2.0,
                                     ],
                                 );
-                                self.scene.document.add(RadiantNodeType::Rectangle(node));
+                                self.scene.add(RadiantNodeType::Rectangle(node));
                                 self.window.request_redraw();
                             }
                         }
