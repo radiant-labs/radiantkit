@@ -1,12 +1,12 @@
 pub mod artboard;
 pub mod components;
 pub mod document;
-pub mod rectangle;
+pub mod nodes;
 
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
-pub use rectangle::*;
+pub use nodes::*;
 
 use serde::{Deserialize, Serialize};
 
