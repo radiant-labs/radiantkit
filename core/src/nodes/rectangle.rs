@@ -32,12 +32,15 @@ pub enum RadiantRectangleMessage {
     Selection(SelectionMessage),
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct RadiantRectangleNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
-    pub renderer: RenderComponent,
-    pub offscreen_renderer: RenderComponent,
+    #[serde(skip)]
+    pub renderer: Option<RenderComponent>,
+    #[serde(skip)]
+    pub offscreen_renderer: Option<RenderComponent>,
 }
 
 impl RadiantRectangleNode {
@@ -69,8 +72,8 @@ impl RadiantRectangleNode {
             id,
             transform,
             selection,
-            renderer,
-            offscreen_renderer
+            renderer: Some(renderer),
+            offscreen_renderer: Some(offscreen_renderer)
         }
     }
 }
@@ -84,23 +87,23 @@ impl RadiantIdentifiable for RadiantRectangleNode {
 impl RadiantSelectable for RadiantRectangleNode {
     fn set_selected(&mut self, selected: bool) {
         self.selection.set_selected(selected);
-        self.renderer
-            .set_selection_color([1.0, 0.0, 0.0, if selected { 1.0 } else { 0.0 }]);
+        self.renderer.as_mut().map_or((), |r| 
+            r.set_selection_color([1.0, 0.0, 0.0, if selected { 1.0 } else { 0.0 }]));
     }
 }
 
 impl RadiantRenderable for RadiantRectangleNode {
     fn update(&mut self, queue: &mut wgpu::Queue) {
-        self.renderer.update(queue);
-        self.offscreen_renderer.update(queue);
+        self.renderer.as_mut().map_or((), |r| r.update(queue));
+        self.offscreen_renderer.as_mut().map_or((), |r| r.update(queue));
     }
 
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
         log::debug!("Rendering rectangle");
         if offscreen {
-            self.offscreen_renderer.render(render_pass);
+            self.offscreen_renderer.as_ref().map_or((), |r| r.render(render_pass));
         } else {
-            self.renderer.render(render_pass);
+            self.renderer.as_ref().map_or((), |r| r.render(render_pass));
         }
     }
 }
@@ -110,13 +113,13 @@ impl RadiantMessageHandler<RadiantRectangleMessage> for RadiantRectangleNode {
         match message {
             RadiantRectangleMessage::Transform(message) => {
                 self.transform.handle_message(message);
-                self.renderer.set_position(&self.transform.get_xy());
-                self.offscreen_renderer.set_position(&self.transform.get_xy());
+                // self.renderer.set_position(&self.transform.get_xy());
+                // self.offscreen_renderer.set_position(&self.transform.get_xy());
             }
             RadiantRectangleMessage::Selection(message) => {
                 self.selection.handle_message(message);
-                self.renderer
-                    .set_selection_color([1.0, 0.0, 0.0, if self.selection.is_selected() { 1.0 } else { 0.0 }]);
+                // self.renderer
+                //     .set_selection_color([1.0, 0.0, 0.0, if self.selection.is_selected() { 1.0 } else { 0.0 }]);
             }
         }
     }
