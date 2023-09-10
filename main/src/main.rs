@@ -13,7 +13,9 @@ async fn run() {
     let mut app = radiant_main::RadiantApp::new(window).await;
 
     event_loop.run(move |event, _, control_flow| {
-        app.handle_event(event, control_flow);
+        if let Some(response) = app.handle_event(event, control_flow) {
+            println!("Response: {:?}", response);
+        }
     });
 }
 
