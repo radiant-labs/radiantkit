@@ -2,7 +2,7 @@ use crate::{RenderComponent, SelectionComponent, RadiantIdentifiable, RadiantSel
 use crate::RadiantMessageHandler;
 use crate::SelectionMessage;
 use crate::TransformMessage;
-use super::{RadiantRenderable, RadiantVertex, TransformComponent};
+use crate::{RadiantRenderable, RadiantVertex, TransformComponent};
 use serde::{Deserialize, Serialize};
 
 const VERTICES: &[RadiantVertex] = &[
