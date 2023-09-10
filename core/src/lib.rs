@@ -10,45 +10,65 @@ pub use rectangle::*;
 
 use serde::{Deserialize, Serialize};
 
-pub trait RadiantObserver<M> {
-    fn on_notify(&mut self, message: M);
+pub trait RadiantMessageHandler<M> {
+    fn handle_message(&mut self, message: M);
 }
 
-pub trait RadiantObservable<M> {
-    fn subscribe(&mut self, observer: Box<dyn RadiantObserver<M>>);
-    fn unsubscribe(&mut self, observer: Box<dyn RadiantObserver<M>>);
-    fn notify(&mut self, message: M);
+pub trait RadiantIdentifiable {
+    fn get_id(&self) -> u64;
 }
 
-trait RadiantComponent<M> {
-    fn observers(&mut self) -> &mut Vec<Box<dyn RadiantObserver<M>>>;
+pub trait RadiantSelectable {
+    fn set_selected(&mut self, selected: bool);
 }
 
-impl<M: Copy, T: RadiantComponent<M>> RadiantObservable<M> for T {
-    fn subscribe(&mut self, observer: Box<dyn RadiantObserver<M>>) {
-        self.observers().push(observer);
-    }
-
-    fn unsubscribe(&mut self, observer: Box<dyn RadiantObserver<M>>) {
-        // self.observers().retain(|x| *x != observer);
-    }
-
-    fn notify(&mut self, message: M) {
-        for observer in self.observers() {
-            observer.on_notify(message);
-        }
-    }
-}
-
-pub trait RadiantNodeRenderable {
-    // fn new(device: wgpu::Device, config: wgpu::SurfaceConfiguration) -> Self;
+pub trait RadiantRenderable {
     fn update(&mut self, queue: &mut wgpu::Queue);
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
 }
 
-pub trait RadiantNode: RadiantNodeRenderable  {
-    fn get_id(&self) -> u64;
-    fn set_selected(&mut self, selected: bool);
+pub enum RadiantNodeType {
+    Document(RadiantDocumentNode),
+    Artboard(RadiantArtboardNode),
+    Rectangle(RadiantRectangleNode),
+}
+
+impl RadiantIdentifiable for RadiantNodeType {
+    fn get_id(&self) -> u64 {
+        match self {
+            RadiantNodeType::Document(node) => node.get_id(),
+            RadiantNodeType::Artboard(node) => node.get_id(),
+            RadiantNodeType::Rectangle(node) => node.get_id(),
+        }
+    }
+}
+
+impl RadiantSelectable for RadiantNodeType {
+    fn set_selected(&mut self, selected: bool) {
+        match self {
+            RadiantNodeType::Document(node) => node.set_selected(selected),
+            RadiantNodeType::Artboard(node) => node.set_selected(selected),
+            RadiantNodeType::Rectangle(node) => node.set_selected(selected),
+        }
+    }
+}
+
+impl RadiantNodeType {
+    pub fn update(&mut self, queue: &mut wgpu::Queue) {
+        match self {
+            RadiantNodeType::Document(node) => node.update(queue),
+            RadiantNodeType::Artboard(node) => node.update(queue),
+            RadiantNodeType::Rectangle(node) => node.update(queue),
+        }
+    }
+
+    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
+        match self {
+            RadiantNodeType::Document(node) => node.render(render_pass, offscreen),
+            RadiantNodeType::Artboard(node) => node.render(render_pass, offscreen),
+            RadiantNodeType::Rectangle(node) => node.render(render_pass, offscreen),
+        }
+    }
 }
 
 #[repr(C)]
@@ -74,7 +94,23 @@ impl RadiantVertex {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum RadiantNodeMessage {
+    Rectangle(RadiantRectangleMessage)
+}
+
+impl RadiantMessageHandler<RadiantNodeMessage> for RadiantNodeType {
+    fn handle_message(&mut self, message: RadiantNodeMessage) {
+        match message {
+            RadiantNodeMessage::Rectangle(message) => {
+                if let RadiantNodeType::Rectangle(node) = self {
+                    node.handle_message(message);
+                }
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum RadiantMessage {
-    Transform(TransformMessage),
-    Selection(SelectionMessage),
+    Document(RadiantDocumentMessage),
 }

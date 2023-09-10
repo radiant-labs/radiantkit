@@ -1,5 +1,5 @@
 use super::renderer::RenderState;
-use radiant_core::{RadiantDocumentNode, RadiantNode, RadiantRectangleNode};
+use radiant_core::{RadiantDocumentNode, RadiantNodeType, RadiantRectangleNode};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -57,7 +57,7 @@ impl RadiantApp {
                                 if button == &MouseButton::Left && is_pressed {
                                     log::info!("Left Mouse Button: {:?}", is_pressed);
                                     if let Some(render_state) = &self.render_state {
-                                        let mut node = RadiantRectangleNode::new(
+                                        let node = RadiantRectangleNode::new(
                                             self.document.counter,
                                             &render_state.device,
                                             &render_state.config,
@@ -72,7 +72,7 @@ impl RadiantApp {
                                                     * 2.0,
                                             ],
                                         );
-                                        self.document.add(Box::new(node));
+                                        self.document.add(RadiantNodeType::Rectangle(node));
                                         render_state.window().request_redraw();
                                     }
                                 }
