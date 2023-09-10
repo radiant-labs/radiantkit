@@ -4,6 +4,7 @@ use crate::SelectionMessage;
 use crate::TransformMessage;
 use crate::{RadiantRenderable, RadiantVertex, TransformComponent};
 use serde::{Deserialize, Serialize};
+use crate::RadiantScene;
 
 const VERTICES: &[RadiantVertex] = &[
     RadiantVertex {
@@ -46,25 +47,10 @@ pub struct RadiantRectangleNode {
 impl RadiantRectangleNode {
     pub fn new(
         id: u64,
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
         position: [f32; 2],
     ) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
-
-        let mut renderer = RenderComponent::new( device, config.format, &VERTICES, &INDICES);
-        renderer.set_position(&position);
-
-        let mut offscreen_renderer =
-            RenderComponent::new(device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
-        offscreen_renderer.set_position(&position);
-        offscreen_renderer.set_selection_color([
-            ((id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
-            ((id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
-            ((id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
-            1.0,
-        ]);
 
         let selection = SelectionComponent::new();
 
@@ -72,8 +58,8 @@ impl RadiantRectangleNode {
             id,
             transform,
             selection,
-            renderer: Some(renderer),
-            offscreen_renderer: Some(offscreen_renderer)
+            renderer: None,
+            offscreen_renderer: None
         }
     }
 }
@@ -93,6 +79,29 @@ impl RadiantSelectable for RadiantRectangleNode {
 }
 
 impl RadiantRenderable for RadiantRectangleNode {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+        let mut renderer = RenderComponent::new(&scene.device, scene.config.format, &VERTICES, &INDICES);
+        renderer.set_position(&self.transform.get_xy());
+
+        let mut offscreen_renderer =
+            RenderComponent::new(&scene.device, wgpu::TextureFormat::Rgba8Unorm, &VERTICES, &INDICES);
+        offscreen_renderer.set_position(&self.transform.get_xy());
+        offscreen_renderer.set_selection_color([
+            ((self.id + 1 >> 0) & 0xFF) as f32 / 0xFF as f32,
+            ((self.id + 1 >> 8) & 0xFF) as f32 / 0xFF as f32,
+            ((self.id + 1 >> 16) & 0xFF) as f32 / 0xFF as f32,
+            1.0,
+        ]);
+
+        self.renderer = Some(renderer);
+        self.offscreen_renderer = Some(offscreen_renderer);
+    }
+
+    fn detach(&mut self) {
+        self.renderer = None;
+        self.offscreen_renderer = None;
+    }
+
     fn update(&mut self, queue: &mut wgpu::Queue) {
         self.renderer.as_mut().map_or((), |r| r.update(queue));
         self.offscreen_renderer.as_mut().map_or((), |r| r.update(queue));

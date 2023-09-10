@@ -1,6 +1,7 @@
 use super::{RadiantNodeType, RadiantRenderable, RadiantIdentifiable, RadiantSelectable};
 use std::collections::HashSet;
 use serde::{Deserialize, Serialize};
+use crate::RadiantScene;
 
 #[derive(Serialize, Deserialize)]
 pub struct RadiantArtboardNode {
@@ -54,6 +55,18 @@ impl RadiantSelectable for RadiantArtboardNode {
 }
 
 impl RadiantRenderable for RadiantArtboardNode {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+        for node in &mut self.nodes {
+            node.attach_to_scene(scene);
+        }
+    }
+
+    fn detach(&mut self) {
+        for node in &mut self.nodes {
+            node.detach();
+        }
+    }
+
     fn update(&mut self, queue: &mut wgpu::Queue) {
         for node in &mut self.nodes {
             node.update(queue);
