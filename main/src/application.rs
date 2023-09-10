@@ -1,4 +1,7 @@
-use radiant_core::{RadiantNodeType, RadiantRectangleNode, RadiantScene, RadiantRenderable};
+use radiant_core::{
+    RadiantMessage, RadiantNodeType, RadiantRectangleNode, RadiantRenderable, RadiantResponse,
+    RadiantScene,
+};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -95,7 +98,9 @@ impl RadiantApp {
             self.size = new_size;
             self.scene.config.width = new_size.width;
             self.scene.config.height = new_size.height;
-            self.scene.surface.configure(&self.scene.device, &self.scene.config);
+            self.scene
+                .surface
+                .configure(&self.scene.device, &self.scene.config);
 
             let texture_width = self.size.width;
             let texture_height = self.size.height;
@@ -141,13 +146,14 @@ impl RadiantApp {
 
     pub async fn select(&self) -> u64 {
         log::info!("Selecting...");
-    
+
         let texture_width = self.size.width;
         let texture_height = self.size.height;
         let u32_size = std::mem::size_of::<u32>() as u32;
 
-        let mut encoder = self.
-            scene.device
+        let mut encoder = self
+            .scene
+            .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         {
@@ -221,9 +227,10 @@ impl RadiantApp {
             let index = (posy * texture_width * 4 + posx * 4) as usize;
 
             id = *data.get(index).unwrap() as u64;
-            id += (*data.get(index+1).unwrap() as u64) << 8;
-            id += (*data.get(index+2).unwrap() as u64) << 16;
-            log::info!("id: {}", id);
+            id += (*data.get(index + 1).unwrap() as u64) << 8;
+            id += (*data.get(index + 2).unwrap() as u64) << 16;
+
+            // log::info!("id: {}", id);
 
             // use image::{ImageBuffer, Rgba};
             // let buffer =
@@ -234,10 +241,14 @@ impl RadiantApp {
         }
         self.offscreen_buffer.as_ref().unwrap().unmap();
 
-        id   
+        id
     }
 
-    pub fn handle_event(&mut self, event: Event<()>, control_flow: &mut ControlFlow) {
+    pub fn handle_event(
+        &mut self,
+        event: Event<()>,
+        control_flow: &mut ControlFlow,
+    ) -> Option<RadiantResponse> {
         log::debug!("Event: {:?}", event);
         match event {
             Event::WindowEvent {
@@ -268,12 +279,9 @@ impl RadiantApp {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
                                     [
-                                        (self.mouse_position[0]
-                                            / self.size.width as f32
-                                            - 0.5)
+                                        (self.mouse_position[0] / self.size.width as f32 - 0.5)
                                             * 2.0,
-                                        (0.5 - self.mouse_position[1]
-                                            / self.size.height as f32)
+                                        (0.5 - self.mouse_position[1] / self.size.height as f32)
                                             * 2.0,
                                     ],
                                 );
@@ -283,11 +291,10 @@ impl RadiantApp {
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             self.mouse_position = [position.x as f32, position.y as f32];
-                            let id = pollster::block_on(
-                                self.select(),
-                            );
+                            let id = pollster::block_on(self.select());
                             if id > 0 {
-                                self.scene.document.select(id - 1);
+                                let message = RadiantMessage::SelectNode(id - 1);
+                                return self.scene.handle_message(message);
                             }
                         }
                         _ => {}
@@ -307,5 +314,12 @@ impl RadiantApp {
             }
             _ => {}
         }
+        None
+    }
+}
+
+impl RadiantApp {
+    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+        self.scene.handle_message(message)
     }
 }

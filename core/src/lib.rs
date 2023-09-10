@@ -1,14 +1,14 @@
 pub mod artboard;
 pub mod components;
 pub mod document;
-pub mod scene;
 pub mod nodes;
+pub mod scene;
 
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
-pub use scene::*;
 pub use nodes::*;
+pub use scene::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +31,7 @@ pub trait RadiantRenderable {
     fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantNodeType {
     Document(RadiantDocumentNode),
     Artboard(RadiantArtboardNode),
@@ -116,7 +116,7 @@ impl RadiantVertex {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum RadiantNodeMessage {
-    Rectangle(RadiantRectangleMessage)
+    Rectangle(RadiantRectangleMessage),
 }
 
 impl RadiantMessageHandler<RadiantNodeMessage> for RadiantNodeType {
@@ -141,8 +141,13 @@ pub enum RadiantMessage {
     Rectangle(u64, RadiantRectangleMessage),
 }
 
-impl RadiantMessageHandler<RadiantMessage> for RadiantDocumentNode {
-    fn handle_message(&mut self, message: RadiantMessage) {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantResponse {
+    NodeSelected(RadiantNodeType),
+}
+
+impl RadiantDocumentNode {
+    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
         match message {
             RadiantMessage::AddArtboard => {
                 self.add_artboard();
@@ -152,6 +157,9 @@ impl RadiantMessageHandler<RadiantMessage> for RadiantDocumentNode {
             }
             RadiantMessage::SelectNode(id) => {
                 self.select(id);
+                if let Some(node) = self.get_node(id) {
+                    return Some(RadiantResponse::NodeSelected(node.clone()));
+                }
             }
             RadiantMessage::Rectangle(id, message) => {
                 if let Some(node) = self.get_node_mut(id) {
@@ -159,11 +167,12 @@ impl RadiantMessageHandler<RadiantMessage> for RadiantDocumentNode {
                 }
             }
         }
+        None
     }
 }
 
-impl RadiantMessageHandler<RadiantMessage> for RadiantScene {
-    fn handle_message(&mut self, message: RadiantMessage) {
-        self.document.handle_message(message);
+impl RadiantScene {
+    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+        self.document.handle_message(message)
     }
 }

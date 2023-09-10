@@ -1,9 +1,9 @@
-use super::{RadiantNodeType, RadiantRenderable, RadiantIdentifiable, RadiantSelectable};
-use std::collections::HashSet;
-use serde::{Deserialize, Serialize};
+use super::{RadiantIdentifiable, RadiantNodeType, RadiantRenderable, RadiantSelectable};
 use crate::RadiantScene;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {
     pub is_active: bool,
     pub nodes: Vec<RadiantNodeType>,
@@ -45,7 +45,9 @@ impl RadiantArtboardNode {
 }
 
 impl RadiantIdentifiable for RadiantArtboardNode {
-    fn get_id(&self) -> u64 { 0 }
+    fn get_id(&self) -> u64 {
+        0
+    }
 }
 
 impl RadiantSelectable for RadiantArtboardNode {

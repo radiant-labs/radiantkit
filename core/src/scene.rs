@@ -1,5 +1,5 @@
-use crate::{RadiantDocumentNode, RadiantRenderable};
 use crate::RadiantNodeType;
+use crate::{RadiantDocumentNode, RadiantRenderable};
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -10,7 +10,12 @@ pub struct RadiantScene {
 }
 
 impl RadiantScene {
-    pub fn new(config: wgpu::SurfaceConfiguration, surface: wgpu::Surface, device: wgpu::Device, queue: wgpu::Queue) -> Self {
+    pub fn new(
+        config: wgpu::SurfaceConfiguration,
+        surface: wgpu::Surface,
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+    ) -> Self {
         Self {
             config,
             surface,
