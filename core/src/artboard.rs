@@ -1,13 +1,8 @@
-use super::{RadiantNodeType, RadiantRenderable, RadiantMessageHandler, RadiantNodeMessage, RadiantIdentifiable, RadiantSelectable};
+use super::{RadiantNodeType, RadiantRenderable, RadiantIdentifiable, RadiantSelectable};
 use std::collections::HashSet;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantArtboardMessage {
-    SelectNode(u64),
-    Node(u64, RadiantNodeMessage),
-}
-
+#[derive(Serialize, Deserialize)]
 pub struct RadiantArtboardNode {
     pub is_active: bool,
     pub nodes: Vec<RadiantNodeType>,
@@ -38,6 +33,14 @@ impl RadiantArtboardNode {
         }
         self.selected_node_ids.insert(id);
     }
+
+    pub fn get_node(&self, id: u64) -> Option<&RadiantNodeType> {
+        self.nodes.get(id as usize)
+    }
+
+    pub fn get_node_mut(&mut self, id: u64) -> Option<&mut RadiantNodeType> {
+        self.nodes.get_mut(id as usize)
+    }
 }
 
 impl RadiantIdentifiable for RadiantArtboardNode {
@@ -61,21 +64,6 @@ impl RadiantRenderable for RadiantArtboardNode {
         log::debug!("Rendering artboard");
         for node in &self.nodes {
             node.render(render_pass, offscreen);
-        }
-    }
-}
-
-impl RadiantMessageHandler<RadiantArtboardMessage> for RadiantArtboardNode {
-    fn handle_message(&mut self, message: RadiantArtboardMessage) {
-        match message {
-            RadiantArtboardMessage::SelectNode(id) => {
-                self.select(id);
-            }
-            RadiantArtboardMessage::Node(id, message) => {
-                if let Some(node) = self.nodes.get_mut(id as usize) {
-                    node.handle_message(message);
-                }
-            }
         }
     }
 }

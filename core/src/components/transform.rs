@@ -7,6 +7,7 @@ pub enum TransformMessage {
     SetScale([f32; 3]),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TransformComponent {
     position: [f32; 3],
     scale: [f32; 3],

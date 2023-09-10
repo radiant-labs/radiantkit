@@ -6,6 +6,7 @@ pub enum SelectionMessage {
     SetSelected(bool),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SelectionComponent {
     selected: bool,
 }
