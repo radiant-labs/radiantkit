@@ -10,8 +10,7 @@ async fn run() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let mut app = radiant_main::RadiantApp::default();
-    app.init(window).await;
+    let mut app = radiant_main::RadiantApp::new(window).await;
 
     event_loop.run(move |event, _, control_flow| {
         app.handle_event(event, control_flow);

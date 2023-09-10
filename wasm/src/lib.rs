@@ -65,8 +65,7 @@ async fn run() {
         })
         .expect("Couldn't append canvas to document body.");
 
-    let mut app = radiant_main::RadiantApp::default();
-    app.init(window).await;
+    let mut app = radiant_main::RadiantApp::new(window).await;
 
     event_loop.spawn(move |event, _, control_flow| {
         app.handle_event(event, control_flow);
