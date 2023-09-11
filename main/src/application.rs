@@ -1,6 +1,6 @@
 use radiant_core::{
     RadiantMessage, RadiantNodeType, RadiantRectangleNode, RadiantRenderable, RadiantResponse,
-    RadiantScene, RadiantTool
+    RadiantScene, RadiantTool,
 };
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
@@ -275,7 +275,10 @@ impl RadiantApp {
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
                             let is_pressed = *state == ElementState::Pressed;
-                            if button == &MouseButton::Left && is_pressed && self.scene.tool == RadiantTool::Rectangle {
+                            if button == &MouseButton::Left
+                                && is_pressed
+                                && self.scene.tool == RadiantTool::Rectangle
+                            {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
                                     [
