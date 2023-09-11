@@ -4,8 +4,8 @@ import './App.css';
 let controller: RadiantAppController | null = null;
 
 function App() {
-  const helloFromWasm = async () => {
-    console.log("Hello from wasm");
+  const initWasm = async () => {
+    console.log("Initializing wasm");
     try {
       await init();
       controller = await new RadiantAppController((message: string) => {
@@ -17,16 +17,23 @@ function App() {
     }
   };
 
-  const selectFirstNode = async () => {
+  const select = async () => {
     controller && controller.handleMessage({
-      RadiantMessage: "Render"
+      SelectTool: "Selection"
+    });
+  }
+
+  const rect = async () => {
+    controller && controller.handleMessage({
+      SelectTool: "Rectangle"
     });
   }
   
   return (
     <div>
-      <button onClick={() => helloFromWasm()}>Hello</button>
-      <button onClick={() => selectFirstNode()}>Select</button>
+      <button onClick={() => initWasm()}>Init</button>
+      <button onClick={() => select()}>Select</button>
+      <button onClick={() => rect()}>Rectangle</button>
     </div>
   );
 }
