@@ -18,7 +18,7 @@ pub struct RadiantApp {
 }
 
 impl RadiantApp {
-    pub async fn new(window: Window) -> Self {
+    pub async fn new(window: Window, handler: Box<dyn Fn(RadiantResponse)>) -> Self {
         let size = window.inner_size();
 
         // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
@@ -79,7 +79,7 @@ impl RadiantApp {
         };
         surface.configure(&device, &config);
 
-        let scene = RadiantScene::new(config, surface, device, queue);
+        let scene = RadiantScene::new(config, surface, device, queue, handler);
         let mouse_position = [0.0, 0.0];
 
         Self {
