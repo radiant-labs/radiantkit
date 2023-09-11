@@ -3,12 +3,14 @@ pub mod components;
 pub mod document;
 pub mod nodes;
 pub mod scene;
+pub mod tools;
 
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
 pub use nodes::*;
 pub use scene::*;
+pub use tools::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -139,6 +141,8 @@ pub enum RadiantMessage {
     SelectNode(u64),
 
     Rectangle(u64, RadiantRectangleMessage),
+
+    SelectTool(RadiantTool),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -146,33 +150,30 @@ pub enum RadiantResponse {
     NodeSelected(RadiantNodeType),
 }
 
-impl RadiantDocumentNode {
+impl RadiantScene {
     pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
         match message {
             RadiantMessage::AddArtboard => {
-                self.add_artboard();
+                self.document.add_artboard();
             }
             RadiantMessage::SelectArtboard(id) => {
-                self.set_active_artboard(id);
+                self.document.set_active_artboard(id);
             }
             RadiantMessage::SelectNode(id) => {
-                self.select(id);
-                if let Some(node) = self.get_node(id) {
+                self.document.select(id);
+                if let Some(node) = self.document.get_node(id) {
                     return Some(RadiantResponse::NodeSelected(node.clone()));
                 }
             }
             RadiantMessage::Rectangle(id, message) => {
-                if let Some(node) = self.get_node_mut(id) {
+                if let Some(node) = self.document.get_node_mut(id) {
                     node.handle_message(RadiantNodeMessage::Rectangle(message));
                 }
             }
+            RadiantMessage::SelectTool(tool) => {
+                self.tool = tool;
+            }
         }
         None
-    }
-}
-
-impl RadiantScene {
-    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        self.document.handle_message(message)
     }
 }
