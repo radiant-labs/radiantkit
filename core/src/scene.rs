@@ -1,5 +1,5 @@
-use crate::{RadiantNodeType, RadiantTool, RadiantResponse};
-use crate::{RadiantDocumentNode, RadiantRenderable, RadiantIdentifiable, RadiantMessage};
+use crate::{RadiantDocumentNode, RadiantIdentifiable, RadiantMessage, RadiantRenderable};
+use crate::{RadiantNodeType, RadiantResponse, RadiantTool};
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -17,7 +17,7 @@ impl RadiantScene {
         surface: wgpu::Surface,
         device: wgpu::Device,
         queue: wgpu::Queue,
-        handler: Box<dyn Fn(RadiantResponse)>
+        handler: Box<dyn Fn(RadiantResponse)>,
     ) -> Self {
         Self {
             config,
@@ -36,7 +36,7 @@ impl RadiantScene {
         let id = node.get_id();
         node.attach_to_scene(self);
         self.document.add(node);
-        
+
         let response = self.handle_message(RadiantMessage::SelectNode(id));
         self.handle_response(response);
     }
