@@ -1,6 +1,6 @@
 use radiant_core::{
     RadiantMessage, RadiantNodeType, RadiantRectangleNode, RadiantRenderable, RadiantResponse,
-    RadiantScene,
+    RadiantScene, RadiantTool
 };
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
@@ -275,7 +275,7 @@ impl RadiantApp {
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
                             let is_pressed = *state == ElementState::Pressed;
-                            if button == &MouseButton::Left && is_pressed {
+                            if button == &MouseButton::Left && is_pressed && self.scene.tool == RadiantTool::Rectangle {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
                                     [
@@ -291,10 +291,12 @@ impl RadiantApp {
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             self.mouse_position = [position.x as f32, position.y as f32];
-                            let id = pollster::block_on(self.select());
-                            if id > 0 {
-                                let message = RadiantMessage::SelectNode(id - 1);
-                                return self.scene.handle_message(message);
+                            if self.scene.tool == RadiantTool::Selection {
+                                let id = pollster::block_on(self.select());
+                                if id > 0 {
+                                    let message = RadiantMessage::SelectNode(id - 1);
+                                    return self.scene.handle_message(message);
+                                }
                             }
                         }
                         _ => {}

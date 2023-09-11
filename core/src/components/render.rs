@@ -31,7 +31,7 @@ struct FragmentUniform {
 impl FragmentUniform {
     fn new() -> Self {
         Self {
-            selected: [1.0, 0.0, 0.0, 1.0],
+            selected: [0.5, 0.0, 0.5, 1.0],
         }
     }
 }

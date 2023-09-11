@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use radiant_main::{RadiantApp, RadiantMessage};
+use radiant_main::{RadiantApp, RadiantMessage, RadiantTool};
 use wasm_bindgen::prelude::*;
 use winit::platform::web::EventLoopExtWebSys;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
@@ -62,11 +62,14 @@ impl RadiantAppController {
 
     #[wasm_bindgen(js_name = handleMessage)]
     pub fn handle_message(&mut self, message: JsValue) {
+        let v = serde_wasm_bindgen::to_value(&RadiantMessage::SelectTool(RadiantTool::Selection)).unwrap();
+        log::info!("Tried: {:?}", v);
         log::info!("Received message: {:?}", message);
         // let v: RadiantMessage = serde_wasm_bindgen::from_value(message).unwrap();
-        let v = RadiantMessage::SelectNode(0);
-        if let Ok(mut app) = self.app.write() {
-            app.handle_message(v);
+        if let Ok(message) =  serde_wasm_bindgen::from_value(message) {
+            if let Ok(mut app) = self.app.write() {
+                app.handle_message(message);
+            }
         }
     }
 }

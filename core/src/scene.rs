@@ -1,5 +1,5 @@
-use crate::RadiantNodeType;
-use crate::{RadiantDocumentNode, RadiantRenderable};
+use crate::{RadiantNodeType, RadiantTool};
+use crate::{RadiantDocumentNode, RadiantRenderable, RadiantIdentifiable};
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -7,6 +7,7 @@ pub struct RadiantScene {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub document: RadiantDocumentNode,
+    pub tool: RadiantTool,
 }
 
 impl RadiantScene {
@@ -22,14 +23,17 @@ impl RadiantScene {
             device,
             queue,
             document: RadiantDocumentNode::new(),
+            tool: RadiantTool::Selection,
         }
     }
 }
 
 impl RadiantScene {
     pub fn add(&mut self, mut node: RadiantNodeType) {
+        let id = node.get_id();
         node.attach_to_scene(self);
         self.document.add(node);
+        self.document.select(id);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
