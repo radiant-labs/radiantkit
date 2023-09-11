@@ -1,5 +1,5 @@
-use crate::{RadiantNodeType, RadiantTool};
-use crate::{RadiantDocumentNode, RadiantRenderable, RadiantIdentifiable};
+use crate::{RadiantNodeType, RadiantTool, RadiantResponse};
+use crate::{RadiantDocumentNode, RadiantRenderable, RadiantIdentifiable, RadiantMessage};
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -8,6 +8,7 @@ pub struct RadiantScene {
     pub queue: wgpu::Queue,
     pub document: RadiantDocumentNode,
     pub tool: RadiantTool,
+    pub handler: Box<dyn Fn(RadiantResponse)>,
 }
 
 impl RadiantScene {
@@ -16,6 +17,7 @@ impl RadiantScene {
         surface: wgpu::Surface,
         device: wgpu::Device,
         queue: wgpu::Queue,
+        handler: Box<dyn Fn(RadiantResponse)>
     ) -> Self {
         Self {
             config,
@@ -24,6 +26,7 @@ impl RadiantScene {
             queue,
             document: RadiantDocumentNode::new(),
             tool: RadiantTool::Selection,
+            handler,
         }
     }
 }
@@ -33,7 +36,9 @@ impl RadiantScene {
         let id = node.get_id();
         node.attach_to_scene(self);
         self.document.add(node);
-        self.document.select(id);
+        
+        let response = self.handle_message(RadiantMessage::SelectNode(id));
+        self.handle_response(response);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -78,5 +83,11 @@ impl RadiantScene {
         output.present();
 
         Ok(())
+    }
+
+    fn handle_response(&self, response: Option<RadiantResponse>) {
+        if let Some(response) = response {
+            (self.handler)(response);
+        }
     }
 }
