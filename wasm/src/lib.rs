@@ -51,7 +51,7 @@ impl RadiantAppController {
         event_loop.spawn(move |event, _, control_flow| {
             if let Some(app) = weak_app.upgrade() {
                 if let Ok(mut app) = app.write() {
-                    if let Some(response) = app.handle_event(event, control_flow) {
+                    if let Some(response) = app.handle_event(&event, control_flow) {
                         let this = JsValue::null();
                         let _ = f3.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
                     }

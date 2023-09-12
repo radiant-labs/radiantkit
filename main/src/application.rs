@@ -246,7 +246,7 @@ impl RadiantApp {
 
     pub fn handle_event(
         &mut self,
-        event: Event<()>,
+        event: &Event<()>,
         control_flow: &mut ControlFlow,
     ) -> Option<RadiantResponse> {
         log::debug!("Event: {:?}", event);
@@ -254,7 +254,7 @@ impl RadiantApp {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == self.window.id() => {
+            } if window_id == &self.window.id() => {
                 if !self.input(event) {
                     match event {
                         WindowEvent::CloseRequested
@@ -306,7 +306,7 @@ impl RadiantApp {
                     }
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == self.window.id() => {
+            Event::RedrawRequested(window_id) if window_id == &self.window.id() => {
                 match self.scene.render() {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => self.resize(self.size),
