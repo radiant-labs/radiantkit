@@ -9,6 +9,9 @@ pub struct RadiantScene {
     pub document: RadiantDocumentNode,
     pub tool: RadiantTool,
     pub handler: Box<dyn Fn(RadiantResponse)>,
+
+    pub current_texture: Option<wgpu::SurfaceTexture>,
+    pub current_view: Option<wgpu::TextureView>,
 }
 
 impl RadiantScene {
@@ -27,6 +30,9 @@ impl RadiantScene {
             document: RadiantDocumentNode::new(),
             tool: RadiantTool::Selection,
             handler,
+
+            current_texture: None,
+            current_view: None,
         }
     }
 }
@@ -80,7 +86,15 @@ impl RadiantScene {
 
         // submit will accept anything that implements IntoIter
         self.queue.submit(std::iter::once(encoder.finish()));
+
+        #[cfg(target_arch = "wasm32")]
         output.present();
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            self.current_texture = Some(output);
+            self.current_view = Some(view);
+        }
 
         Ok(())
     }
