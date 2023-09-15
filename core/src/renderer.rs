@@ -1,11 +1,11 @@
-use wgpu::util::DeviceExt;
-use epaint::{Vertex, Primitive};
-use std::ops::Range;
+use crate::ScreenDescriptor;
+use epaint::emath::NumExt;
+use epaint::{Primitive, Vertex};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::num::NonZeroU64;
-use crate::ScreenDescriptor;
-use std::borrow::Cow;
-use epaint::emath::NumExt;
+use std::ops::Range;
+use wgpu::util::DeviceExt;
 
 /// Uniform buffer used when rendering.
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -221,7 +221,13 @@ impl RadiantRenderer {
         }
     }
 
-    pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor, paint_jobs: &[epaint::ClippedPrimitive]) {
+    pub fn update_buffers(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        screen_descriptor: &ScreenDescriptor,
+        paint_jobs: &[epaint::ClippedPrimitive],
+    ) {
         let screen_size_in_points = screen_descriptor.screen_size_in_points();
 
         let uniform_buffer_content = UniformBuffer {
@@ -441,7 +447,12 @@ impl RadiantRenderer {
         };
     }
 
-    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, paint_jobs: &'a [epaint::ClippedPrimitive]) {
+    pub fn render<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        screen_descriptor: &ScreenDescriptor,
+        paint_jobs: &'a [epaint::ClippedPrimitive],
+    ) {
         let pixels_per_point = screen_descriptor.pixels_per_point;
         let size_in_pixels = screen_descriptor.size_in_pixels;
 
