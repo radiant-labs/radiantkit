@@ -1,9 +1,9 @@
 use super::{RadiantIdentifiable, RadiantNodeType, RadiantRenderable, RadiantSelectable};
 use crate::RadiantScene;
+use crate::ScreenDescriptor;
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use crate::ScreenDescriptor;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {

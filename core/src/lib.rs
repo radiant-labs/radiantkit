@@ -2,18 +2,18 @@ pub mod artboard;
 pub mod components;
 pub mod document;
 pub mod nodes;
+pub mod renderer;
 pub mod scene;
 pub mod tools;
-pub mod renderer;
 
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
 use epaint::ClippedPrimitive;
 pub use nodes::*;
+pub use renderer::*;
 pub use scene::*;
 pub use tools::*;
-pub use renderer::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -58,6 +58,7 @@ pub enum RadiantNodeType {
     Document(RadiantDocumentNode),
     Artboard(RadiantArtboardNode),
     Rectangle(RadiantRectangleNode),
+    Path(RadiantPathNode),
 }
 
 impl RadiantIdentifiable for RadiantNodeType {
@@ -66,6 +67,7 @@ impl RadiantIdentifiable for RadiantNodeType {
             RadiantNodeType::Document(node) => node.get_id(),
             RadiantNodeType::Artboard(node) => node.get_id(),
             RadiantNodeType::Rectangle(node) => node.get_id(),
+            RadiantNodeType::Path(node) => node.get_id(),
         }
     }
 }
@@ -76,6 +78,7 @@ impl RadiantSelectable for RadiantNodeType {
             RadiantNodeType::Document(node) => node.set_selected(selected),
             RadiantNodeType::Artboard(node) => node.set_selected(selected),
             RadiantNodeType::Rectangle(node) => node.set_selected(selected),
+            RadiantNodeType::Path(node) => node.set_selected(selected),
         }
     }
 }
@@ -86,6 +89,7 @@ impl RadiantNodeType {
             RadiantNodeType::Document(node) => node.attach_to_scene(scene),
             RadiantNodeType::Artboard(node) => node.attach_to_scene(scene),
             RadiantNodeType::Rectangle(node) => node.attach_to_scene(scene),
+            RadiantNodeType::Path(node) => node.attach_to_scene(scene),
         }
     }
 
@@ -94,6 +98,7 @@ impl RadiantNodeType {
             RadiantNodeType::Document(node) => node.detach(),
             RadiantNodeType::Artboard(node) => node.detach(),
             RadiantNodeType::Rectangle(node) => node.detach(),
+            RadiantNodeType::Path(node) => node.detach(),
         }
     }
 
@@ -101,11 +106,20 @@ impl RadiantNodeType {
         match self {
             RadiantNodeType::Document(node) => vec![],
             RadiantNodeType::Artboard(node) => vec![],
-            RadiantNodeType::Rectangle(node) => if selection { 
-                node.selection_primitives.clone() 
-            } else { 
-                node.primitives.clone() 
-            },
+            RadiantNodeType::Rectangle(node) => {
+                if selection {
+                    node.selection_primitives.clone()
+                } else {
+                    node.primitives.clone()
+                }
+            }
+            RadiantNodeType::Path(node) => {
+                if selection {
+                    node.selection_primitives.clone()
+                } else {
+                    node.primitives.clone()
+                }
+            }
         }
     }
 }
@@ -113,6 +127,7 @@ impl RadiantNodeType {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum RadiantNodeMessage {
     Rectangle(RadiantRectangleMessage),
+    Path(RadiantPathMessage),
 }
 
 impl RadiantMessageHandler<RadiantNodeMessage> for RadiantNodeType {
@@ -120,6 +135,11 @@ impl RadiantMessageHandler<RadiantNodeMessage> for RadiantNodeType {
         match message {
             RadiantNodeMessage::Rectangle(message) => {
                 if let RadiantNodeType::Rectangle(node) = self {
+                    node.handle_message(message);
+                }
+            }
+            RadiantNodeMessage::Path(message) => {
+                if let RadiantNodeType::Path(node) = self {
                     node.handle_message(message);
                 }
             }
@@ -135,6 +155,7 @@ pub enum RadiantMessage {
     SelectNode(u64),
 
     Rectangle(u64, RadiantRectangleMessage),
+    Path(u64, RadiantPathMessage),
 
     SelectTool(RadiantTool),
 }
@@ -162,6 +183,11 @@ impl RadiantScene {
             RadiantMessage::Rectangle(id, message) => {
                 if let Some(node) = self.document.get_node_mut(id) {
                     node.handle_message(RadiantNodeMessage::Rectangle(message));
+                }
+            }
+            RadiantMessage::Path(id, message) => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    node.handle_message(RadiantNodeMessage::Path(message));
                 }
             }
             RadiantMessage::SelectTool(tool) => {

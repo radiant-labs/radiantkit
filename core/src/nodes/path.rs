@@ -16,13 +16,13 @@ use epaint::Vertex;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantRectangleMessage {
+pub enum RadiantPathMessage {
     Transform(TransformMessage),
     Selection(SelectionMessage),
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct RadiantRectangleNode {
+pub struct RadiantPathNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
@@ -34,7 +34,7 @@ pub struct RadiantRectangleNode {
     pub pixels_per_point: f32,
 }
 
-impl Clone for RadiantRectangleNode {
+impl Clone for RadiantPathNode {
     fn clone(&self) -> Self {
         Self {
             id: self.id,
@@ -47,9 +47,9 @@ impl Clone for RadiantRectangleNode {
     }
 }
 
-impl Debug for RadiantRectangleNode {
+impl Debug for RadiantPathNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RadiantRectangleNode")
+        f.debug_struct("RadiantPathNode")
             .field("id", &self.id)
             .field("transform", &self.transform)
             .field("selection", &self.selection)
@@ -57,7 +57,7 @@ impl Debug for RadiantRectangleNode {
     }
 }
 
-impl RadiantRectangleNode {
+impl RadiantPathNode {
     pub fn new(id: u64, position: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
@@ -89,6 +89,24 @@ impl RadiantRectangleNode {
                 position[1] / self.pixels_per_point + 200.0,
             ),
         );
+        let points = vec![
+            epaint::Pos2::new(
+                position[0] / self.pixels_per_point,
+                position[1] / self.pixels_per_point,
+            ),
+            epaint::Pos2::new(
+                position[0] / self.pixels_per_point + 200.0,
+                position[1] / self.pixels_per_point + 200.0,
+            ),
+            epaint::Pos2::new(
+                position[0] / self.pixels_per_point,
+                position[1] / self.pixels_per_point + 400.0,
+            ),
+            epaint::Pos2::new(
+                position[0] / self.pixels_per_point - 200.0,
+                position[1] / self.pixels_per_point + 200.0,
+            ),
+        ];
         let rounding = epaint::Rounding::default();
 
         log::info!("tessellate {}", self.selection.is_selected());
@@ -97,10 +115,11 @@ impl RadiantRectangleNode {
         } else {
             epaint::Color32::LIGHT_RED
         };
-        let rect_shape = epaint::RectShape::filled(rect, rounding, color);
+        let stroke = epaint::Stroke::new(1.0, color);
+        let path_shape = epaint::PathShape::convex_polygon(points.clone(), color, stroke);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
-            epaint::Shape::Rect(rect_shape),
+            epaint::Shape::Path(path_shape),
         )];
         self.primitives = epaint::tessellator::tessellate_shapes(
             self.pixels_per_point,
@@ -115,10 +134,11 @@ impl RadiantRectangleNode {
             (self.id + 1 >> 8) as u8 & 0xFF,
             (self.id + 1 >> 16) as u8 & 0xFF,
         );
-        let rect_shape = epaint::RectShape::filled(rect, rounding, color);
+        let stroke = epaint::Stroke::new(1.0, color);
+        let path_shape = epaint::PathShape::convex_polygon(points, color, stroke);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
-            epaint::Shape::Rect(rect_shape),
+            epaint::Shape::Path(path_shape),
         )];
         self.selection_primitives = epaint::tessellator::tessellate_shapes(
             self.pixels_per_point,
@@ -130,20 +150,20 @@ impl RadiantRectangleNode {
     }
 }
 
-impl RadiantIdentifiable for RadiantRectangleNode {
+impl RadiantIdentifiable for RadiantPathNode {
     fn get_id(&self) -> u64 {
         return self.id;
     }
 }
 
-impl RadiantSelectable for RadiantRectangleNode {
+impl RadiantSelectable for RadiantPathNode {
     fn set_selected(&mut self, selected: bool) {
         self.selection.set_selected(selected);
         self.tessellate();
     }
 }
 
-impl RadiantRenderable for RadiantRectangleNode {
+impl RadiantRenderable for RadiantPathNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
         self.pixels_per_point = scene.screen_descriptor.pixels_per_point;
         self.tessellate();
@@ -154,16 +174,16 @@ impl RadiantRenderable for RadiantRectangleNode {
     }
 }
 
-impl RadiantMessageHandler<RadiantRectangleMessage> for RadiantRectangleNode {
-    fn handle_message(&mut self, message: RadiantRectangleMessage) {
+impl RadiantMessageHandler<RadiantPathMessage> for RadiantPathNode {
+    fn handle_message(&mut self, message: RadiantPathMessage) {
         match message {
-            RadiantRectangleMessage::Transform(message) => {
+            RadiantPathMessage::Transform(message) => {
                 self.transform.handle_message(message);
                 self.tessellate();
                 // self.renderer.set_position(&self.transform.get_xy());
                 // self.offscreen_renderer.set_position(&self.transform.get_xy());
             }
-            RadiantRectangleMessage::Selection(message) => {
+            RadiantPathMessage::Selection(message) => {
                 self.selection.handle_message(message);
                 self.tessellate();
                 // self.renderer

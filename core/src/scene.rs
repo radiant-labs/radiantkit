@@ -1,10 +1,12 @@
-use epaint::Fonts;
 use epaint::text::FontDefinitions;
+use epaint::Fonts;
 use wgpu::TextureView;
 
-use crate::{RadiantDocumentNode, RadiantIdentifiable, RadiantMessage, RadiantRenderable, RadiantRenderer};
-use crate::{RadiantNodeType, RadiantResponse, RadiantTool};
 use crate::ScreenDescriptor;
+use crate::{
+    RadiantDocumentNode, RadiantIdentifiable, RadiantMessage, RadiantRenderable, RadiantRenderer,
+};
+use crate::{RadiantNodeType, RadiantResponse, RadiantTool};
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -35,12 +37,12 @@ impl RadiantScene {
         screen_descriptor: ScreenDescriptor,
         handler: Box<dyn Fn(RadiantResponse)>,
     ) -> Self {
-
         let font_definitions = FontDefinitions::default();
         let fonts = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
 
         let renderer = RadiantRenderer::new(&device, config.format, None, 1);
-        let offscreen_renderer = RadiantRenderer::new(&device, wgpu::TextureFormat::Rgba8Unorm, None, 1);
+        let offscreen_renderer =
+            RadiantRenderer::new(&device, wgpu::TextureFormat::Rgba8Unorm, None, 1);
 
         Self {
             config,
@@ -59,7 +61,7 @@ impl RadiantScene {
             fonts,
 
             renderer,
-            offscreen_renderer
+            offscreen_renderer,
         }
     }
 }
@@ -70,28 +72,52 @@ impl RadiantScene {
         node.attach_to_scene(self);
         self.document.add(node);
 
-        self.fonts.begin_frame(self.screen_descriptor.pixels_per_point, 1600);
+        self.fonts
+            .begin_frame(self.screen_descriptor.pixels_per_point, 1600);
         if let Some(image_delta) = self.fonts.font_image_delta() {
-            self.renderer.update_texture(&self.device, &self.queue, epaint::TextureId::default(), &image_delta);
-            self.offscreen_renderer.update_texture(&self.device, &self.queue, epaint::TextureId::default(), &image_delta);
+            self.renderer.update_texture(
+                &self.device,
+                &self.queue,
+                epaint::TextureId::default(),
+                &image_delta,
+            );
+            self.offscreen_renderer.update_texture(
+                &self.device,
+                &self.queue,
+                epaint::TextureId::default(),
+                &image_delta,
+            );
         }
 
         let response = self.handle_message(RadiantMessage::SelectNode(id));
         self.handle_response(response);
     }
 
-    pub fn render(&mut self, texture_view: &Option<wgpu::TextureView>) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(
+        &mut self,
+        texture_view: &Option<wgpu::TextureView>,
+    ) -> Result<(), wgpu::SurfaceError> {
         let primitives = self.document.get_primitives(texture_view.is_some());
 
         let mut current_texture = None;
         let offscreen;
         let view;
         if let Some(texture_view) = texture_view {
-            self.offscreen_renderer.update_buffers(&self.device, &self.queue, &self.screen_descriptor, &primitives);
+            self.offscreen_renderer.update_buffers(
+                &self.device,
+                &self.queue,
+                &self.screen_descriptor,
+                &primitives,
+            );
             view = texture_view;
             offscreen = true;
         } else {
-            self.renderer.update_buffers(&self.device, &self.queue, &self.screen_descriptor, &primitives);
+            self.renderer.update_buffers(
+                &self.device,
+                &self.queue,
+                &self.screen_descriptor,
+                &primitives,
+            );
 
             let output = self.surface.get_current_texture()?;
             let v = output
@@ -131,9 +157,14 @@ impl RadiantScene {
             });
 
             if offscreen {
-                self.offscreen_renderer.render(&mut render_pass, &self.screen_descriptor, &primitives);
+                self.offscreen_renderer.render(
+                    &mut render_pass,
+                    &self.screen_descriptor,
+                    &primitives,
+                );
             } else {
-                self.renderer.render(&mut render_pass, &self.screen_descriptor, &primitives);
+                self.renderer
+                    .render(&mut render_pass, &self.screen_descriptor, &primitives);
             }
         }
 
