@@ -1,7 +1,9 @@
 use super::{RadiantNodeType, RadiantRenderable};
 use crate::RadiantScene;
 use crate::{RadiantArtboardNode, RadiantIdentifiable, RadiantSelectable};
+use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
+use crate::ScreenDescriptor;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantDocumentNode {
@@ -58,6 +60,13 @@ impl RadiantDocumentNode {
         }
         None
     }
+
+    pub fn get_primitives(&self) -> Vec<ClippedPrimitive> {
+        if let Some(artboard) = self.artboards.get(self.active_artboard_id as usize) {
+            return artboard.get_primitives();
+        }
+        Vec::new()
+    }
 }
 
 impl RadiantIdentifiable for RadiantDocumentNode {
@@ -83,16 +92,28 @@ impl RadiantRenderable for RadiantDocumentNode {
         }
     }
 
-    fn update(&mut self, queue: &mut wgpu::Queue) {
+    fn update_texture(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        id: epaint::TextureId,
+        image_delta: &epaint::ImageDelta,
+    ) {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
-            artboard.update(queue);
+            artboard.update_texture(device, queue, id, image_delta);
         }
     }
 
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
+    fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor) {
+        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
+            artboard.update_buffers(device, queue, screen_descriptor);
+        }
+    }
+
+    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool) {
         log::debug!("Rendering document");
         if let Some(artboard) = self.artboards.get(self.active_artboard_id as usize) {
-            artboard.render(render_pass, offscreen);
+            artboard.render(render_pass, screen_descriptor, offscreen);
         }
     }
 }

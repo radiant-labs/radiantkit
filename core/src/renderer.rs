@@ -1,4 +1,3 @@
-use crate::RadiantVertex;
 use wgpu::util::DeviceExt;
 use epaint::{Vertex, Primitive};
 use std::ops::Range;
@@ -7,27 +6,6 @@ use std::num::NonZeroU64;
 use crate::ScreenDescriptor;
 use std::borrow::Cow;
 use epaint::emath::NumExt;
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct VertexUniform {
-    model_view: [[f32; 4]; 4],
-}
-
-impl VertexUniform {
-    fn new() -> Self {
-        use cgmath::SquareMatrix;
-        Self {
-            model_view: cgmath::Matrix4::identity().into(),
-        }
-    }
-
-    pub fn translate(&mut self, position: &[f32; 2]) {
-        self.model_view =
-            cgmath::Matrix4::from_translation(cgmath::Vector3::new(position[0], position[1], 0.0))
-                .into();
-    }
-}
 
 /// Uniform buffer used when rendering.
 #[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -51,21 +29,7 @@ struct SlicedBuffer {
     capacity: wgpu::BufferAddress,
 }
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct FragmentUniform {
-    pub selected: [f32; 4],
-}
-
-impl FragmentUniform {
-    fn new() -> Self {
-        Self {
-            selected: [0.5, 0.0, 0.5, 1.0],
-        }
-    }
-}
-
-pub struct RenderComponent {
+pub struct RadiantRenderer {
     pipeline: wgpu::RenderPipeline,
 
     index_buffer: SlicedBuffer,
@@ -86,7 +50,7 @@ pub struct RenderComponent {
     dirty: bool,
 }
 
-impl RenderComponent {
+impl RadiantRenderer {
     pub fn new(
         device: &wgpu::Device,
         output_color_format: wgpu::TextureFormat,
@@ -409,17 +373,7 @@ impl RenderComponent {
         */
     }
 
-    pub fn set_position(&mut self, position: &[f32; 2]) {
-        // self.vertex_uniform.translate(position);
-        self.dirty = true;
-    }
-
-    pub fn set_selection_color(&mut self, color: [f32; 4]) {
-        // self.fragment_uniform.selected = color;
-        self.dirty = true;
-    }
-
-    pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor, paint_jobs: &[epaint::ClippedPrimitive],) {
+    pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor, paint_jobs: &[epaint::ClippedPrimitive]) {
         // if self.dirty {
             // queue.write_buffer(
             //     &self.vertex_uniform_buffer,
