@@ -81,7 +81,7 @@ impl RadiantApp {
 
         let screen_descriptor = ScreenDescriptor {
             size_in_pixels: [size.width, size.height],
-            pixels_per_point: window.scale_factor() as f32
+            pixels_per_point: window.scale_factor() as f32,
         };
         let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
         let mouse_position = [0.0, 0.0];
@@ -107,7 +107,7 @@ impl RadiantApp {
                 .configure(&self.scene.device, &self.scene.config);
             self.scene.screen_descriptor = ScreenDescriptor {
                 size_in_pixels: [new_size.width, new_size.height],
-                pixels_per_point: self.window.scale_factor() as f32
+                pixels_per_point: self.window.scale_factor() as f32,
             };
 
             let texture_width = self.size.width;
@@ -165,7 +165,7 @@ impl RadiantApp {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         self.scene.render(&self.offscreen_texture_view);
-        
+
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
                 aspect: wgpu::TextureAspect::All,

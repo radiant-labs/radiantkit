@@ -1,7 +1,7 @@
-use radiant_core::{RadiantMessage, RadiantTool, RadiantRectangleNode};
+use radiant_core::{RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantTool};
 use radiant_main::{RadiantApp, RadiantResponse};
-use winit::{event_loop::EventLoop, window::WindowBuilder};
 use winit::event::Event::RedrawRequested;
+use winit::{event_loop::EventLoop, window::WindowBuilder};
 
 async fn run() {
     let env = env_logger::Env::default()
@@ -18,7 +18,14 @@ async fn run() {
     });
 
     let mut app = RadiantApp::new(window, handler).await;
-    app.scene.add(radiant_core::RadiantNodeType::Rectangle(RadiantRectangleNode::new(0, [100.0, 100.0])));
+    app.scene.add(radiant_core::RadiantNodeType::Rectangle(
+        RadiantRectangleNode::new(0, [100.0, 100.0]),
+    ));
+    app.scene
+        .add(radiant_core::RadiantNodeType::Path(RadiantPathNode::new(
+            1,
+            [400.0, 400.0],
+        )));
     // app.handle_message(RadiantMessage::SelectTool(RadiantTool::Rectangle));
 
     event_loop.run(move |event, _, control_flow| {
@@ -27,7 +34,7 @@ async fn run() {
         }
 
         match event {
-            RedrawRequested(..) => {       
+            RedrawRequested(..) => {
                 let output_frame = std::mem::replace(&mut app.scene.current_texture, None);
                 output_frame.unwrap().present();
             }
