@@ -61,9 +61,9 @@ impl RadiantDocumentNode {
         None
     }
 
-    pub fn get_primitives(&self) -> Vec<ClippedPrimitive> {
+    pub fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive> {
         if let Some(artboard) = self.artboards.get(self.active_artboard_id as usize) {
-            return artboard.get_primitives();
+            return artboard.get_primitives(selection);
         }
         Vec::new()
     }
@@ -89,31 +89,6 @@ impl RadiantRenderable for RadiantDocumentNode {
     fn detach(&mut self) {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
             artboard.detach();
-        }
-    }
-
-    fn update_texture(
-        &mut self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        id: epaint::TextureId,
-        image_delta: &epaint::ImageDelta,
-    ) {
-        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
-            artboard.update_texture(device, queue, id, image_delta);
-        }
-    }
-
-    fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor) {
-        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
-            artboard.update_buffers(device, queue, screen_descriptor);
-        }
-    }
-
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool) {
-        log::debug!("Rendering document");
-        if let Some(artboard) = self.artboards.get(self.active_artboard_id as usize) {
-            artboard.render(render_pass, screen_descriptor, offscreen);
         }
     }
 }
