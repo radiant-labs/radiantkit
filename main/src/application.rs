@@ -1,6 +1,6 @@
 use radiant_core::{
     RadiantMessage, RadiantNodeType, RadiantRectangleNode, RadiantRenderable, RadiantResponse,
-    RadiantScene, RadiantTool,
+    RadiantScene, RadiantTool, ScreenDescriptor,
 };
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
@@ -79,7 +79,11 @@ impl RadiantApp {
         };
         surface.configure(&device, &config);
 
-        let scene = RadiantScene::new(config, surface, device, queue, handler);
+        let screen_descriptor = ScreenDescriptor {
+            size_in_pixels: [size.width, size.height],
+            pixels_per_point: window.scale_factor() as f32
+        };
+        let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
         let mouse_position = [0.0, 0.0];
 
         Self {
@@ -101,6 +105,10 @@ impl RadiantApp {
             self.scene
                 .surface
                 .configure(&self.scene.device, &self.scene.config);
+            self.scene.screen_descriptor = ScreenDescriptor {
+                size_in_pixels: [new_size.width, new_size.height],
+                pixels_per_point: self.window.scale_factor() as f32
+            };
 
             let texture_width = self.size.width;
             let texture_height = self.size.height;
@@ -144,7 +152,7 @@ impl RadiantApp {
         false
     }
 
-    pub async fn select(&self) -> u64 {
+    pub async fn select(&mut self) -> u64 {
         log::info!("Selecting...");
 
         let texture_width = self.size.width;
@@ -157,26 +165,26 @@ impl RadiantApp {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         {
-            let render_pass_desc = wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &self.offscreen_texture_view.as_ref().unwrap(),
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: None,
-            };
-            let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
+            // let render_pass_desc = wgpu::RenderPassDescriptor {
+            //     label: Some("Render Pass"),
+            //     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            //         view: &self.offscreen_texture_view.as_ref().unwrap(),
+            //         resolve_target: None,
+            //         ops: wgpu::Operations {
+            //             load: wgpu::LoadOp::Clear(wgpu::Color {
+            //                 r: 0.1,
+            //                 g: 0.2,
+            //                 b: 0.3,
+            //                 a: 1.0,
+            //             }),
+            //             store: true,
+            //         },
+            //     })],
+            //     depth_stencil_attachment: None,
+            // };
+            // let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 
-            self.scene.document.render(&mut render_pass, true);
+            self.scene.render(&self.offscreen_texture_view);
         }
 
         encoder.copy_texture_to_buffer(
@@ -230,7 +238,7 @@ impl RadiantApp {
             id += (*data.get(index + 1).unwrap() as u64) << 8;
             id += (*data.get(index + 2).unwrap() as u64) << 16;
 
-            // log::info!("id: {}", id);
+            log::info!("id: {}", id);
 
             // use image::{ImageBuffer, Rgba};
             // let buffer =
@@ -281,12 +289,13 @@ impl RadiantApp {
                             {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
-                                    [
-                                        (self.mouse_position[0] / self.size.width as f32 - 0.5)
-                                            * 2.0,
-                                        (0.5 - self.mouse_position[1] / self.size.height as f32)
-                                            * 2.0,
-                                    ],
+                                    self.mouse_position,
+                                    // [
+                                    //     (self.mouse_position[0] / self.size.width as f32 - 0.5)
+                                    //         * 2.0,
+                                    //     (0.5 - self.mouse_position[1] / self.size.height as f32)
+                                    //         * 2.0,
+                                    // ],
                                 );
                                 self.scene.add(RadiantNodeType::Rectangle(node));
                                 self.window.request_redraw();
@@ -307,7 +316,7 @@ impl RadiantApp {
                 }
             }
             Event::RedrawRequested(window_id) if window_id == &self.window.id() => {
-                match self.scene.render() {
+                match self.scene.render(&None) {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => self.resize(self.size),
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

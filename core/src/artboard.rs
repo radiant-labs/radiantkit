@@ -1,7 +1,9 @@
 use super::{RadiantIdentifiable, RadiantNodeType, RadiantRenderable, RadiantSelectable};
 use crate::RadiantScene;
+use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use crate::ScreenDescriptor;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {
@@ -42,6 +44,14 @@ impl RadiantArtboardNode {
     pub fn get_node_mut(&mut self, id: u64) -> Option<&mut RadiantNodeType> {
         self.nodes.get_mut(id as usize)
     }
+
+    pub fn get_primitives(&self) -> Vec<ClippedPrimitive> {
+        let mut primitives = Vec::new();
+        for node in &self.nodes {
+            primitives.append(&mut node.get_primitives());
+        }
+        primitives
+    }
 }
 
 impl RadiantIdentifiable for RadiantArtboardNode {
@@ -69,16 +79,28 @@ impl RadiantRenderable for RadiantArtboardNode {
         }
     }
 
-    fn update(&mut self, queue: &mut wgpu::Queue) {
+    fn update_texture(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        id: epaint::TextureId,
+        image_delta: &epaint::ImageDelta,
+    ) {
         for node in &mut self.nodes {
-            node.update(queue);
+            node.update_texture(device, queue, id, image_delta);
         }
     }
 
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
+    fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor) {
+        for node in &mut self.nodes {
+            node.update_buffers(device, queue, screen_descriptor);
+        }
+    }
+
+    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool) {
         log::debug!("Rendering artboard");
         for node in &self.nodes {
-            node.render(render_pass, offscreen);
+            node.render(render_pass, screen_descriptor, offscreen);
         }
     }
 }
