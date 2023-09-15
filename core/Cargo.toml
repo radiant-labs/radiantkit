@@ -11,3 +11,4 @@ bytemuck = { version = "1.12", features = [ "derive" ] }
 log = "0.4"
 cgmath = "0.18"
 serde = { version = "1.0", features = ["derive"] }
+epaint = { version = "0.22.0", features = ["bytemuck"] }

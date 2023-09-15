@@ -4,13 +4,16 @@ pub mod document;
 pub mod nodes;
 pub mod scene;
 pub mod tools;
+pub mod renderer;
 
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
+use epaint::ClippedPrimitive;
 pub use nodes::*;
 pub use scene::*;
 pub use tools::*;
+pub use renderer::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -26,11 +29,37 @@ pub trait RadiantSelectable {
     fn set_selected(&mut self, selected: bool);
 }
 
+/// Information about the screen used for rendering.
+pub struct ScreenDescriptor {
+    /// Size of the window in physical pixels.
+    pub size_in_pixels: [u32; 2],
+
+    /// HiDPI scale factor (pixels per point).
+    pub pixels_per_point: f32,
+}
+
+impl ScreenDescriptor {
+    /// size in "logical" points
+    fn screen_size_in_points(&self) -> [f32; 2] {
+        [
+            self.size_in_pixels[0] as f32 / self.pixels_per_point,
+            self.size_in_pixels[1] as f32 / self.pixels_per_point,
+        ]
+    }
+}
+
 pub trait RadiantRenderable {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene);
     fn detach(&mut self);
-    fn update(&mut self, queue: &mut wgpu::Queue);
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool);
+    fn update_texture(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        id: epaint::TextureId,
+        image_delta: &epaint::ImageDelta,
+    );
+    fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor);
+    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool);
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -77,19 +106,41 @@ impl RadiantNodeType {
         }
     }
 
-    pub fn update(&mut self, queue: &mut wgpu::Queue) {
+    pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor) {
         match self {
-            RadiantNodeType::Document(node) => node.update(queue),
-            RadiantNodeType::Artboard(node) => node.update(queue),
-            RadiantNodeType::Rectangle(node) => node.update(queue),
+            RadiantNodeType::Document(node) => node.update_buffers(device, queue, screen_descriptor),
+            RadiantNodeType::Artboard(node) => node.update_buffers(device, queue, screen_descriptor),
+            RadiantNodeType::Rectangle(node) => node.update_buffers(device, queue, screen_descriptor),
         }
     }
 
-    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, offscreen: bool) {
+    pub fn update_texture(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        id: epaint::TextureId,
+        image_delta: &epaint::ImageDelta,
+    ) {
         match self {
-            RadiantNodeType::Document(node) => node.render(render_pass, offscreen),
-            RadiantNodeType::Artboard(node) => node.render(render_pass, offscreen),
-            RadiantNodeType::Rectangle(node) => node.render(render_pass, offscreen),
+            RadiantNodeType::Document(node) => node.update_texture(device, queue, id, image_delta),
+            RadiantNodeType::Artboard(node) => node.update_texture(device, queue, id, image_delta),
+            RadiantNodeType::Rectangle(node) => node.update_texture(device, queue, id, image_delta),
+        }
+    }
+
+    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool) {
+        match self {
+            RadiantNodeType::Document(node) => node.render(render_pass, screen_descriptor, offscreen),
+            RadiantNodeType::Artboard(node) => node.render(render_pass, screen_descriptor, offscreen),
+            RadiantNodeType::Rectangle(node) => node.render(render_pass, screen_descriptor, offscreen),
+        }
+    }
+
+    pub fn get_primitives(&self) -> Vec<ClippedPrimitive> {
+        match self {
+            RadiantNodeType::Document(node) => vec![],
+            RadiantNodeType::Artboard(node) => vec![],
+            RadiantNodeType::Rectangle(node) => node.primitives.clone(),
         }
     }
 }
