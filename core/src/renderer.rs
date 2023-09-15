@@ -46,8 +46,6 @@ pub struct RadiantRenderer {
     textures: HashMap<epaint::TextureId, (Option<wgpu::Texture>, wgpu::BindGroup)>,
     next_user_texture_id: u64,
     samplers: HashMap<epaint::textures::TextureOptions, wgpu::Sampler>,
-
-    dirty: bool,
 }
 
 impl RadiantRenderer {
@@ -56,9 +54,6 @@ impl RadiantRenderer {
         output_color_format: wgpu::TextureFormat,
         output_depth_format: Option<wgpu::TextureFormat>,
         msaa_samples: u32,
-        // target_texture_format: wgpu::TextureFormat,
-        // vertices: &[RadiantVertex],
-        // indices: &[u16],
     ) -> Self {
         let module = device.create_shader_module(wgpu::include_wgsl!("egui.wgsl"));
 
@@ -223,277 +218,115 @@ impl RadiantRenderer {
             textures: HashMap::default(),
             next_user_texture_id: 0,
             samplers: HashMap::default(),
-            dirty: true,
         }
-
-        /* 
-        let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
-
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(vertices),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(indices),
-            usage: wgpu::BufferUsages::INDEX,
-        });
-
-        let num_indices = indices.len() as u32;
-
-        let vertex_uniform = VertexUniform::new();
-
-        let vertex_uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Uniform Buffer"),
-            contents: bytemuck::cast_slice(&[vertex_uniform]),
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        });
-
-        let vertex_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-                label: Some("vertex_bind_group_layout"),
-            });
-
-        let vertex_uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &vertex_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: vertex_uniform_buffer.as_entire_binding(),
-            }],
-            label: Some("vertex_bind_group"),
-        });
-
-        let fragment_uniform = FragmentUniform::new();
-
-        let fragment_uniform_buffer =
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Fragment Uniform Buffer"),
-                contents: bytemuck::cast_slice(&[fragment_uniform]),
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            });
-
-        let fragment_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-                label: Some("fragment_bind_group_layout"),
-            });
-
-        let fragment_uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &fragment_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: fragment_uniform_buffer.as_entire_binding(),
-            }],
-            label: Some("fragment_bind_group"),
-        });
-
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[&vertex_bind_group_layout, &fragment_bind_group_layout],
-                push_constant_ranges: &[],
-            });
-
-        let render_pipeline = device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Render Pipeline"),
-                layout: Some(&render_pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: &shader,
-                    entry_point: "vs_main",            // 1.
-                    buffers: &[RadiantVertex::desc()], // 2.
-                },
-                fragment: Some(wgpu::FragmentState {
-                    // 3.
-                    module: &shader,
-                    entry_point: "fs_main",
-                    targets: &[Some(wgpu::ColorTargetState {
-                        // 4.
-                        format: target_texture_format,
-                        blend: Some(wgpu::BlendState::REPLACE),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList, // 1.
-                    strip_index_format: None,
-                    front_face: wgpu::FrontFace::Ccw, // 2.
-                    cull_mode: Some(wgpu::Face::Back),
-                    // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-                    polygon_mode: wgpu::PolygonMode::Fill,
-                    // Requires Features::DEPTH_CLIP_CONTROL
-                    unclipped_depth: false,
-                    // Requires Features::CONSERVATIVE_RASTERIZATION
-                    conservative: false,
-                },
-                depth_stencil: None, // 1.
-                multisample: wgpu::MultisampleState {
-                    count: 1,                         // 2.
-                    mask: !0,                         // 3.
-                    alpha_to_coverage_enabled: false, // 4.
-                },
-                multiview: None, // 5.
-            })
-            .into();
-
-        Self {
-            vertex_uniform,
-            fragment_uniform,
-            vertex_buffer,
-            index_buffer,
-            num_indices,
-            vertex_uniform_buffer,
-            vertex_uniform_bind_group,
-            fragment_uniform_buffer,
-            fragment_uniform_bind_group,
-            render_pipeline,
-            dirty: false,
-        }
-        */
     }
 
     pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor, paint_jobs: &[epaint::ClippedPrimitive]) {
-        // if self.dirty {
-            // queue.write_buffer(
-            //     &self.vertex_uniform_buffer,
-            //     0,
-            //     bytemuck::cast_slice(&[self.vertex_uniform]),
-            // );
-            // queue.write_buffer(
-            //     &self.fragment_uniform_buffer,
-            //     0,
-            //     bytemuck::cast_slice(&[self.fragment_uniform]),
-            // );
-            let screen_size_in_points = screen_descriptor.screen_size_in_points();
+        let screen_size_in_points = screen_descriptor.screen_size_in_points();
 
-            let uniform_buffer_content = UniformBuffer {
-                screen_size_in_points,
-                _padding: Default::default(),
-            };
-            if uniform_buffer_content != self.previous_uniform_buffer_content {
-                // crate::profile_scope!("update uniforms");
-                queue.write_buffer(
-                    &self.uniform_buffer,
+        let uniform_buffer_content = UniformBuffer {
+            screen_size_in_points,
+            _padding: Default::default(),
+        };
+        if uniform_buffer_content != self.previous_uniform_buffer_content {
+            // crate::profile_scope!("update uniforms");
+            queue.write_buffer(
+                &self.uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[uniform_buffer_content]),
+            );
+            self.previous_uniform_buffer_content = uniform_buffer_content;
+        }
+
+        let (vertex_count, index_count) = {
+            // crate::profile_scope!("count_vertices_indices");
+            paint_jobs.iter().fold((0, 0), |acc, clipped_primitive| {
+                match &clipped_primitive.primitive {
+                    Primitive::Mesh(mesh) => {
+                        (acc.0 + mesh.vertices.len(), acc.1 + mesh.indices.len())
+                    }
+                    Primitive::Callback(callback) => {
+                        // if let Some(c) = callback.callback.downcast_ref::<Callback>() {
+                        //     callbacks.push(c.0.as_ref());
+                        // } else {
+                        //     log::warn!("Unknown paint callback: expected `egui_wgpu::Callback`");
+                        // };
+                        // acc
+                        (0, 0)
+                    }
+                }
+            })
+        };
+
+        if index_count > 0 {
+            // crate::profile_scope!("indices");
+
+            self.index_buffer.slices.clear();
+            let required_index_buffer_size = (std::mem::size_of::<u32>() * index_count) as u64;
+            if self.index_buffer.capacity < required_index_buffer_size {
+                // Resize index buffer if needed.
+                self.index_buffer.capacity =
+                    (self.index_buffer.capacity * 2).at_least(required_index_buffer_size);
+                self.index_buffer.buffer = create_index_buffer(device, self.index_buffer.capacity);
+            }
+
+            let mut index_buffer_staging = queue
+                .write_buffer_with(
+                    &self.index_buffer.buffer,
                     0,
-                    bytemuck::cast_slice(&[uniform_buffer_content]),
-                );
-                self.previous_uniform_buffer_content = uniform_buffer_content;
-            }
-
-            let (vertex_count, index_count) = {
-                // crate::profile_scope!("count_vertices_indices");
-                paint_jobs.iter().fold((0, 0), |acc, clipped_primitive| {
-                    match &clipped_primitive.primitive {
-                        Primitive::Mesh(mesh) => {
-                            (acc.0 + mesh.vertices.len(), acc.1 + mesh.indices.len())
-                        }
-                        Primitive::Callback(callback) => {
-                            // if let Some(c) = callback.callback.downcast_ref::<Callback>() {
-                            //     callbacks.push(c.0.as_ref());
-                            // } else {
-                            //     log::warn!("Unknown paint callback: expected `egui_wgpu::Callback`");
-                            // };
-                            // acc
-                            (0, 0)
-                        }
+                    NonZeroU64::new(required_index_buffer_size).unwrap(),
+                )
+                .expect("Failed to create staging buffer for index data");
+            let mut index_offset = 0;
+            for epaint::ClippedPrimitive { primitive, .. } in paint_jobs {
+                match primitive {
+                    Primitive::Mesh(mesh) => {
+                        let size = mesh.indices.len() * std::mem::size_of::<u32>();
+                        let slice = index_offset..(size + index_offset);
+                        index_buffer_staging[slice.clone()]
+                            .copy_from_slice(bytemuck::cast_slice(&mesh.indices));
+                        self.index_buffer.slices.push(slice);
+                        index_offset += size;
                     }
-                })
-            };
-
-            if index_count > 0 {
-                // crate::profile_scope!("indices");
-    
-                self.index_buffer.slices.clear();
-                let required_index_buffer_size = (std::mem::size_of::<u32>() * index_count) as u64;
-                if self.index_buffer.capacity < required_index_buffer_size {
-                    // Resize index buffer if needed.
-                    self.index_buffer.capacity =
-                        (self.index_buffer.capacity * 2).at_least(required_index_buffer_size);
-                    self.index_buffer.buffer = create_index_buffer(device, self.index_buffer.capacity);
-                }
-    
-                let mut index_buffer_staging = queue
-                    .write_buffer_with(
-                        &self.index_buffer.buffer,
-                        0,
-                        NonZeroU64::new(required_index_buffer_size).unwrap(),
-                    )
-                    .expect("Failed to create staging buffer for index data");
-                let mut index_offset = 0;
-                for epaint::ClippedPrimitive { primitive, .. } in paint_jobs {
-                    match primitive {
-                        Primitive::Mesh(mesh) => {
-                            let size = mesh.indices.len() * std::mem::size_of::<u32>();
-                            let slice = index_offset..(size + index_offset);
-                            index_buffer_staging[slice.clone()]
-                                .copy_from_slice(bytemuck::cast_slice(&mesh.indices));
-                            self.index_buffer.slices.push(slice);
-                            index_offset += size;
-                        }
-                        Primitive::Callback(_) => {}
-                    }
+                    Primitive::Callback(_) => {}
                 }
             }
-            if vertex_count > 0 {
-                // crate::profile_scope!("vertices");
-    
-                self.vertex_buffer.slices.clear();
-                let required_vertex_buffer_size = (std::mem::size_of::<Vertex>() * vertex_count) as u64;
-                if self.vertex_buffer.capacity < required_vertex_buffer_size {
-                    // Resize vertex buffer if needed.
-                    self.vertex_buffer.capacity =
-                        (self.vertex_buffer.capacity * 2).at_least(required_vertex_buffer_size);
-                    self.vertex_buffer.buffer =
-                        create_vertex_buffer(device, self.vertex_buffer.capacity);
-                }
-    
-                let mut vertex_buffer_staging = queue
-                    .write_buffer_with(
-                        &self.vertex_buffer.buffer,
-                        0,
-                        NonZeroU64::new(required_vertex_buffer_size).unwrap(),
-                    )
-                    .expect("Failed to create staging buffer for vertex data");
-                let mut vertex_offset = 0;
-                for epaint::ClippedPrimitive { primitive, .. } in paint_jobs {
-                    match primitive {
-                        Primitive::Mesh(mesh) => {
-                            let size = mesh.vertices.len() * std::mem::size_of::<Vertex>();
-                            let slice = vertex_offset..(size + vertex_offset);
-                            vertex_buffer_staging[slice.clone()]
-                                .copy_from_slice(bytemuck::cast_slice(&mesh.vertices));
-                            self.vertex_buffer.slices.push(slice);
-                            vertex_offset += size;
-                        }
-                        Primitive::Callback(_) => {}
+        }
+        if vertex_count > 0 {
+            // crate::profile_scope!("vertices");
+
+            self.vertex_buffer.slices.clear();
+            let required_vertex_buffer_size = (std::mem::size_of::<Vertex>() * vertex_count) as u64;
+            if self.vertex_buffer.capacity < required_vertex_buffer_size {
+                // Resize vertex buffer if needed.
+                self.vertex_buffer.capacity =
+                    (self.vertex_buffer.capacity * 2).at_least(required_vertex_buffer_size);
+                self.vertex_buffer.buffer =
+                    create_vertex_buffer(device, self.vertex_buffer.capacity);
+            }
+
+            let mut vertex_buffer_staging = queue
+                .write_buffer_with(
+                    &self.vertex_buffer.buffer,
+                    0,
+                    NonZeroU64::new(required_vertex_buffer_size).unwrap(),
+                )
+                .expect("Failed to create staging buffer for vertex data");
+            let mut vertex_offset = 0;
+            for epaint::ClippedPrimitive { primitive, .. } in paint_jobs {
+                match primitive {
+                    Primitive::Mesh(mesh) => {
+                        let size = mesh.vertices.len() * std::mem::size_of::<Vertex>();
+                        let slice = vertex_offset..(size + vertex_offset);
+                        vertex_buffer_staging[slice.clone()]
+                            .copy_from_slice(bytemuck::cast_slice(&mesh.vertices));
+                        self.vertex_buffer.slices.push(slice);
+                        vertex_offset += size;
                     }
+                    Primitive::Callback(_) => {}
                 }
             }
-    
-
-            // self.dirty = false;
-        // }
+        }
     }
 
     pub fn update_texture(
@@ -728,13 +561,6 @@ impl RadiantRenderer {
         }
 
         render_pass.set_scissor_rect(0, 0, size_in_pixels[0], size_in_pixels[1]);
-
-        // render_pass.set_pipeline(&self.render_pipeline);
-        // render_pass.set_bind_group(0, &self.vertex_uniform_bind_group, &[]);
-        // render_pass.set_bind_group(1, &self.fragment_uniform_bind_group, &[]);
-        // render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-        // render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        // render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
     }
 }
 

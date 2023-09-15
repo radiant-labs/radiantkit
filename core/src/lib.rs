@@ -51,15 +51,6 @@ impl ScreenDescriptor {
 pub trait RadiantRenderable {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene);
     fn detach(&mut self);
-    fn update_texture(
-        &mut self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        id: epaint::TextureId,
-        image_delta: &epaint::ImageDelta,
-    );
-    fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor);
-    fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool);
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -106,63 +97,15 @@ impl RadiantNodeType {
         }
     }
 
-    pub fn update_buffers(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, screen_descriptor: &ScreenDescriptor) {
-        match self {
-            RadiantNodeType::Document(node) => node.update_buffers(device, queue, screen_descriptor),
-            RadiantNodeType::Artboard(node) => node.update_buffers(device, queue, screen_descriptor),
-            RadiantNodeType::Rectangle(node) => node.update_buffers(device, queue, screen_descriptor),
-        }
-    }
-
-    pub fn update_texture(
-        &mut self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        id: epaint::TextureId,
-        image_delta: &epaint::ImageDelta,
-    ) {
-        match self {
-            RadiantNodeType::Document(node) => node.update_texture(device, queue, id, image_delta),
-            RadiantNodeType::Artboard(node) => node.update_texture(device, queue, id, image_delta),
-            RadiantNodeType::Rectangle(node) => node.update_texture(device, queue, id, image_delta),
-        }
-    }
-
-    pub fn render<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, screen_descriptor: &ScreenDescriptor, offscreen: bool) {
-        match self {
-            RadiantNodeType::Document(node) => node.render(render_pass, screen_descriptor, offscreen),
-            RadiantNodeType::Artboard(node) => node.render(render_pass, screen_descriptor, offscreen),
-            RadiantNodeType::Rectangle(node) => node.render(render_pass, screen_descriptor, offscreen),
-        }
-    }
-
-    pub fn get_primitives(&self) -> Vec<ClippedPrimitive> {
+    pub fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive> {
         match self {
             RadiantNodeType::Document(node) => vec![],
             RadiantNodeType::Artboard(node) => vec![],
-            RadiantNodeType::Rectangle(node) => node.primitives.clone(),
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct RadiantVertex {
-    position: [f32; 3],
-    color: [f32; 3],
-}
-
-impl RadiantVertex {
-    const ATTRIBS: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
-
-    fn desc() -> wgpu::VertexBufferLayout<'static> {
-        use std::mem;
-
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &Self::ATTRIBS,
+            RadiantNodeType::Rectangle(node) => if selection { 
+                node.selection_primitives.clone() 
+            } else { 
+                node.primitives.clone() 
+            },
         }
     }
 }

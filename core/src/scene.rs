@@ -81,7 +81,7 @@ impl RadiantScene {
     }
 
     pub fn render(&mut self, texture_view: &Option<wgpu::TextureView>) -> Result<(), wgpu::SurfaceError> {
-        let primitives = self.document.get_primitives();
+        let primitives = self.document.get_primitives(texture_view.is_some());
 
         let mut current_texture = None;
         let offscreen;
@@ -130,7 +130,6 @@ impl RadiantScene {
                 depth_stencil_attachment: None,
             });
 
-            // self.document.render(&mut render_pass, &self.screen_descriptor, false);
             if offscreen {
                 self.offscreen_renderer.render(&mut render_pass, &self.screen_descriptor, &primitives);
             } else {
@@ -149,7 +148,6 @@ impl RadiantScene {
         #[cfg(not(target_arch = "wasm32"))]
         {
             self.current_texture = current_texture;
-            // self.current_view = Some(view);
         }
 
         Ok(())
