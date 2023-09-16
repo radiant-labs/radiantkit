@@ -1,4 +1,4 @@
-use radiant_core::{RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantTool};
+use radiant_core::{RadiantPathNode, RadiantRectangleNode};
 use radiant_main::{RadiantApp, RadiantResponse};
 use winit::event::Event::RedrawRequested;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
@@ -19,14 +19,13 @@ async fn run() {
 
     let mut app = RadiantApp::new(window, handler).await;
     app.scene.add(radiant_core::RadiantNodeType::Rectangle(
-        RadiantRectangleNode::new(0, [100.0, 100.0]),
+        RadiantRectangleNode::new(1, [100.0, 100.0]),
     ));
     app.scene
         .add(radiant_core::RadiantNodeType::Path(RadiantPathNode::new(
             1,
             [400.0, 400.0],
         )));
-    // app.handle_message(RadiantMessage::SelectTool(RadiantTool::Rectangle));
 
     event_loop.run(move |event, _, control_flow| {
         if let Some(response) = app.handle_event(&event, control_flow) {

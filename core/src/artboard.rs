@@ -4,12 +4,13 @@ use super::{
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {
     pub id: u64,
     pub selection: SelectionComponent,
-    pub nodes: Vec<RadiantNodeType>,
+    pub nodes: BTreeMap<u64, RadiantNodeType>,
 }
 
 impl RadiantArtboardNode {
@@ -18,32 +19,32 @@ impl RadiantArtboardNode {
         Self {
             id,
             selection,
-            nodes: Vec::new(),
+            nodes: BTreeMap::new(),
         }
     }
 
     pub fn add(&mut self, node: RadiantNodeType) {
-        self.nodes.push(node);
+        self.nodes.insert(node.get_id(), node);
     }
 
     pub fn get_node(&self, id: u64) -> Option<&RadiantNodeType> {
-        self.nodes.get(id as usize)
+        self.nodes.get(&id)
     }
 
     pub fn get_node_mut(&mut self, id: u64) -> Option<&mut RadiantNodeType> {
-        self.nodes.get_mut(id as usize)
+        self.nodes.get_mut(&id)
     }
 }
 
 impl RadiantTessellatable for RadiantArtboardNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        for node in &mut self.nodes {
+        for node in &mut self.nodes.values_mut() {
             node.attach_to_scene(scene);
         }
     }
 
     fn detach(&mut self) {
-        for node in &mut self.nodes {
+        for node in &mut self.nodes.values_mut() {
             node.detach();
         }
     }
@@ -56,7 +57,7 @@ impl RadiantTessellatable for RadiantArtboardNode {
         screen_descriptor: &ScreenDescriptor,
     ) -> Vec<ClippedPrimitive> {
         let mut primitives = Vec::new();
-        for node in &mut self.nodes {
+        for node in &mut self.nodes.values_mut() {
             primitives.append(&mut node.tessellate(selection, screen_descriptor));
         }
         primitives

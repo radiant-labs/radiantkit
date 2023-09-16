@@ -3,9 +3,41 @@ use std::iter;
 use winit::event::Event::RedrawRequested;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
 
-use egui::FontDefinitions;
+use egui::{FontDefinitions, Id};
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 use egui_winit_platform::{Platform, PlatformDescriptor};
+
+struct RadiantAppController {
+    pending_messages: Vec<RadiantMessage>,
+}
+
+impl RadiantAppController {
+    fn new() -> Self {
+        Self {
+            pending_messages: Vec::new(),
+        }
+    }
+}
+
+impl RadiantAppController {
+    fn update(&mut self, ctx: &egui::Context) {
+        let frame = egui::Frame::none().fill(egui::Color32::TRANSPARENT);
+        egui::TopBottomPanel::top(Id::new("top"))
+            .frame(frame)
+            .show(ctx, |ui| {
+                ui.heading("Radiant App");
+                if ui.button("Select").clicked() {
+                    self.pending_messages
+                        .push(RadiantMessage::SelectTool(RadiantTool::Selection));
+                }
+                if ui.button("Rect").clicked() {
+                    self.pending_messages
+                        .push(RadiantMessage::SelectTool(RadiantTool::Rectangle));
+                }
+                ui.add_space(10.0);
+            });
+    }
+}
 
 async fn run() {
     let env = env_logger::Env::default()
@@ -25,7 +57,9 @@ async fn run() {
     });
 
     let mut app = RadiantApp::new(window, handler).await;
-    app.handle_message(RadiantMessage::SelectTool(RadiantTool::Rectangle));
+    app.scene.add(radiant_main::RadiantNodeType::Rectangle(
+        radiant_main::RadiantRectangleNode::new(1, [200.0, 200.0]),
+    ));
 
     let mut platform = Platform::new(PlatformDescriptor {
         physical_width: size.width as u32,
@@ -36,13 +70,21 @@ async fn run() {
     });
 
     let mut egui_rpass = RenderPass::new(&app.scene.device, app.scene.config.format, 1);
-    let mut demo_app = egui_demo_lib::DemoWindows::default();
+    let mut demo_app = RadiantAppController::new();
 
     event_loop.run(move |event, _, control_flow| {
+        if demo_app.pending_messages.len() > 0 {
+            for message in demo_app.pending_messages.drain(..) {
+                app.handle_message(message);
+            }
+        }
+
         platform.handle_event(&event);
 
-        if let Some(response) = app.handle_event(&event, control_flow) {
-            println!("Response: {:?}", response);
+        if !platform.captures_event(&event) {
+            if let Some(response) = app.handle_event(&event, control_flow) {
+                println!("Response: {:?}", response);
+            }
         }
 
         match event {
@@ -54,7 +96,7 @@ async fn run() {
 
                 platform.begin_frame();
 
-                demo_app.ui(&platform.context());
+                demo_app.update(&platform.context());
 
                 let full_output = platform.end_frame(Some(&app.window));
                 let paint_jobs = platform.context().tessellate(full_output.shapes);
