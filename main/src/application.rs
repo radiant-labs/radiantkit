@@ -1,5 +1,5 @@
 use radiant_core::{
-    RadiantMessage, RadiantNodeType, RadiantRectangleNode, RadiantRenderable, RadiantResponse,
+    RadiantMessage, RadiantMessageHandler, RadiantNodeType, RadiantRectangleNode, RadiantResponse,
     RadiantScene, RadiantTool, ScreenDescriptor,
 };
 use winit::window::Window;
@@ -164,7 +164,9 @@ impl RadiantApp {
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        self.scene.render(&self.offscreen_texture_view);
+        if let Err(_) = self.scene.render(&self.offscreen_texture_view) {
+            return 0;
+        }
 
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {

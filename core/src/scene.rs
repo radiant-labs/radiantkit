@@ -1,12 +1,29 @@
-use epaint::text::FontDefinitions;
-use epaint::Fonts;
-use wgpu::TextureView;
+use epaint::{text::FontDefinitions, Fonts};
 
-use crate::ScreenDescriptor;
 use crate::{
-    RadiantDocumentNode, RadiantIdentifiable, RadiantMessage, RadiantRenderable, RadiantRenderer,
+    RadiantDocumentNode, RadiantMessage, RadiantMessageHandler, RadiantNode, RadiantNodeType,
+    RadiantRenderer, RadiantResponse, RadiantTessellatable, RadiantTool, RadiantTransformable,
+    TransformComponent,
 };
-use crate::{RadiantNodeType, RadiantResponse, RadiantTool};
+
+/// Information about the screen used for rendering.
+pub struct ScreenDescriptor {
+    /// Size of the window in physical pixels.
+    pub size_in_pixels: [u32; 2],
+
+    /// HiDPI scale factor (pixels per point).
+    pub pixels_per_point: f32,
+}
+
+impl ScreenDescriptor {
+    /// size in "logical" points
+    pub fn screen_size_in_points(&self) -> [f32; 2] {
+        [
+            self.size_in_pixels[0] as f32 / self.pixels_per_point,
+            self.size_in_pixels[1] as f32 / self.pixels_per_point,
+        ]
+    }
+}
 
 pub struct RadiantScene {
     pub config: wgpu::SurfaceConfiguration,
@@ -97,7 +114,9 @@ impl RadiantScene {
         &mut self,
         texture_view: &Option<wgpu::TextureView>,
     ) -> Result<(), wgpu::SurfaceError> {
-        let primitives = self.document.get_primitives(texture_view.is_some());
+        let primitives = self
+            .document
+            .tessellate(texture_view.is_some(), &self.screen_descriptor);
 
         let mut current_texture = None;
         let offscreen;
@@ -188,5 +207,41 @@ impl RadiantScene {
         if let Some(response) = response {
             (self.handler)(response);
         }
+    }
+}
+
+impl RadiantMessageHandler for RadiantScene {
+    fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+        match message {
+            RadiantMessage::AddArtboard => {
+                self.document.add_artboard();
+            }
+            RadiantMessage::SelectArtboard(id) => {
+                self.document.set_active_artboard(id);
+            }
+            RadiantMessage::SelectNode(id) => {
+                self.document.select(id);
+                if let Some(node) = self.document.get_node(id) {
+                    return Some(RadiantResponse::NodeSelected(node.clone()));
+                }
+            }
+            RadiantMessage::TransformNode {
+                id,
+                position,
+                scale,
+            } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.set_xy(&position);
+                        component.set_scale(&scale);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantMessage::SelectTool(tool) => {
+                self.tool = tool;
+            }
+        }
+        None
     }
 }

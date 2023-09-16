@@ -1,25 +1,13 @@
-use std::fmt::Debug;
-
-use crate::RadiantMessageHandler;
-use crate::RadiantScene;
-use crate::SelectionMessage;
-use crate::TransformMessage;
-use crate::{RadiantIdentifiable, RadiantSelectable, SelectionComponent};
-use crate::{RadiantRenderable, TransformComponent};
-use epaint::ClippedPrimitive;
-use epaint::ClippedShape;
-use epaint::Color32;
-use epaint::Pos2;
-use epaint::Rect;
-use epaint::TessellationOptions;
-use epaint::Vertex;
+use crate::{
+    RadiantNode, RadiantScene, RadiantTessellatable, RadiantTransformable, ScreenDescriptor,
+    SelectionComponent, TransformComponent,
+};
+use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantPathMessage {
-    Transform(TransformMessage),
-    Selection(SelectionMessage),
-}
+use std::{
+    any::{Any, TypeId},
+    fmt::Debug,
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct RadiantPathNode {
@@ -31,7 +19,7 @@ pub struct RadiantPathNode {
     #[serde(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    pub pixels_per_point: f32,
+    pub needs_tessellation: bool,
 }
 
 impl Clone for RadiantPathNode {
@@ -42,7 +30,7 @@ impl Clone for RadiantPathNode {
             selection: self.selection.clone(),
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
-            pixels_per_point: 1.0,
+            needs_tessellation: true,
         }
     }
 }
@@ -70,46 +58,36 @@ impl RadiantPathNode {
             selection,
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
-            pixels_per_point: 1.0,
+            needs_tessellation: true,
         }
     }
 
-    fn tessellate(&mut self) {
-        let tessellator =
-            epaint::Tessellator::new(self.pixels_per_point, Default::default(), [1, 1], vec![]);
+    fn tessellate(&mut self, pixels_per_point: f32) {
+        if !self.needs_tessellation {
+            return;
+        }
+        self.needs_tessellation = false;
 
         let position = self.transform.get_xy();
-        let rect = epaint::Rect::from_min_max(
-            epaint::Pos2::new(
-                position[0] / self.pixels_per_point,
-                position[1] / self.pixels_per_point,
-            ),
-            epaint::Pos2::new(
-                position[0] / self.pixels_per_point + 200.0,
-                position[1] / self.pixels_per_point + 200.0,
-            ),
-        );
         let points = vec![
             epaint::Pos2::new(
-                position[0] / self.pixels_per_point,
-                position[1] / self.pixels_per_point,
+                position[0] / pixels_per_point,
+                position[1] / pixels_per_point,
             ),
             epaint::Pos2::new(
-                position[0] / self.pixels_per_point + 200.0,
-                position[1] / self.pixels_per_point + 200.0,
+                position[0] / pixels_per_point + 200.0,
+                position[1] / pixels_per_point + 200.0,
             ),
             epaint::Pos2::new(
-                position[0] / self.pixels_per_point,
-                position[1] / self.pixels_per_point + 400.0,
+                position[0] / pixels_per_point,
+                position[1] / pixels_per_point + 400.0,
             ),
             epaint::Pos2::new(
-                position[0] / self.pixels_per_point - 200.0,
-                position[1] / self.pixels_per_point + 200.0,
+                position[0] / pixels_per_point - 200.0,
+                position[1] / pixels_per_point + 200.0,
             ),
         ];
-        let rounding = epaint::Rounding::default();
 
-        log::info!("tessellate {}", self.selection.is_selected());
         let color = if self.selection.is_selected() {
             epaint::Color32::RED
         } else {
@@ -122,7 +100,7 @@ impl RadiantPathNode {
             epaint::Shape::Path(path_shape),
         )];
         self.primitives = epaint::tessellator::tessellate_shapes(
-            self.pixels_per_point,
+            pixels_per_point,
             TessellationOptions::default(),
             [1, 1],
             vec![],
@@ -141,7 +119,7 @@ impl RadiantPathNode {
             epaint::Shape::Path(path_shape),
         )];
         self.selection_primitives = epaint::tessellator::tessellate_shapes(
-            self.pixels_per_point,
+            pixels_per_point,
             TessellationOptions::default(),
             [1, 1],
             vec![],
@@ -150,45 +128,56 @@ impl RadiantPathNode {
     }
 }
 
-impl RadiantIdentifiable for RadiantPathNode {
-    fn get_id(&self) -> u64 {
-        return self.id;
-    }
-}
-
-impl RadiantSelectable for RadiantPathNode {
-    fn set_selected(&mut self, selected: bool) {
-        self.selection.set_selected(selected);
-        self.tessellate();
-    }
-}
-
-impl RadiantRenderable for RadiantPathNode {
+impl RadiantTessellatable for RadiantPathNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        self.pixels_per_point = scene.screen_descriptor.pixels_per_point;
-        self.tessellate();
+        self.tessellate(scene.screen_descriptor.pixels_per_point);
     }
 
     fn detach(&mut self) {
         self.primitives.clear();
+        self.selection_primitives.clear();
+    }
+
+    fn set_needs_tessellation(&mut self) {
+        self.needs_tessellation = true;
+    }
+
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive> {
+        self.tessellate(screen_descriptor.pixels_per_point);
+        if selection {
+            self.selection_primitives.clone()
+        } else {
+            self.primitives.clone()
+        }
     }
 }
 
-impl RadiantMessageHandler<RadiantPathMessage> for RadiantPathNode {
-    fn handle_message(&mut self, message: RadiantPathMessage) {
-        match message {
-            RadiantPathMessage::Transform(message) => {
-                self.transform.handle_message(message);
-                self.tessellate();
-                // self.renderer.set_position(&self.transform.get_xy());
-                // self.offscreen_renderer.set_position(&self.transform.get_xy());
-            }
-            RadiantPathMessage::Selection(message) => {
-                self.selection.handle_message(message);
-                self.tessellate();
-                // self.renderer
-                //     .set_selection_color([1.0, 0.0, 0.0, if self.selection.is_selected() { 1.0 } else { 0.0 }]);
-            }
+impl RadiantNode for RadiantPathNode {
+    fn get_id(&self) -> u64 {
+        return self.id;
+    }
+
+    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+        if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
+            unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }
+        } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
+            unsafe { Some(&*(&self.transform as *const dyn Any as *const T)) }
+        } else {
+            None
+        }
+    }
+
+    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+        if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
+            unsafe { Some(&mut *(&mut self.selection as *mut dyn Any as *mut T)) }
+        } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
+            unsafe { Some(&mut *(&mut self.transform as *mut dyn Any as *mut T)) }
+        } else {
+            None
         }
     }
 }

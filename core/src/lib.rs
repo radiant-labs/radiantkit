@@ -1,6 +1,7 @@
 pub mod artboard;
 pub mod components;
 pub mod document;
+pub mod message;
 pub mod nodes;
 pub mod renderer;
 pub mod scene;
@@ -10,6 +11,7 @@ pub use artboard::*;
 pub use components::*;
 pub use document::*;
 use epaint::ClippedPrimitive;
+pub use message::*;
 pub use nodes::*;
 pub use renderer::*;
 pub use scene::*;
@@ -17,40 +19,37 @@ pub use tools::*;
 
 use serde::{Deserialize, Serialize};
 
-pub trait RadiantMessageHandler<M> {
-    fn handle_message(&mut self, message: M);
-}
+pub trait RadiantComponent {}
 
-pub trait RadiantIdentifiable {
-    fn get_id(&self) -> u64;
-}
-
-pub trait RadiantSelectable {
+pub trait RadiantSelectable: RadiantComponent {
     fn set_selected(&mut self, selected: bool);
 }
 
-/// Information about the screen used for rendering.
-pub struct ScreenDescriptor {
-    /// Size of the window in physical pixels.
-    pub size_in_pixels: [u32; 2],
-
-    /// HiDPI scale factor (pixels per point).
-    pub pixels_per_point: f32,
+pub trait RadiantTransformable: RadiantComponent {
+    fn set_xy(&mut self, position: &[f32; 2]);
+    fn set_scale(&mut self, scale: &[f32; 2]);
+    fn set_rotation(&mut self, rotation: f32);
+    fn get_xy(&self) -> [f32; 2];
+    fn get_scale(&self) -> [f32; 2];
+    fn get_rotation(&self) -> f32;
 }
 
-impl ScreenDescriptor {
-    /// size in "logical" points
-    fn screen_size_in_points(&self) -> [f32; 2] {
-        [
-            self.size_in_pixels[0] as f32 / self.pixels_per_point,
-            self.size_in_pixels[1] as f32 / self.pixels_per_point,
-        ]
-    }
-}
-
-pub trait RadiantRenderable {
+pub trait RadiantTessellatable {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene);
     fn detach(&mut self);
+
+    fn set_needs_tessellation(&mut self);
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive>;
+}
+
+pub trait RadiantNode: RadiantTessellatable {
+    fn get_id(&self) -> u64;
+    fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T>;
+    fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T>;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -61,7 +60,41 @@ pub enum RadiantNodeType {
     Path(RadiantPathNode),
 }
 
-impl RadiantIdentifiable for RadiantNodeType {
+impl RadiantNodeType {
+    fn get_tessellatable_mut(&mut self) -> &mut dyn RadiantTessellatable {
+        match self {
+            RadiantNodeType::Document(node) => node,
+            RadiantNodeType::Artboard(node) => node,
+            RadiantNodeType::Rectangle(node) => node,
+            RadiantNodeType::Path(node) => node,
+        }
+    }
+}
+
+impl RadiantTessellatable for RadiantNodeType {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+        self.get_tessellatable_mut().attach_to_scene(scene);
+    }
+
+    fn detach(&mut self) {
+        self.get_tessellatable_mut().detach();
+    }
+
+    fn set_needs_tessellation(&mut self) {
+        self.get_tessellatable_mut().set_needs_tessellation();
+    }
+
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive> {
+        self.get_tessellatable_mut()
+            .tessellate(selection, screen_descriptor)
+    }
+}
+
+impl RadiantNode for RadiantNodeType {
     fn get_id(&self) -> u64 {
         match self {
             RadiantNodeType::Document(node) => node.get_id(),
@@ -70,130 +103,22 @@ impl RadiantIdentifiable for RadiantNodeType {
             RadiantNodeType::Path(node) => node.get_id(),
         }
     }
-}
 
-impl RadiantSelectable for RadiantNodeType {
-    fn set_selected(&mut self, selected: bool) {
+    fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
         match self {
-            RadiantNodeType::Document(node) => node.set_selected(selected),
-            RadiantNodeType::Artboard(node) => node.set_selected(selected),
-            RadiantNodeType::Rectangle(node) => node.set_selected(selected),
-            RadiantNodeType::Path(node) => node.set_selected(selected),
+            RadiantNodeType::Document(node) => node.get_component(),
+            RadiantNodeType::Artboard(node) => node.get_component(),
+            RadiantNodeType::Rectangle(node) => node.get_component(),
+            RadiantNodeType::Path(node) => node.get_component(),
         }
     }
-}
 
-impl RadiantNodeType {
-    pub fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+    fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
         match self {
-            RadiantNodeType::Document(node) => node.attach_to_scene(scene),
-            RadiantNodeType::Artboard(node) => node.attach_to_scene(scene),
-            RadiantNodeType::Rectangle(node) => node.attach_to_scene(scene),
-            RadiantNodeType::Path(node) => node.attach_to_scene(scene),
+            RadiantNodeType::Document(node) => node.get_component_mut(),
+            RadiantNodeType::Artboard(node) => node.get_component_mut(),
+            RadiantNodeType::Rectangle(node) => node.get_component_mut(),
+            RadiantNodeType::Path(node) => node.get_component_mut(),
         }
-    }
-
-    pub fn detach(&mut self) {
-        match self {
-            RadiantNodeType::Document(node) => node.detach(),
-            RadiantNodeType::Artboard(node) => node.detach(),
-            RadiantNodeType::Rectangle(node) => node.detach(),
-            RadiantNodeType::Path(node) => node.detach(),
-        }
-    }
-
-    pub fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive> {
-        match self {
-            RadiantNodeType::Document(node) => vec![],
-            RadiantNodeType::Artboard(node) => vec![],
-            RadiantNodeType::Rectangle(node) => {
-                if selection {
-                    node.selection_primitives.clone()
-                } else {
-                    node.primitives.clone()
-                }
-            }
-            RadiantNodeType::Path(node) => {
-                if selection {
-                    node.selection_primitives.clone()
-                } else {
-                    node.primitives.clone()
-                }
-            }
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantNodeMessage {
-    Rectangle(RadiantRectangleMessage),
-    Path(RadiantPathMessage),
-}
-
-impl RadiantMessageHandler<RadiantNodeMessage> for RadiantNodeType {
-    fn handle_message(&mut self, message: RadiantNodeMessage) {
-        match message {
-            RadiantNodeMessage::Rectangle(message) => {
-                if let RadiantNodeType::Rectangle(node) = self {
-                    node.handle_message(message);
-                }
-            }
-            RadiantNodeMessage::Path(message) => {
-                if let RadiantNodeType::Path(node) = self {
-                    node.handle_message(message);
-                }
-            }
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantMessage {
-    AddArtboard,
-    SelectArtboard(u64),
-
-    SelectNode(u64),
-
-    Rectangle(u64, RadiantRectangleMessage),
-    Path(u64, RadiantPathMessage),
-
-    SelectTool(RadiantTool),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum RadiantResponse {
-    NodeSelected(RadiantNodeType),
-}
-
-impl RadiantScene {
-    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        match message {
-            RadiantMessage::AddArtboard => {
-                self.document.add_artboard();
-            }
-            RadiantMessage::SelectArtboard(id) => {
-                self.document.set_active_artboard(id);
-            }
-            RadiantMessage::SelectNode(id) => {
-                self.document.select(id);
-                if let Some(node) = self.document.get_node(id) {
-                    return Some(RadiantResponse::NodeSelected(node.clone()));
-                }
-            }
-            RadiantMessage::Rectangle(id, message) => {
-                if let Some(node) = self.document.get_node_mut(id) {
-                    node.handle_message(RadiantNodeMessage::Rectangle(message));
-                }
-            }
-            RadiantMessage::Path(id, message) => {
-                if let Some(node) = self.document.get_node_mut(id) {
-                    node.handle_message(RadiantNodeMessage::Path(message));
-                }
-            }
-            RadiantMessage::SelectTool(tool) => {
-                self.tool = tool;
-            }
-        }
-        None
     }
 }
