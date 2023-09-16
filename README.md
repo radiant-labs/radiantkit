@@ -4,6 +4,6 @@ Radiant is an in-development framework to build graphics applications (like Figm
 
 It introduces a node-component-system for efficient rendering, while ensuring complete extensibility. It can support both native and web (via WebAssembly) platforms.
 
-To run the dummy app, install rust and follow these steps:
-1. `cd main`
+To run the POC app, install rust and follow these steps:
+1. `cd app`
 2. `cargo run`
