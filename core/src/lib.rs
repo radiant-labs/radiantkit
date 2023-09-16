@@ -26,6 +26,7 @@ pub trait RadiantSelectable: RadiantComponent {
 }
 
 pub trait RadiantTransformable: RadiantComponent {
+    fn transform_xy(&mut self, position: &[f32; 2]);
     fn set_xy(&mut self, position: &[f32; 2]);
     fn set_scale(&mut self, scale: &[f32; 2]);
     fn set_rotation(&mut self, rotation: f32);

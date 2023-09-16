@@ -232,7 +232,7 @@ impl RadiantMessageHandler for RadiantScene {
             } => {
                 if let Some(node) = self.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
-                        component.set_xy(&position);
+                        component.transform_xy(&position);
                         component.set_scale(&scale);
                         node.set_needs_tessellation();
                     }
