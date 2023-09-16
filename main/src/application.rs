@@ -279,6 +279,7 @@ impl RadiantApp {
                             self.mouse_dragging = is_pressed;
                         }
                         WindowEvent::CursorMoved { position, .. } => {
+                            let mut response = None;
                             let current_position = [position.x as f32, position.y as f32];
                             let transform = [
                                 current_position[0] - self.mouse_position[0],
@@ -290,7 +291,7 @@ impl RadiantApp {
                                     let id = pollster::block_on(self.select());
                                     if id > 0 {
                                         let message = RadiantMessage::SelectNode(id - 1);
-                                        return self.scene.handle_message(message);
+                                        response = self.scene.handle_message(message);
                                     }
                                 }
                             } else {
@@ -300,9 +301,71 @@ impl RadiantApp {
                                         position: transform,
                                         scale: [1.0, 1.0],
                                     };
-                                    return self.scene.handle_message(message);
+                                    response = self.scene.handle_message(message);
                                 }
                             }
+                            self.window.request_redraw();
+                            return response;
+                        }
+                        WindowEvent::Touch(Touch {
+                            location, phase, ..
+                        }) => {
+                            let mut response = None;
+                            let current_position = [location.x as f32, location.y as f32];
+                            let transform = [
+                                current_position[0] - self.mouse_position[0],
+                                current_position[1] - self.mouse_position[1],
+                            ];
+                            self.mouse_position = current_position;
+                            match phase {
+                                TouchPhase::Started => {
+                                    if self.scene.tool == RadiantTool::Selection {
+                                        let id = pollster::block_on(self.select());
+                                        if id > 0 {
+                                            let message = RadiantMessage::SelectNode(id - 1);
+                                            response = self.scene.handle_message(message);
+                                            self.window.request_redraw();
+                                            self.mouse_dragging = true;
+                                        }
+                                    } else {
+                                        let node = RadiantRectangleNode::new(
+                                            self.scene.document.counter,
+                                            self.mouse_position,
+                                        );
+                                        self.scene.add(RadiantNodeType::Rectangle(node));
+                                        self.window.request_redraw();
+                                    }
+                                }
+                                TouchPhase::Moved => {
+                                    if !self.mouse_dragging {
+                                        if self.scene.tool == RadiantTool::Selection {
+                                            let id = pollster::block_on(self.select());
+                                            if id > 0 {
+                                                let message = RadiantMessage::SelectNode(id - 1);
+                                                response = self.scene.handle_message(message);
+                                                self.window.request_redraw();
+                                            }
+                                        }
+                                    } else {
+                                        if let Some(id) = self.scene.document.selected_node_id {
+                                            let message = RadiantMessage::TransformNode {
+                                                id,
+                                                position: transform,
+                                                scale: [1.0, 1.0],
+                                            };
+                                            response = self.scene.handle_message(message);
+                                            self.window.request_redraw();
+                                        }
+                                    }
+                                }
+                                TouchPhase::Ended => {
+                                    self.mouse_dragging = false;
+                                }
+                                TouchPhase::Cancelled => {
+                                    self.mouse_dragging = false;
+                                }
+                            }
+                            return response;
                         }
                         _ => {}
                     }
