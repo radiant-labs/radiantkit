@@ -1,10 +1,6 @@
-use crate::RadiantMessageHandler;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum SelectionMessage {
-    SetSelected(bool),
-}
+use crate::{RadiantComponent, RadiantSelectable};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SelectionComponent {
@@ -19,16 +15,12 @@ impl SelectionComponent {
     pub fn is_selected(&self) -> bool {
         self.selected
     }
+}
 
-    pub fn set_selected(&mut self, selected: bool) {
+impl RadiantSelectable for SelectionComponent {
+    fn set_selected(&mut self, selected: bool) {
         self.selected = selected;
     }
 }
 
-impl RadiantMessageHandler<SelectionMessage> for SelectionComponent {
-    fn handle_message(&mut self, message: SelectionMessage) {
-        match message {
-            SelectionMessage::SetSelected(selected) => self.set_selected(selected),
-        }
-    }
-}
+impl RadiantComponent for SelectionComponent {}

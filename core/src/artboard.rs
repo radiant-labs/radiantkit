@@ -1,6 +1,7 @@
-use super::{RadiantIdentifiable, RadiantNodeType, RadiantRenderable, RadiantSelectable};
-use crate::RadiantScene;
-use crate::ScreenDescriptor;
+use super::{
+    RadiantNode, RadiantNodeType, RadiantScene, RadiantSelectable, RadiantTessellatable,
+    ScreenDescriptor, SelectionComponent,
+};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -28,11 +29,17 @@ impl RadiantArtboardNode {
     pub fn select(&mut self, id: u64) {
         self.selected_node_ids.iter().for_each(|id| {
             if let Some(node) = self.nodes.get_mut(*id as usize) {
-                node.set_selected(false);
+                if let Some(component) = node.get_component_mut::<SelectionComponent>() {
+                    component.set_selected(false);
+                    node.set_needs_tessellation();
+                }
             }
         });
         if let Some(node) = self.nodes.get_mut(id as usize) {
-            node.set_selected(true);
+            if let Some(component) = node.get_component_mut::<SelectionComponent>() {
+                component.set_selected(true);
+                node.set_needs_tessellation();
+            }
         }
         self.selected_node_ids.insert(id);
     }
@@ -44,29 +51,9 @@ impl RadiantArtboardNode {
     pub fn get_node_mut(&mut self, id: u64) -> Option<&mut RadiantNodeType> {
         self.nodes.get_mut(id as usize)
     }
-
-    pub fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive> {
-        let mut primitives = Vec::new();
-        for node in &self.nodes {
-            primitives.append(&mut node.get_primitives(selection));
-        }
-        primitives
-    }
 }
 
-impl RadiantIdentifiable for RadiantArtboardNode {
-    fn get_id(&self) -> u64 {
-        0
-    }
-}
-
-impl RadiantSelectable for RadiantArtboardNode {
-    fn set_selected(&mut self, selected: bool) {
-        self.is_active = selected;
-    }
-}
-
-impl RadiantRenderable for RadiantArtboardNode {
+impl RadiantTessellatable for RadiantArtboardNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
         for node in &mut self.nodes {
             node.attach_to_scene(scene);
@@ -77,5 +64,33 @@ impl RadiantRenderable for RadiantArtboardNode {
         for node in &mut self.nodes {
             node.detach();
         }
+    }
+
+    fn set_needs_tessellation(&mut self) {}
+
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive> {
+        let mut primitives = Vec::new();
+        for node in &mut self.nodes {
+            primitives.append(&mut node.tessellate(selection, screen_descriptor));
+        }
+        primitives
+    }
+}
+
+impl RadiantNode for RadiantArtboardNode {
+    fn get_id(&self) -> u64 {
+        0
+    }
+
+    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+        None
+    }
+
+    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+        None
     }
 }

@@ -1,7 +1,7 @@
-use super::{RadiantNodeType, RadiantRenderable};
-use crate::RadiantScene;
-use crate::ScreenDescriptor;
-use crate::{RadiantArtboardNode, RadiantIdentifiable, RadiantSelectable};
+use super::{
+    RadiantArtboardNode, RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable,
+    ScreenDescriptor,
+};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 
@@ -60,26 +60,9 @@ impl RadiantDocumentNode {
         }
         None
     }
-
-    pub fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive> {
-        if let Some(artboard) = self.artboards.get(self.active_artboard_id as usize) {
-            return artboard.get_primitives(selection);
-        }
-        Vec::new()
-    }
 }
 
-impl RadiantIdentifiable for RadiantDocumentNode {
-    fn get_id(&self) -> u64 {
-        0
-    }
-}
-
-impl RadiantSelectable for RadiantDocumentNode {
-    fn set_selected(&mut self, _selected: bool) {}
-}
-
-impl RadiantRenderable for RadiantDocumentNode {
+impl RadiantTessellatable for RadiantDocumentNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
             artboard.attach_to_scene(scene);
@@ -90,5 +73,32 @@ impl RadiantRenderable for RadiantDocumentNode {
         if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
             artboard.detach();
         }
+    }
+
+    fn set_needs_tessellation(&mut self) {}
+
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive> {
+        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
+            return artboard.tessellate(selection, screen_descriptor);
+        }
+        Vec::new()
+    }
+}
+
+impl RadiantNode for RadiantDocumentNode {
+    fn get_id(&self) -> u64 {
+        0
+    }
+
+    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+        None
+    }
+
+    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+        None
     }
 }
