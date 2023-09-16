@@ -1,47 +1,29 @@
 use super::{
-    RadiantNode, RadiantNodeType, RadiantScene, RadiantSelectable, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent,
+    RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable, ScreenDescriptor,
+    SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {
-    pub is_active: bool,
+    pub id: u64,
+    pub selection: SelectionComponent,
     pub nodes: Vec<RadiantNodeType>,
-    pub selected_node_ids: HashSet<u64>,
 }
 
 impl RadiantArtboardNode {
-    pub fn new() -> Self {
+    pub fn new(id: u64) -> Self {
+        let selection = SelectionComponent::new();
         Self {
-            is_active: true,
+            id,
+            selection,
             nodes: Vec::new(),
-            selected_node_ids: HashSet::new(),
         }
     }
 
     pub fn add(&mut self, node: RadiantNodeType) {
         self.nodes.push(node);
-    }
-
-    pub fn select(&mut self, id: u64) {
-        self.selected_node_ids.iter().for_each(|id| {
-            if let Some(node) = self.nodes.get_mut(*id as usize) {
-                if let Some(component) = node.get_component_mut::<SelectionComponent>() {
-                    component.set_selected(false);
-                    node.set_needs_tessellation();
-                }
-            }
-        });
-        if let Some(node) = self.nodes.get_mut(id as usize) {
-            if let Some(component) = node.get_component_mut::<SelectionComponent>() {
-                component.set_selected(true);
-                node.set_needs_tessellation();
-            }
-        }
-        self.selected_node_ids.insert(id);
     }
 
     pub fn get_node(&self, id: u64) -> Option<&RadiantNodeType> {
@@ -83,7 +65,7 @@ impl RadiantTessellatable for RadiantArtboardNode {
 
 impl RadiantNode for RadiantArtboardNode {
     fn get_id(&self) -> u64 {
-        0
+        self.id
     }
 
     fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {

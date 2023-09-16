@@ -20,6 +20,14 @@ impl TransformComponent {
 }
 
 impl RadiantTransformable for TransformComponent {
+    fn transform_xy(&mut self, position: &[f32; 2]) {
+        self.position = [
+            self.position[0] + position[0],
+            self.position[1] + position[1],
+            0.0,
+        ]
+    }
+
     fn set_xy(&mut self, position: &[f32; 2]) {
         self.position = [position[0], position[1], 0.0];
     }
