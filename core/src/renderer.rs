@@ -44,7 +44,7 @@ pub struct RadiantRenderer {
     /// sampler). The texture may be None if the TextureId is just a handle to a user-provided
     /// sampler.
     textures: HashMap<epaint::TextureId, (Option<wgpu::Texture>, wgpu::BindGroup)>,
-    next_user_texture_id: u64,
+    // next_user_texture_id: u64,
     samplers: HashMap<epaint::textures::TextureOptions, wgpu::Sampler>,
 }
 
@@ -216,7 +216,7 @@ impl RadiantRenderer {
             uniform_bind_group,
             texture_bind_group_layout,
             textures: HashMap::default(),
-            next_user_texture_id: 0,
+            // next_user_texture_id: 0,
             samplers: HashMap::default(),
         }
     }
@@ -251,7 +251,7 @@ impl RadiantRenderer {
                     Primitive::Mesh(mesh) => {
                         (acc.0 + mesh.vertices.len(), acc.1 + mesh.indices.len())
                     }
-                    Primitive::Callback(callback) => {
+                    Primitive::Callback(_callback) => {
                         // if let Some(c) = callback.callback.downcast_ref::<Callback>() {
                         //     callbacks.push(c.0.as_ref());
                         // } else {
@@ -522,7 +522,7 @@ impl RadiantRenderer {
                         log::warn!("Missing texture: {:?}", mesh.texture_id);
                     }
                 }
-                Primitive::Callback(callback) => {
+                Primitive::Callback(_callback) => {
                     // let Some(cbfn) = callback.callback.downcast_ref::<Callback>() else {
                     //     // We already warned in the `prepare` callback
                     //     continue;
