@@ -192,7 +192,7 @@ impl RadiantScene {
 
         #[cfg(target_arch = "wasm32")]
         if !offscreen {
-            output.present();
+            current_texture.unwrap().present();
         }
 
         #[cfg(not(target_arch = "wasm32"))]
