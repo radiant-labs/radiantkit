@@ -15,6 +15,7 @@ pub struct RadiantApp {
     offscreen_buffer: Option<wgpu::Buffer>,
 
     mouse_position: [f32; 2],
+    mouse_dragging: bool,
 }
 
 impl RadiantApp {
@@ -84,16 +85,16 @@ impl RadiantApp {
             pixels_per_point: window.scale_factor() as f32,
         };
         let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
-        let mouse_position = [0.0, 0.0];
 
         Self {
             window,
             size,
             scene,
-            mouse_position,
             offscreen_texture: None,
             offscreen_texture_view: None,
             offscreen_buffer: None,
+            mouse_position: [0.0, 0.0],
+            mouse_dragging: false,
         }
     }
 
@@ -271,23 +272,34 @@ impl RadiantApp {
                                 let node = RadiantRectangleNode::new(
                                     self.scene.document.counter,
                                     self.mouse_position,
-                                    // [
-                                    //     (self.mouse_position[0] / self.size.width as f32 - 0.5)
-                                    //         * 2.0,
-                                    //     (0.5 - self.mouse_position[1] / self.size.height as f32)
-                                    //         * 2.0,
-                                    // ],
                                 );
                                 self.scene.add(RadiantNodeType::Rectangle(node));
                                 self.window.request_redraw();
                             }
+                            self.mouse_dragging = is_pressed;
                         }
                         WindowEvent::CursorMoved { position, .. } => {
-                            self.mouse_position = [position.x as f32, position.y as f32];
-                            if self.scene.tool == RadiantTool::Selection {
-                                let id = pollster::block_on(self.select());
-                                if id > 0 {
-                                    let message = RadiantMessage::SelectNode(id - 1);
+                            let current_position = [position.x as f32, position.y as f32];
+                            let transform = [
+                                current_position[0] - self.mouse_position[0],
+                                current_position[1] - self.mouse_position[1],
+                            ];
+                            self.mouse_position = current_position;
+                            if !self.mouse_dragging {
+                                if self.scene.tool == RadiantTool::Selection {
+                                    let id = pollster::block_on(self.select());
+                                    if id > 0 {
+                                        let message = RadiantMessage::SelectNode(id - 1);
+                                        return self.scene.handle_message(message);
+                                    }
+                                }
+                            } else {
+                                if let Some(id) = self.scene.document.selected_node_id {
+                                    let message = RadiantMessage::TransformNode {
+                                        id,
+                                        position: transform,
+                                        scale: [1.0, 1.0],
+                                    };
                                     return self.scene.handle_message(message);
                                 }
                             }
