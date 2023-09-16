@@ -43,7 +43,12 @@ impl RadiantAppController {
             let _ = f2.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
         });
 
-        let app = Arc::new(RwLock::new(RadiantApp::new(window, handler).await));
+        let mut app = RadiantApp::new(window, handler).await;
+        app.scene.add(radiant_main::RadiantNodeType::Rectangle(
+            radiant_main::RadiantRectangleNode::new(1, [100.0, 100.0]),
+        ));
+
+        let app = Arc::new(RwLock::new(app));
         let weak_app = Arc::downgrade(&app);
 
         let f3 = f.clone();
