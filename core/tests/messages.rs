@@ -1,9 +1,9 @@
-use radiant_core::{RadiantDocumentNode, RadiantMessage, RadiantMessageHandler};
+use radiant_core::RadiantDocumentNode;
 
 #[test]
-fn test_messages() {
+fn test_add_artboard() {
     let mut document = RadiantDocumentNode::new();
-    document.handle_message(RadiantMessage::AddArtboard);
+    document.add_artboard();
 
     assert_eq!(document.artboards.len(), 2);
 }
