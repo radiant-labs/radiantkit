@@ -9,7 +9,7 @@ use std::{
     fmt::Debug,
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantRectangleNode {
     pub id: u64,
     pub transform: TransformComponent,
@@ -22,33 +22,11 @@ pub struct RadiantRectangleNode {
     pub needs_tessellation: bool,
 }
 
-impl Clone for RadiantRectangleNode {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            transform: self.transform.clone(),
-            selection: self.selection.clone(),
-            primitives: Vec::new(),
-            selection_primitives: Vec::new(),
-            needs_tessellation: true,
-        }
-    }
-}
-
-impl Debug for RadiantRectangleNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RadiantRectangleNode")
-            .field("id", &self.id)
-            .field("transform", &self.transform)
-            .field("selection", &self.selection)
-            .finish()
-    }
-}
-
 impl RadiantRectangleNode {
-    pub fn new(id: u64, position: [f32; 2]) -> Self {
+    pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
+        transform.set_scale(&scale);
 
         let selection = SelectionComponent::new();
 
@@ -69,14 +47,16 @@ impl RadiantRectangleNode {
         self.needs_tessellation = false;
 
         let position = self.transform.get_xy();
+        let scale = self.transform.get_scale();
+
         let rect = epaint::Rect::from_min_max(
             epaint::Pos2::new(
                 position[0] / pixels_per_point,
                 position[1] / pixels_per_point,
             ),
             epaint::Pos2::new(
-                position[0] / pixels_per_point + 200.0,
-                position[1] / pixels_per_point + 200.0,
+                position[0] / pixels_per_point + scale[0],
+                position[1] / pixels_per_point + scale[1],
             ),
         );
         let rounding = epaint::Rounding::default();
