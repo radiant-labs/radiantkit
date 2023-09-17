@@ -1,6 +1,6 @@
 use radiant_core::{
-    RadiantMessage, RadiantMessageHandler, RadiantNodeType, RadiantRectangleNode, RadiantResponse,
-    RadiantScene, RadiantTool, ScreenDescriptor,
+    RadiantMessage, RadiantResponse, RadiantScene, RadiantTool, RadiantToolType, RectangleTool,
+    ScreenDescriptor, SelectionTool,
 };
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
@@ -8,11 +8,9 @@ use winit::{event::*, event_loop::ControlFlow};
 pub struct RadiantApp {
     pub window: Window,
     pub size: winit::dpi::PhysicalSize<u32>,
-    pub scene: RadiantScene,
 
-    offscreen_texture: Option<wgpu::Texture>,
-    offscreen_texture_view: Option<wgpu::TextureView>,
-    offscreen_buffer: Option<wgpu::Buffer>,
+    pub scene: RadiantScene,
+    pub tool: RadiantToolType,
 
     mouse_position: [f32; 2],
     mouse_dragging: bool,
@@ -84,154 +82,27 @@ impl RadiantApp {
             size_in_pixels: [size.width, size.height],
             pixels_per_point: window.scale_factor() as f32,
         };
+
         let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
+
+        let tool = RadiantToolType::Selection(SelectionTool::new());
 
         Self {
             window,
             size,
             scene,
-            offscreen_texture: None,
-            offscreen_texture_view: None,
-            offscreen_buffer: None,
             mouse_position: [0.0, 0.0],
             mouse_dragging: false,
+            tool,
         }
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.scene.config.width = new_size.width;
-            self.scene.config.height = new_size.height;
-            self.scene
-                .surface
-                .configure(&self.scene.device, &self.scene.config);
-            self.scene.screen_descriptor = ScreenDescriptor {
-                size_in_pixels: [new_size.width, new_size.height],
-                pixels_per_point: self.window.scale_factor() as f32,
-            };
-
-            let texture_width = self.size.width;
-            let texture_height = self.size.height;
-
-            let texture_desc = wgpu::TextureDescriptor {
-                size: wgpu::Extent3d {
-                    width: texture_width,
-                    height: texture_height,
-                    depth_or_array_layers: 1,
-                },
-                mip_level_count: 1,
-                sample_count: 1,
-                dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba8Unorm,
-                usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
-                label: None,
-                view_formats: &[],
-            };
-            let texture = self.scene.device.create_texture(&texture_desc);
-            self.offscreen_texture_view = Some(texture.create_view(&Default::default()));
-            self.offscreen_texture = Some(texture);
-
-            // we need to store this for later
-            let u32_size = std::mem::size_of::<u32>() as u32;
-
-            let output_buffer_size =
-                (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
-            let output_buffer_desc = wgpu::BufferDescriptor {
-                size: output_buffer_size,
-                usage: wgpu::BufferUsages::COPY_DST
-                    // this tells wpgu that we want to read this buffer from the cpu
-                    | wgpu::BufferUsages::MAP_READ,
-                label: None,
-                mapped_at_creation: false,
-            };
-            self.offscreen_buffer = Some(self.scene.device.create_buffer(&output_buffer_desc));
-        }
+        self.scene.resize([new_size.width, new_size.height]);
     }
 
     pub fn input(&mut self, _event: &WindowEvent) -> bool {
         false
-    }
-
-    pub async fn select(&mut self) -> u64 {
-        log::info!("Selecting...");
-
-        let texture_width = self.size.width;
-        let texture_height = self.size.height;
-        let u32_size = std::mem::size_of::<u32>() as u32;
-
-        let mut encoder = self
-            .scene
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-        if let Err(_) = self.scene.render(&self.offscreen_texture_view) {
-            return 0;
-        }
-
-        encoder.copy_texture_to_buffer(
-            wgpu::ImageCopyTexture {
-                aspect: wgpu::TextureAspect::All,
-                texture: &self.offscreen_texture.as_ref().unwrap(),
-                mip_level: 0,
-                origin: wgpu::Origin3d::ZERO,
-            },
-            wgpu::ImageCopyBuffer {
-                buffer: &self.offscreen_buffer.as_ref().unwrap(),
-                layout: wgpu::ImageDataLayout {
-                    offset: 0,
-                    bytes_per_row: Some(u32_size * texture_width),
-                    rows_per_image: Some(texture_height),
-                },
-            },
-            wgpu::Extent3d {
-                width: texture_width,
-                height: texture_height,
-                depth_or_array_layers: 1,
-            },
-        );
-
-        self.scene.queue.submit(Some(encoder.finish()));
-
-        let mut id: u64;
-
-        // We need to scope the mapping variables so that we can
-        // unmap the buffer
-        {
-            let buffer = self.offscreen_buffer.as_ref().unwrap();
-            let buffer_slice = buffer.slice(..);
-
-            // NOTE: We have to create the mapping THEN device.poll() before await
-            // the future. Otherwise the application will freeze.
-            let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
-            buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-                tx.send(result).unwrap();
-            });
-            self.scene.device.poll(wgpu::Maintain::Wait);
-            rx.receive().await.unwrap().unwrap();
-
-            let data = buffer_slice.get_mapped_range();
-
-            let posx: u32 = self.mouse_position[0].round() as u32;
-            let posy: u32 = self.mouse_position[1].round() as u32;
-            let index = (posy * texture_width * 4 + posx * 4) as usize;
-
-            id = *data.get(index).unwrap() as u64;
-            id += (*data.get(index + 1).unwrap() as u64) << 8;
-            id += (*data.get(index + 2).unwrap() as u64) << 16;
-
-            log::info!("id: {}", id);
-
-            // use image::{ImageBuffer, Rgba};
-            // let buffer =
-            //     ImageBuffer::<Rgba<u8>, _>::from_raw(texture_width, texture_height, data).unwrap();
-
-            // #[cfg(not(target_arch = "wasm32"))]
-            // buffer.save("image.png").unwrap();
-        }
-        self.offscreen_buffer.as_ref().unwrap().unmap();
-
-        id
     }
 
     pub fn handle_event(
@@ -264,115 +135,81 @@ impl RadiantApp {
                             self.resize(**new_inner_size);
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
-                            let is_pressed = *state == ElementState::Pressed;
-                            if button == &MouseButton::Left
-                                && is_pressed
-                                && self.scene.tool == RadiantTool::Rectangle
-                            {
-                                let node = RadiantRectangleNode::new(
-                                    self.scene.document.counter,
-                                    self.mouse_position,
-                                );
-                                self.scene.add(RadiantNodeType::Rectangle(node));
-                                self.window.request_redraw();
-                            }
-                            self.mouse_dragging = is_pressed;
-                        }
-                        WindowEvent::CursorMoved { position, .. } => {
-                            let mut response = None;
-                            let current_position = [position.x as f32, position.y as f32];
-                            let transform = [
-                                current_position[0] - self.mouse_position[0],
-                                current_position[1] - self.mouse_position[1],
-                            ];
-                            self.mouse_position = current_position;
-                            if !self.mouse_dragging {
-                                if self.scene.tool == RadiantTool::Selection {
-                                    let id = pollster::block_on(self.select());
-                                    if id > 0 {
-                                        let message = RadiantMessage::SelectNode(id - 1);
-                                        response = self.scene.handle_message(message);
+                            if button == &MouseButton::Left {
+                                let is_pressed = *state == ElementState::Pressed;
+                                if is_pressed {
+                                    if self
+                                        .tool
+                                        .on_mouse_down(&mut self.scene, self.mouse_position)
+                                    {
+                                        self.window.request_redraw();
+                                    }
+                                } else {
+                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                        self.window.request_redraw();
                                     }
                                 }
-                            } else {
-                                if let Some(id) = self.scene.document.selected_node_id {
-                                    let message = RadiantMessage::TransformNode {
-                                        id,
-                                        position: transform,
-                                        scale: [1.0, 1.0],
-                                    };
-                                    response = self.scene.handle_message(message);
-                                }
+                                self.mouse_dragging = is_pressed;
                             }
-                            self.window.request_redraw();
-                            return response;
+                        }
+                        WindowEvent::CursorMoved { position, .. } => {
+                            let current_position = [position.x as f32, position.y as f32];
+                            // let transform = [
+                            //     current_position[0] - self.mouse_position[0],
+                            //     current_position[1] - self.mouse_position[1],
+                            // ];
+                            self.mouse_position = current_position;
+                            if self
+                                .tool
+                                .on_mouse_move(&mut self.scene, self.mouse_position)
+                            {
+                                self.window.request_redraw();
+                            }
                         }
                         WindowEvent::Touch(Touch {
                             location, phase, ..
                         }) => {
-                            let mut response = None;
                             let current_position = [location.x as f32, location.y as f32];
-                            let transform = [
-                                current_position[0] - self.mouse_position[0],
-                                current_position[1] - self.mouse_position[1],
-                            ];
+                            // let transform = [
+                            //     current_position[0] - self.mouse_position[0],
+                            //     current_position[1] - self.mouse_position[1],
+                            // ];
                             self.mouse_position = current_position;
                             match phase {
                                 TouchPhase::Started => {
-                                    if self.scene.tool == RadiantTool::Selection {
-                                        let id = pollster::block_on(self.select());
-                                        if id > 0 {
-                                            let message = RadiantMessage::SelectNode(id - 1);
-                                            response = self.scene.handle_message(message);
-                                            self.window.request_redraw();
-                                            self.mouse_dragging = true;
-                                        }
-                                    } else {
-                                        let node = RadiantRectangleNode::new(
-                                            self.scene.document.counter,
-                                            self.mouse_position,
-                                        );
-                                        self.scene.add(RadiantNodeType::Rectangle(node));
+                                    if self
+                                        .tool
+                                        .on_mouse_down(&mut self.scene, self.mouse_position)
+                                    {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Moved => {
-                                    if !self.mouse_dragging {
-                                        if self.scene.tool == RadiantTool::Selection {
-                                            let id = pollster::block_on(self.select());
-                                            if id > 0 {
-                                                let message = RadiantMessage::SelectNode(id - 1);
-                                                response = self.scene.handle_message(message);
-                                                self.window.request_redraw();
-                                            }
-                                        }
-                                    } else {
-                                        if let Some(id) = self.scene.document.selected_node_id {
-                                            let message = RadiantMessage::TransformNode {
-                                                id,
-                                                position: transform,
-                                                scale: [1.0, 1.0],
-                                            };
-                                            response = self.scene.handle_message(message);
-                                            self.window.request_redraw();
-                                        }
+                                    if self
+                                        .tool
+                                        .on_mouse_move(&mut self.scene, self.mouse_position)
+                                    {
+                                        self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Ended => {
-                                    self.mouse_dragging = false;
+                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                        self.window.request_redraw();
+                                    }
                                 }
                                 TouchPhase::Cancelled => {
-                                    self.mouse_dragging = false;
+                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                        self.window.request_redraw();
+                                    }
                                 }
                             }
-                            return response;
                         }
                         _ => {}
                     }
                 }
             }
             Event::RedrawRequested(window_id) if window_id == &self.window.id() => {
-                match self.scene.render(&None) {
+                match self.scene.render(false) {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => self.resize(self.size),
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
@@ -390,6 +227,16 @@ impl RadiantApp {
 
 impl RadiantApp {
     pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        self.scene.handle_message(message)
+        match message {
+            RadiantMessage::Scene(message) => {
+                self.scene.handle_message(message);
+            }
+            RadiantMessage::SelectTool(tool) => match tool {
+                0 => self.tool = RadiantToolType::Selection(SelectionTool::new()),
+                1 => self.tool = RadiantToolType::Rectangle(RectangleTool::new()),
+                _ => {}
+            },
+        }
+        None
     }
 }

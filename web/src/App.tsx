@@ -22,13 +22,13 @@ function App() {
 
   const select = async () => {
     controller && controller.handleMessage({
-      SelectTool: "Selection"
+      SelectTool: 0
     });
   }
 
   const rect = async () => {
     controller && controller.handleMessage({
-      SelectTool: "Rectangle"
+      SelectTool: 1
     });
   }
   

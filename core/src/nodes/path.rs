@@ -9,7 +9,7 @@ use std::{
     fmt::Debug,
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantPathNode {
     pub id: u64,
     pub transform: TransformComponent,
@@ -20,29 +20,6 @@ pub struct RadiantPathNode {
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
     pub needs_tessellation: bool,
-}
-
-impl Clone for RadiantPathNode {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            transform: self.transform.clone(),
-            selection: self.selection.clone(),
-            primitives: Vec::new(),
-            selection_primitives: Vec::new(),
-            needs_tessellation: true,
-        }
-    }
-}
-
-impl Debug for RadiantPathNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RadiantPathNode")
-            .field("id", &self.id)
-            .field("transform", &self.transform)
-            .field("selection", &self.selection)
-            .finish()
-    }
 }
 
 impl RadiantPathNode {

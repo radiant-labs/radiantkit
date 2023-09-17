@@ -1,9 +1,8 @@
 use epaint::{text::FontDefinitions, Fonts};
 
 use crate::{
-    RadiantDocumentNode, RadiantMessage, RadiantMessageHandler, RadiantNode, RadiantNodeType,
-    RadiantRenderer, RadiantResponse, RadiantTessellatable, RadiantTool, RadiantTransformable,
-    TransformComponent,
+    RadiantDocumentNode, RadiantNode, RadiantNodeType, RadiantRenderer, RadiantResponse,
+    RadiantSceneMessage, RadiantTessellatable, RadiantTransformable, TransformComponent,
 };
 
 /// Information about the screen used for rendering.
@@ -31,7 +30,6 @@ pub struct RadiantScene {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub document: RadiantDocumentNode,
-    pub tool: RadiantTool,
     pub handler: Box<dyn Fn(RadiantResponse)>,
 
     pub screen_descriptor: ScreenDescriptor,
@@ -43,6 +41,10 @@ pub struct RadiantScene {
 
     pub renderer: RadiantRenderer,
     pub offscreen_renderer: RadiantRenderer,
+
+    offscreen_texture: Option<wgpu::Texture>,
+    offscreen_texture_view: Option<wgpu::TextureView>,
+    offscreen_buffer: Option<wgpu::Buffer>,
 }
 
 impl RadiantScene {
@@ -67,7 +69,6 @@ impl RadiantScene {
             device,
             queue,
             document: RadiantDocumentNode::new(),
-            tool: RadiantTool::Selection,
             handler,
 
             screen_descriptor,
@@ -79,13 +80,16 @@ impl RadiantScene {
 
             renderer,
             offscreen_renderer,
+
+            offscreen_texture: None,
+            offscreen_texture_view: None,
+            offscreen_buffer: None,
         }
     }
 }
 
 impl RadiantScene {
     pub fn add(&mut self, mut node: RadiantNodeType) {
-        let id = node.get_id();
         node.attach_to_scene(self);
         self.document.add(node);
 
@@ -105,31 +109,66 @@ impl RadiantScene {
                 &image_delta,
             );
         }
-
-        let response = self.handle_message(RadiantMessage::SelectNode(id));
-        self.handle_response(response);
     }
 
-    pub fn render(
-        &mut self,
-        texture_view: &Option<wgpu::TextureView>,
-    ) -> Result<(), wgpu::SurfaceError> {
-        let primitives = self
-            .document
-            .tessellate(texture_view.is_some(), &self.screen_descriptor);
+    pub fn resize(&mut self, new_size: [u32; 2]) {
+        if new_size[0] > 0 && new_size[1] > 0 {
+            self.screen_descriptor.size_in_pixels = new_size;
+            self.config.width = new_size[0];
+            self.config.height = new_size[1];
+            self.surface.configure(&self.device, &self.config);
+
+            let texture_width = new_size[0];
+            let texture_height = new_size[1];
+
+            let texture_desc = wgpu::TextureDescriptor {
+                size: wgpu::Extent3d {
+                    width: texture_width,
+                    height: texture_height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
+                label: None,
+                view_formats: &[],
+            };
+            let texture = self.device.create_texture(&texture_desc);
+            self.offscreen_texture_view = Some(texture.create_view(&Default::default()));
+            self.offscreen_texture = Some(texture);
+
+            // we need to store this for later
+            let u32_size = std::mem::size_of::<u32>() as u32;
+
+            let output_buffer_size =
+                (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
+            let output_buffer_desc = wgpu::BufferDescriptor {
+                size: output_buffer_size,
+                usage: wgpu::BufferUsages::COPY_DST
+                    // this tells wpgu that we want to read this buffer from the cpu
+                    | wgpu::BufferUsages::MAP_READ,
+                label: None,
+                mapped_at_creation: false,
+            };
+            self.offscreen_buffer = Some(self.device.create_buffer(&output_buffer_desc));
+        }
+    }
+
+    pub fn render(&mut self, selection: bool) -> Result<(), wgpu::SurfaceError> {
+        let primitives = self.document.tessellate(selection, &self.screen_descriptor);
 
         let mut current_texture = None;
-        let offscreen;
         let view;
-        if let Some(texture_view) = texture_view {
+        if selection {
             self.offscreen_renderer.update_buffers(
                 &self.device,
                 &self.queue,
                 &self.screen_descriptor,
                 &primitives,
             );
-            view = texture_view;
-            offscreen = true;
+            view = self.offscreen_texture_view.as_ref().unwrap();
         } else {
             self.renderer.update_buffers(
                 &self.device,
@@ -146,7 +185,6 @@ impl RadiantScene {
             self.current_view = Some(v);
             view = self.current_view.as_ref().unwrap();
 
-            offscreen = false;
             current_texture = Some(output);
         }
 
@@ -175,7 +213,7 @@ impl RadiantScene {
                 depth_stencil_attachment: None,
             });
 
-            if offscreen {
+            if selection {
                 self.offscreen_renderer.render(
                     &mut render_pass,
                     &self.screen_descriptor,
@@ -191,7 +229,7 @@ impl RadiantScene {
         self.queue.submit(std::iter::once(encoder.finish()));
 
         #[cfg(target_arch = "wasm32")]
-        if !offscreen {
+        if !selection {
             current_texture.unwrap().present();
         }
 
@@ -203,6 +241,86 @@ impl RadiantScene {
         Ok(())
     }
 
+    pub async fn select(&mut self, mouse_position: [f32; 2]) -> u64 {
+        log::info!("Selecting...");
+
+        let texture_width = self.screen_descriptor.size_in_pixels[0];
+        let texture_height = self.screen_descriptor.size_in_pixels[1];
+        let u32_size = std::mem::size_of::<u32>() as u32;
+
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        if let Err(_) = self.render(true) {
+            return 0;
+        }
+
+        encoder.copy_texture_to_buffer(
+            wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
+                texture: &self.offscreen_texture.as_ref().unwrap(),
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            wgpu::ImageCopyBuffer {
+                buffer: &self.offscreen_buffer.as_ref().unwrap(),
+                layout: wgpu::ImageDataLayout {
+                    offset: 0,
+                    bytes_per_row: Some(u32_size * texture_width),
+                    rows_per_image: Some(texture_height),
+                },
+            },
+            wgpu::Extent3d {
+                width: texture_width,
+                height: texture_height,
+                depth_or_array_layers: 1,
+            },
+        );
+
+        self.queue.submit(Some(encoder.finish()));
+
+        let mut id: u64;
+
+        // We need to scope the mapping variables so that we can
+        // unmap the buffer
+        {
+            let buffer = self.offscreen_buffer.as_ref().unwrap();
+            let buffer_slice = buffer.slice(..);
+
+            // NOTE: We have to create the mapping THEN device.poll() before await
+            // the future. Otherwise the application will freeze.
+            let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+            buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+                tx.send(result).unwrap();
+            });
+            self.device.poll(wgpu::Maintain::Wait);
+            rx.receive().await.unwrap().unwrap();
+
+            let data = buffer_slice.get_mapped_range();
+
+            let posx: u32 = mouse_position[0].round() as u32;
+            let posy: u32 = mouse_position[1].round() as u32;
+            let index = (posy * texture_width * 4 + posx * 4) as usize;
+
+            id = *data.get(index).unwrap() as u64;
+            id += (*data.get(index + 1).unwrap() as u64) << 8;
+            id += (*data.get(index + 2).unwrap() as u64) << 16;
+
+            log::info!("id: {}", id);
+
+            // use image::{ImageBuffer, Rgba};
+            // let buffer =
+            //     ImageBuffer::<Rgba<u8>, _>::from_raw(texture_width, texture_height, data).unwrap();
+
+            // #[cfg(not(target_arch = "wasm32"))]
+            // buffer.save("image.png").unwrap();
+        }
+        self.offscreen_buffer.as_ref().unwrap().unmap();
+
+        id
+    }
+
     fn handle_response(&self, response: Option<RadiantResponse>) {
         if let Some(response) = response {
             (self.handler)(response);
@@ -210,22 +328,27 @@ impl RadiantScene {
     }
 }
 
-impl RadiantMessageHandler for RadiantScene {
-    fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+impl RadiantScene {
+    pub fn handle_message(&mut self, message: RadiantSceneMessage) -> Option<RadiantResponse> {
         match message {
-            RadiantMessage::AddArtboard => {
+            RadiantSceneMessage::AddArtboard => {
                 self.document.add_artboard();
             }
-            RadiantMessage::SelectArtboard(id) => {
+            RadiantSceneMessage::SelectArtboard(id) => {
                 self.document.set_active_artboard(id);
             }
-            RadiantMessage::SelectNode(id) => {
+            RadiantSceneMessage::SelectNode(id) => {
                 self.document.select(id);
                 if let Some(node) = self.document.get_node(id) {
                     return Some(RadiantResponse::NodeSelected(node.clone()));
                 }
             }
-            RadiantMessage::TransformNode {
+            RadiantSceneMessage::AddNode(node) => {
+                let id = node.get_id();
+                self.add(node);
+                return self.handle_message(RadiantSceneMessage::SelectNode(id));
+            }
+            RadiantSceneMessage::TransformNode {
                 id,
                 position,
                 scale,
@@ -233,15 +356,19 @@ impl RadiantMessageHandler for RadiantScene {
                 if let Some(node) = self.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
-                        component.set_scale(&scale);
+                        component.transform_scale(&scale);
                         node.set_needs_tessellation();
                     }
                 }
             }
-            RadiantMessage::SelectTool(tool) => {
-                self.tool = tool;
-            }
         }
         None
+    }
+}
+
+impl RadiantScene {
+    pub fn process_message(&mut self, message: RadiantSceneMessage) {
+        let response = self.handle_message(message);
+        self.handle_response(response);
     }
 }

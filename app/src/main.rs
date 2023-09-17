@@ -1,4 +1,4 @@
-use radiant_main::{RadiantApp, RadiantMessage, RadiantResponse, RadiantTool};
+use radiant_main::{RadiantApp, RadiantMessage, RadiantResponse};
 use std::iter;
 use winit::event::Event::RedrawRequested;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
@@ -27,12 +27,10 @@ impl RadiantAppController {
             .show(ctx, |ui| {
                 ui.heading("Radiant App");
                 if ui.button("Select").clicked() {
-                    self.pending_messages
-                        .push(RadiantMessage::SelectTool(RadiantTool::Selection));
+                    self.pending_messages.push(RadiantMessage::SelectTool(0));
                 }
                 if ui.button("Rect").clicked() {
-                    self.pending_messages
-                        .push(RadiantMessage::SelectTool(RadiantTool::Rectangle));
+                    self.pending_messages.push(RadiantMessage::SelectTool(1));
                 }
                 ui.add_space(10.0);
             });
@@ -58,7 +56,7 @@ async fn run() {
 
     let mut app = RadiantApp::new(window, handler).await;
     app.scene.add(radiant_main::RadiantNodeType::Rectangle(
-        radiant_main::RadiantRectangleNode::new(1, [200.0, 200.0]),
+        radiant_main::RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]),
     ));
 
     let mut platform = Platform::new(PlatformDescriptor {

@@ -23,7 +23,7 @@ async fn run() {
     ));
     app.scene
         .add(radiant_core::RadiantNodeType::Path(RadiantPathNode::new(
-            1,
+            2,
             [400.0, 400.0],
         )));
 
