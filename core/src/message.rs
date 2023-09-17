@@ -1,23 +1,25 @@
-use crate::{RadiantNodeType, RadiantTool};
+use crate::RadiantNodeType;
 use serde::{Deserialize, Serialize};
 
-pub trait RadiantMessageHandler {
-    fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse>;
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum RadiantMessage {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantSceneMessage {
     AddArtboard,
     SelectArtboard(u64),
 
     SelectNode(u64),
+    AddNode(RadiantNodeType),
     TransformNode {
         id: u64,
         position: [f32; 2],
         scale: [f32; 2],
     },
+}
 
-    SelectTool(RadiantTool),
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantMessage {
+    Scene(RadiantSceneMessage),
+
+    SelectTool(u64),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -28,6 +28,10 @@ impl RadiantTransformable for TransformComponent {
         ]
     }
 
+    fn transform_scale(&mut self, scale: &[f32; 2]) {
+        self.scale = [self.scale[0] + scale[0], self.scale[1] + scale[1], 0.0]
+    }
+
     fn set_xy(&mut self, position: &[f32; 2]) {
         self.position = [position[0], position[1], 0.0];
     }

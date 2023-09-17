@@ -3505,7 +3505,9 @@ dependencies = [
  "bytemuck",
  "cgmath",
  "epaint",
+ "futures-intrusive",
  "log",
+ "pollster",
  "serde",
  "wgpu",
 ]
