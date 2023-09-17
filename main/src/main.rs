@@ -19,7 +19,7 @@ async fn run() {
 
     let mut app = RadiantApp::new(window, handler).await;
     app.scene.add(radiant_core::RadiantNodeType::Rectangle(
-        RadiantRectangleNode::new(1, [100.0, 100.0]),
+        RadiantRectangleNode::new(1, [100.0, 100.0], [200.0, 200.0]),
     ));
     app.scene
         .add(radiant_core::RadiantNodeType::Path(RadiantPathNode::new(

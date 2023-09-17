@@ -65,17 +65,26 @@ impl RadiantPathNode {
             ),
         ];
 
-        let color = if self.selection.is_selected() {
-            epaint::Color32::RED
-        } else {
-            epaint::Color32::LIGHT_RED
-        };
+        let color = epaint::Color32::LIGHT_RED;
         let stroke = epaint::Stroke::new(1.0, color);
         let path_shape = epaint::PathShape::convex_polygon(points.clone(), color, stroke);
-        let shapes = vec![ClippedShape(
+        let bounding_rect = path_shape.visual_bounding_rect();
+        let mut shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Path(path_shape),
         )];
+        if self.selection.is_selected() {
+            let rounding = epaint::Rounding::none();
+            let rect_shape = epaint::RectShape::stroke(
+                bounding_rect,
+                rounding,
+                epaint::Stroke::new(1.0, epaint::Color32::BLUE),
+            );
+            shapes.push(ClippedShape(
+                Rect::EVERYTHING,
+                epaint::Shape::Rect(rect_shape),
+            ));
+        }
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),

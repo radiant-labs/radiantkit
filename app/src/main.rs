@@ -58,6 +58,9 @@ async fn run() {
     app.scene.add(radiant_main::RadiantNodeType::Rectangle(
         radiant_main::RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]),
     ));
+    app.scene.add(radiant_main::RadiantNodeType::Path(
+        radiant_main::RadiantPathNode::new(2, [400.0, 400.0]),
+    ));
 
     let mut platform = Platform::new(PlatformDescriptor {
         physical_width: size.width as u32,

@@ -61,16 +61,25 @@ impl RadiantRectangleNode {
         );
         let rounding = epaint::Rounding::default();
 
-        let color = if self.selection.is_selected() {
-            epaint::Color32::RED
-        } else {
-            epaint::Color32::LIGHT_RED
-        };
+        let color = epaint::Color32::LIGHT_RED;
         let rect_shape = epaint::RectShape::filled(rect, rounding, color);
-        let shapes = vec![ClippedShape(
+        let bounding_rect = rect_shape.visual_bounding_rect();
+        let mut shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
         )];
+        if self.selection.is_selected() {
+            let rounding = epaint::Rounding::none();
+            let rect_shape = epaint::RectShape::stroke(
+                bounding_rect,
+                rounding,
+                epaint::Stroke::new(1.0, epaint::Color32::BLUE),
+            );
+            shapes.push(ClippedShape(
+                Rect::EVERYTHING,
+                epaint::Shape::Rect(rect_shape),
+            ));
+        }
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
