@@ -71,6 +71,8 @@ impl RadiantNode for RadiantArtboardNode {
         self.id
     }
 
+    fn set_id(&mut self, _id: u64) {}
+
     fn get_bounding_rect(&self) -> [f32; 4] {
         [0.0, 0.0, 0.0, 0.0]
     }

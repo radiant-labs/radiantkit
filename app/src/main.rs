@@ -27,10 +27,14 @@ impl RadiantAppController {
             .show(ctx, |ui| {
                 ui.heading("Radiant App");
                 if ui.button("Select").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool(0));
+                    self.pending_messages.push(RadiantMessage::SelectTool(
+                        radiant_main::RadiantToolType::Selection,
+                    ));
                 }
                 if ui.button("Rect").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool(1));
+                    self.pending_messages.push(RadiantMessage::SelectTool(
+                        radiant_main::RadiantToolType::Rectangle,
+                    ));
                 }
                 ui.add_space(10.0);
             });
@@ -70,7 +74,11 @@ async fn run() {
         style: Default::default(),
     });
 
-    let mut egui_rpass = RenderPass::new(&app.scene.device, app.scene.config.format, 1);
+    let mut egui_rpass = RenderPass::new(
+        &app.scene.render_manager.device,
+        app.scene.render_manager.config.format,
+        1,
+    );
     let mut demo_app = RadiantAppController::new();
 
     event_loop.run(move |event, _, control_flow| {
@@ -90,10 +98,11 @@ async fn run() {
 
         match event {
             RedrawRequested(..) => {
-                let output_frame = std::mem::replace(&mut app.scene.current_texture, None);
+                let output_frame =
+                    std::mem::replace(&mut app.scene.render_manager.current_texture, None);
                 let output_frame = output_frame.unwrap();
 
-                let output_view = app.scene.current_view.as_ref().unwrap();
+                let output_view = app.scene.render_manager.current_view.as_ref().unwrap();
 
                 platform.begin_frame();
 
@@ -104,27 +113,30 @@ async fn run() {
 
                 // Upload all resources for the GPU.
                 let screen_descriptor = ScreenDescriptor {
-                    physical_width: app.scene.config.width,
-                    physical_height: app.scene.config.height,
+                    physical_width: app.scene.render_manager.config.width,
+                    physical_height: app.scene.render_manager.config.height,
                     scale_factor: scale_factor as f32,
                 };
                 let tdelta: egui::TexturesDelta = full_output.textures_delta;
                 egui_rpass
-                    .add_textures(&app.scene.device, &app.scene.queue, &tdelta)
+                    .add_textures(
+                        &app.scene.render_manager.device,
+                        &app.scene.render_manager.queue,
+                        &tdelta,
+                    )
                     .expect("add texture ok");
                 egui_rpass.update_buffers(
-                    &app.scene.device,
-                    &app.scene.queue,
+                    &app.scene.render_manager.device,
+                    &app.scene.render_manager.queue,
                     &paint_jobs,
                     &screen_descriptor,
                 );
 
-                let mut encoder =
-                    app.scene
-                        .device
-                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                            label: Some("encoder"),
-                        });
+                let mut encoder = app.scene.render_manager.device.create_command_encoder(
+                    &wgpu::CommandEncoderDescriptor {
+                        label: Some("encoder"),
+                    },
+                );
                 // Record all render passes.
                 egui_rpass
                     .execute(
@@ -137,7 +149,10 @@ async fn run() {
                     )
                     .unwrap();
                 // Submit the commands.
-                app.scene.queue.submit(iter::once(encoder.finish()));
+                app.scene
+                    .render_manager
+                    .queue
+                    .submit(iter::once(encoder.finish()));
 
                 // Redraw egui
                 output_frame.present();

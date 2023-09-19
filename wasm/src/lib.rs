@@ -69,7 +69,10 @@ impl RadiantAppController {
 
     #[wasm_bindgen(js_name = handleMessage)]
     pub fn handle_message(&mut self, message: JsValue) {
-        let v = serde_wasm_bindgen::to_value(&RadiantMessage::SelectTool(0)).unwrap();
+        let v = serde_wasm_bindgen::to_value(&RadiantMessage::SelectTool(
+            radiant_main::RadiantToolType::Selection,
+        ))
+        .unwrap();
         log::info!("Tried: {:?}", v);
         log::info!("Received message: {:?}", message);
         // let v: RadiantMessage = serde_wasm_bindgen::from_value(message).unwrap();
