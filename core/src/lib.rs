@@ -1,6 +1,7 @@
 pub mod artboard;
 pub mod components;
 pub mod document;
+pub mod interactions;
 pub mod message;
 pub mod nodes;
 pub mod renderer;
@@ -10,6 +11,7 @@ pub mod tools;
 pub use artboard::*;
 pub use components::*;
 pub use document::*;
+pub use interactions::*;
 pub use message::*;
 pub use nodes::*;
 pub use renderer::*;
@@ -50,6 +52,10 @@ pub trait RadiantTessellatable {
 
 pub trait RadiantNode: RadiantTessellatable {
     fn get_id(&self) -> u64;
+    fn get_bounding_rect(&self) -> [f32; 4];
+}
+
+pub trait RadiantComponentProvider {
     fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T>;
     fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T>;
 }
@@ -63,7 +69,16 @@ pub enum RadiantNodeType {
 }
 
 impl RadiantNodeType {
-    fn get_tessellatable_mut(&mut self) -> &mut dyn RadiantTessellatable {
+    fn get_node(&self) -> &dyn RadiantNode {
+        match self {
+            RadiantNodeType::Document(node) => node,
+            RadiantNodeType::Artboard(node) => node,
+            RadiantNodeType::Rectangle(node) => node,
+            RadiantNodeType::Path(node) => node,
+        }
+    }
+
+    fn get_node_mut(&mut self) -> &mut dyn RadiantNode {
         match self {
             RadiantNodeType::Document(node) => node,
             RadiantNodeType::Artboard(node) => node,
@@ -75,15 +90,15 @@ impl RadiantNodeType {
 
 impl RadiantTessellatable for RadiantNodeType {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        self.get_tessellatable_mut().attach_to_scene(scene);
+        self.get_node_mut().attach_to_scene(scene);
     }
 
     fn detach(&mut self) {
-        self.get_tessellatable_mut().detach();
+        self.get_node_mut().detach();
     }
 
     fn set_needs_tessellation(&mut self) {
-        self.get_tessellatable_mut().set_needs_tessellation();
+        self.get_node_mut().set_needs_tessellation();
     }
 
     fn tessellate(
@@ -91,21 +106,21 @@ impl RadiantTessellatable for RadiantNodeType {
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
     ) -> Vec<ClippedPrimitive> {
-        self.get_tessellatable_mut()
-            .tessellate(selection, screen_descriptor)
+        self.get_node_mut().tessellate(selection, screen_descriptor)
     }
 }
 
 impl RadiantNode for RadiantNodeType {
     fn get_id(&self) -> u64 {
-        match self {
-            RadiantNodeType::Document(node) => node.get_id(),
-            RadiantNodeType::Artboard(node) => node.get_id(),
-            RadiantNodeType::Rectangle(node) => node.get_id(),
-            RadiantNodeType::Path(node) => node.get_id(),
-        }
+        self.get_node().get_id()
     }
 
+    fn get_bounding_rect(&self) -> [f32; 4] {
+        self.get_node().get_bounding_rect()
+    }
+}
+
+impl RadiantComponentProvider for RadiantNodeType {
     fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
         match self {
             RadiantNodeType::Document(node) => node.get_component(),
@@ -123,4 +138,8 @@ impl RadiantNode for RadiantNodeType {
             RadiantNodeType::Path(node) => node.get_component_mut(),
         }
     }
+}
+
+pub trait RadiantInteraction {
+    fn get_primitives(&self, selection: bool) -> Vec<ClippedPrimitive>;
 }
