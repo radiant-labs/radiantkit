@@ -4,7 +4,7 @@ pub mod document;
 pub mod interactions;
 pub mod message;
 pub mod nodes;
-pub mod renderer;
+pub mod render;
 pub mod scene;
 pub mod tools;
 
@@ -14,7 +14,7 @@ pub use document::*;
 pub use interactions::*;
 pub use message::*;
 pub use nodes::*;
-pub use renderer::*;
+pub use render::*;
 pub use scene::*;
 pub use tools::*;
 
@@ -52,6 +52,7 @@ pub trait RadiantTessellatable {
 
 pub trait RadiantNode: RadiantTessellatable {
     fn get_id(&self) -> u64;
+    fn set_id(&mut self, id: u64);
     fn get_bounding_rect(&self) -> [f32; 4];
 }
 
@@ -113,6 +114,10 @@ impl RadiantTessellatable for RadiantNodeType {
 impl RadiantNode for RadiantNodeType {
     fn get_id(&self) -> u64 {
         self.get_node().get_id()
+    }
+
+    fn set_id(&mut self, id: u64) {
+        self.get_node_mut().set_id(id);
     }
 
     fn get_bounding_rect(&self) -> [f32; 4] {

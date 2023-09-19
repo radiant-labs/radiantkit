@@ -1,7 +1,4 @@
-use radiant_core::{
-    RadiantMessage, RadiantResponse, RadiantScene, RadiantTool, RadiantToolType, RectangleTool,
-    ScreenDescriptor, SelectionTool,
-};
+use radiant_core::{RadiantMessage, RadiantResponse, RadiantScene, ScreenDescriptor};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -10,7 +7,6 @@ pub struct RadiantApp {
     pub size: winit::dpi::PhysicalSize<u32>,
 
     pub scene: RadiantScene,
-    pub tool: RadiantToolType,
 
     mouse_position: [f32; 2],
     mouse_dragging: bool,
@@ -85,15 +81,12 @@ impl RadiantApp {
 
         let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
 
-        let tool = RadiantToolType::Selection(SelectionTool::new());
-
         Self {
             window,
             size,
             scene,
             mouse_position: [0.0, 0.0],
             mouse_dragging: false,
-            tool,
         }
     }
 
@@ -138,14 +131,11 @@ impl RadiantApp {
                             if button == &MouseButton::Left {
                                 let is_pressed = *state == ElementState::Pressed;
                                 if is_pressed {
-                                    if self
-                                        .tool
-                                        .on_mouse_down(&mut self.scene, self.mouse_position)
-                                    {
+                                    if self.scene.on_mouse_down(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 } else {
-                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                    if self.scene.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
@@ -159,10 +149,7 @@ impl RadiantApp {
                             //     current_position[1] - self.mouse_position[1],
                             // ];
                             self.mouse_position = current_position;
-                            if self
-                                .tool
-                                .on_mouse_move(&mut self.scene, self.mouse_position)
-                            {
+                            if self.scene.on_mouse_move(self.mouse_position) {
                                 self.window.request_redraw();
                             }
                         }
@@ -177,28 +164,22 @@ impl RadiantApp {
                             self.mouse_position = current_position;
                             match phase {
                                 TouchPhase::Started => {
-                                    if self
-                                        .tool
-                                        .on_mouse_down(&mut self.scene, self.mouse_position)
-                                    {
+                                    if self.scene.on_mouse_down(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Moved => {
-                                    if self
-                                        .tool
-                                        .on_mouse_move(&mut self.scene, self.mouse_position)
-                                    {
+                                    if self.scene.on_mouse_move(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Ended => {
-                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                    if self.scene.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Cancelled => {
-                                    if self.tool.on_mouse_up(&mut self.scene, self.mouse_position) {
+                                    if self.scene.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
@@ -209,7 +190,7 @@ impl RadiantApp {
                 }
             }
             Event::RedrawRequested(window_id) if window_id == &self.window.id() => {
-                match self.scene.render(false) {
+                match self.scene.render() {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => self.resize(self.size),
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
@@ -227,16 +208,6 @@ impl RadiantApp {
 
 impl RadiantApp {
     pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        match message {
-            RadiantMessage::Scene(message) => {
-                self.scene.handle_message(message);
-            }
-            RadiantMessage::SelectTool(tool) => match tool {
-                0 => self.tool = RadiantToolType::Selection(SelectionTool::new()),
-                1 => self.tool = RadiantToolType::Rectangle(RectangleTool::new()),
-                _ => {}
-            },
-        }
-        None
+        self.scene.handle_message(message)
     }
 }

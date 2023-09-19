@@ -1,4 +1,4 @@
-use crate::{RadiantRectangleNode, RadiantSceneMessage, RadiantTool};
+use crate::{RadiantDocumentNode, RadiantMessage, RadiantRectangleNode, RadiantTool};
 
 pub struct RectangleTool {
     active_node_id: Option<u64>,
@@ -17,21 +17,29 @@ impl RectangleTool {
 }
 
 impl RadiantTool for RectangleTool {
-    fn on_mouse_down(&mut self, scene: &mut crate::RadiantScene, position: [f32; 2]) -> bool {
-        let node_id = scene.document.counter;
-        let message = RadiantSceneMessage::AddNode(crate::RadiantNodeType::Rectangle(
+    fn on_mouse_down(
+        &mut self,
+        _node_id: u64,
+        document: &RadiantDocumentNode,
+        position: [f32; 2],
+    ) -> Option<RadiantMessage> {
+        let node_id = document.counter;
+        let message = RadiantMessage::AddNode(crate::RadiantNodeType::Rectangle(
             RadiantRectangleNode::new(node_id, position, [10.0, 10.0]),
         ));
-        scene.process_message(message);
         self.active_node_id = Some(node_id);
         self.start_position = position;
         self.prev_position = position;
-        true
+        Some(message)
     }
 
-    fn on_mouse_move(&mut self, scene: &mut crate::RadiantScene, position: [f32; 2]) -> bool {
+    fn on_mouse_move(
+        &mut self,
+        _document: &RadiantDocumentNode,
+        position: [f32; 2],
+    ) -> Option<RadiantMessage> {
         let result = if let Some(id) = self.active_node_id {
-            let message = RadiantSceneMessage::TransformNode {
+            let message = RadiantMessage::TransformNode {
                 id: id,
                 position: [0.0, 0.0],
                 scale: [
@@ -39,19 +47,22 @@ impl RadiantTool for RectangleTool {
                     position[1] - self.prev_position[1],
                 ],
             };
-            scene.process_message(message);
-            true
+            Some(message)
         } else {
-            false
+            None
         };
         self.prev_position = position;
         result
     }
 
-    fn on_mouse_up(&mut self, _scene: &mut crate::RadiantScene, _position: [f32; 2]) -> bool {
+    fn on_mouse_up(
+        &mut self,
+        _document: &RadiantDocumentNode,
+        _position: [f32; 2],
+    ) -> Option<RadiantMessage> {
         self.active_node_id = None;
         self.start_position = [0.0, 0.0];
         self.prev_position = [0.0, 0.0];
-        false
+        None
     }
 }
