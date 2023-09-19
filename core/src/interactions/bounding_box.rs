@@ -71,7 +71,7 @@ impl BoundingBoxInteraction {
             || id == BOUNDING_BOX_TOP_LEFT_ID;
     }
 
-    pub fn attached_to(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
+    pub fn enable(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
@@ -115,23 +115,17 @@ impl BoundingBoxInteraction {
         }
     }
 
-    pub fn detached(&mut self) {
+    pub fn disable(&mut self) {
         self.active_node_id = None;
     }
 
     pub fn update(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
-        self.attached_to(node, screen_descriptor);
+        self.enable(node, screen_descriptor);
     }
 }
 
-impl RadiantTessellatable for BoundingBoxInteraction {
-    fn attach_to_scene(&mut self, _scene: &mut crate::RadiantScene) {}
-
-    fn detach(&mut self) {}
-
-    fn set_needs_tessellation(&mut self) {}
-
-    fn tessellate(
+impl BoundingBoxInteraction {
+    pub fn tessellate(
         &mut self,
         selection: bool,
         screen_descriptor: &crate::ScreenDescriptor,
