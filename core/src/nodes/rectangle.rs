@@ -1,6 +1,6 @@
 use crate::{
     RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent, ColorComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ pub struct RadiantRectangleNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
+    pub color: ColorComponent,
     #[serde(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
@@ -31,11 +32,13 @@ impl RadiantRectangleNode {
         transform.set_scale(&scale);
 
         let selection = SelectionComponent::new();
+        let color = ColorComponent::new();
 
         Self {
             id,
             transform,
             selection,
+            color,
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
             needs_tessellation: true,
@@ -65,7 +68,7 @@ impl RadiantRectangleNode {
         );
         let rounding = epaint::Rounding::default();
 
-        let color = epaint::Color32::LIGHT_RED;
+        let color = self.color.color();
         let rect_shape = epaint::RectShape::filled(rect, rounding, color);
         let bounding_rect = rect_shape.visual_bounding_rect();
         self.bounding_rect = [
@@ -150,6 +153,8 @@ impl RadiantComponentProvider for RadiantRectangleNode {
             unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }
         } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
             unsafe { Some(&*(&self.transform as *const dyn Any as *const T)) }
+        } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
+            unsafe { Some(&*(&self.color as *const dyn Any as *const T)) }
         } else {
             None
         }
@@ -160,6 +165,8 @@ impl RadiantComponentProvider for RadiantRectangleNode {
             unsafe { Some(&mut *(&mut self.selection as *mut dyn Any as *mut T)) }
         } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
             unsafe { Some(&mut *(&mut self.transform as *mut dyn Any as *mut T)) }
+        } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
+            unsafe { Some(&mut *(&mut self.color as *mut dyn Any as *mut T)) }
         } else {
             None
         }

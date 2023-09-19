@@ -1,6 +1,6 @@
 use crate::{
     RadiantComponentProvider, RadiantInteraction, RadiantLineNode, RadiantNode, RadiantNodeType,
-    RadiantSceneMessage, RadiantTessellatable, ScreenDescriptor, TransformComponent,
+    RadiantSceneMessage, RadiantTessellatable, ScreenDescriptor, TransformComponent, RadiantRectangleNode, RadiantTransformable
 };
 use epaint::ClippedPrimitive;
 
@@ -9,10 +9,16 @@ const BOUNDING_BOX_RIGHT_ID: u64 = 202;
 const BOUNDING_BOX_BOTTOM_ID: u64 = 203;
 const BOUNDING_BOX_LEFT_ID: u64 = 204;
 
+const BOUNDING_BOX_TOP_RIGHT_ID: u64 = 205;
+const BOUNDING_BOX_BOTTOM_RIGHT_ID: u64 = 206;
+const BOUNDING_BOX_BOTTOM_LEFT_ID: u64 = 207;
+const BOUNDING_BOX_TOP_LEFT_ID: u64 = 208;
+
 #[derive(Debug, Clone)]
 pub struct BoundingBoxInteraction {
     pub active_node_id: Option<u64>,
     pub nodes: Vec<RadiantLineNode>,
+    pub corner_nodes: Vec<RadiantRectangleNode>,
     pub primitives: Vec<ClippedPrimitive>,
     pub selection_primitives: Vec<ClippedPrimitive>,
 }
@@ -26,9 +32,20 @@ impl BoundingBoxInteraction {
             RadiantLineNode::new(BOUNDING_BOX_LEFT_ID, [0.0, 0.0], [0.0, 0.0]),
         ];
 
+        let mut corner_nodes = vec![
+            RadiantRectangleNode::new(BOUNDING_BOX_TOP_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(BOUNDING_BOX_BOTTOM_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(BOUNDING_BOX_BOTTOM_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(BOUNDING_BOX_TOP_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
+        ];
+        for node in &mut corner_nodes {
+            node.color.set_color(epaint::Color32::BLUE);
+        }
+
         Self {
             active_node_id: None,
             nodes,
+            corner_nodes,
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
         }
@@ -46,10 +63,14 @@ impl BoundingBoxInteraction {
         return id == BOUNDING_BOX_TOP_ID
             || id == BOUNDING_BOX_RIGHT_ID
             || id == BOUNDING_BOX_BOTTOM_ID
-            || id == BOUNDING_BOX_LEFT_ID;
+            || id == BOUNDING_BOX_LEFT_ID
+            || id == BOUNDING_BOX_TOP_RIGHT_ID
+            || id == BOUNDING_BOX_BOTTOM_RIGHT_ID
+            || id == BOUNDING_BOX_BOTTOM_LEFT_ID
+            || id == BOUNDING_BOX_TOP_LEFT_ID;
     }
 
-    pub fn attached_to(&mut self, node: &RadiantNodeType, _screen_descriptor: &ScreenDescriptor) {
+    pub fn attached_to(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
@@ -65,7 +86,15 @@ impl BoundingBoxInteraction {
             self.nodes[3].start = [rect[0], rect[3]];
             self.nodes[3].end = [rect[0], rect[1]];
 
+            self.corner_nodes[0].transform.set_xy(&[rect[2] * screen_descriptor.pixels_per_point - 8.0, rect[1] * screen_descriptor.pixels_per_point - 8.0]);
+            self.corner_nodes[1].transform.set_xy(&[rect[2] * screen_descriptor.pixels_per_point - 8.0, rect[3] * screen_descriptor.pixels_per_point - 8.0]);
+            self.corner_nodes[2].transform.set_xy(&[rect[0] * screen_descriptor.pixels_per_point - 8.0, rect[3] * screen_descriptor.pixels_per_point - 8.0]);
+            self.corner_nodes[3].transform.set_xy(&[rect[0] * screen_descriptor.pixels_per_point - 8.0, rect[1] * screen_descriptor.pixels_per_point - 8.0]);
+
             for node in &mut self.nodes {
+                node.set_needs_tessellation();
+            }
+            for node in &mut self.corner_nodes {
                 node.set_needs_tessellation();
             }
 
@@ -98,18 +127,32 @@ impl RadiantTessellatable for BoundingBoxInteraction {
             return Vec::new();
         }
 
-        self.primitives = self
+        let primitives = self
             .nodes
             .iter_mut()
             .fold(Vec::new(), |mut primitives, node| {
                 primitives.append(&mut node.tessellate(selection, screen_descriptor));
                 primitives
             });
+        self.primitives = self
+            .corner_nodes
+            .iter_mut()
+            .fold(primitives, |mut primitives, node| {
+                primitives.append(&mut node.tessellate(selection, screen_descriptor));
+                primitives
+            });
 
-        self.selection_primitives =
+        let selection_primitives =
             self.nodes
                 .iter_mut()
                 .fold(Vec::new(), |mut primitives, node| {
+                    primitives.append(&mut node.tessellate(true, screen_descriptor));
+                    primitives
+                });
+        self.selection_primitives =
+            self.corner_nodes
+                .iter_mut()
+                .fold(selection_primitives, |mut primitives, node| {
                     primitives.append(&mut node.tessellate(true, screen_descriptor));
                     primitives
                 });
@@ -155,6 +198,26 @@ impl BoundingBoxInteraction {
                 id: node_id,
                 position: [transform[0], 0.0],
                 scale: [-transform[0], 0.0],
+            }),
+            BOUNDING_BOX_TOP_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
+                id: node_id,
+                position: [0.0, transform[1]],
+                scale: [transform[0], -transform[1]],
+            }),
+            BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
+                id: node_id,
+                position: [0.0, 0.0],
+                scale: [transform[0], transform[1]],
+            }),
+            BOUNDING_BOX_BOTTOM_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
+                id: node_id,
+                position: [transform[0], 0.0],
+                scale: [-transform[0], transform[1]],
+            }),
+            BOUNDING_BOX_TOP_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
+                id: node_id,
+                position: [transform[0], transform[1]],
+                scale: [-transform[0], -transform[1]],
             }),
             _ => None,
         }
