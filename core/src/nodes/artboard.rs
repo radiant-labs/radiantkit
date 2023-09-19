@@ -1,8 +1,6 @@
-use crate::RadiantComponentProvider;
-
-use super::{
-    RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent,
+use crate::{
+    RadiantComponentProvider, RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable,
+    ScreenDescriptor, SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
