@@ -1,6 +1,6 @@
 use crate::{
-    RadiantArtboardNode, RadiantNode, RadiantNodeType, RadiantScene, RadiantSelectable,
-    RadiantTessellatable, ScreenDescriptor, SelectionComponent,
+    RadiantArtboardNode, RadiantComponentProvider, RadiantNode, RadiantNodeType, RadiantScene,
+    RadiantSelectable, RadiantTessellatable, ScreenDescriptor, SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
@@ -120,6 +120,12 @@ impl RadiantNode for RadiantDocumentNode {
         0
     }
 
+    fn get_bounding_rect(&self) -> [f32; 4] {
+        [0.0, 0.0, 0.0, 0.0]
+    }
+}
+
+impl RadiantComponentProvider for RadiantDocumentNode {
     fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
         None
     }

@@ -1,8 +1,9 @@
 use epaint::{text::FontDefinitions, Fonts};
 
 use crate::{
-    RadiantDocumentNode, RadiantNode, RadiantNodeType, RadiantRenderer, RadiantResponse,
-    RadiantSceneMessage, RadiantTessellatable, RadiantTransformable, TransformComponent,
+    BoundingBoxInteraction, RadiantComponentProvider, RadiantDocumentNode, RadiantNode,
+    RadiantNodeType, RadiantRenderer, RadiantResponse, RadiantSceneMessage, RadiantTessellatable,
+    RadiantTransformable, TransformComponent,
 };
 
 /// Information about the screen used for rendering.
@@ -45,6 +46,8 @@ pub struct RadiantScene {
     offscreen_texture: Option<wgpu::Texture>,
     offscreen_texture_view: Option<wgpu::TextureView>,
     offscreen_buffer: Option<wgpu::Buffer>,
+
+    bounding_box_interaction: BoundingBoxInteraction,
 }
 
 impl RadiantScene {
@@ -84,6 +87,8 @@ impl RadiantScene {
             offscreen_texture: None,
             offscreen_texture_view: None,
             offscreen_buffer: None,
+
+            bounding_box_interaction: BoundingBoxInteraction::new(),
         }
     }
 }
@@ -157,7 +162,12 @@ impl RadiantScene {
     }
 
     pub fn render(&mut self, selection: bool) -> Result<(), wgpu::SurfaceError> {
-        let primitives = self.document.tessellate(selection, &self.screen_descriptor);
+        let mut primitives = self.document.tessellate(selection, &self.screen_descriptor);
+
+        let mut p2 = self
+            .bounding_box_interaction
+            .tessellate(selection, &self.screen_descriptor);
+        primitives.append(&mut p2);
 
         let mut current_texture = None;
         let view;
@@ -338,9 +348,16 @@ impl RadiantScene {
                 self.document.set_active_artboard(id);
             }
             RadiantSceneMessage::SelectNode(id) => {
-                self.document.select(id);
-                if let Some(node) = self.document.get_node(id) {
-                    return Some(RadiantResponse::NodeSelected(node.clone()));
+                if self.bounding_box_interaction.contains(id) {
+                } else {
+                    self.document.select(id);
+                    if let Some(node) = self.document.get_node(id) {
+                        self.bounding_box_interaction
+                            .attached_to(node, &self.screen_descriptor);
+                        return Some(RadiantResponse::NodeSelected(node.clone()));
+                    } else {
+                        self.bounding_box_interaction.detached();
+                    }
                 }
             }
             RadiantSceneMessage::AddNode(node) => {
@@ -353,7 +370,13 @@ impl RadiantScene {
                 position,
                 scale,
             } => {
-                if let Some(node) = self.document.get_node_mut(id) {
+                if self.bounding_box_interaction.contains(id) {
+                    if let Some(message) = self.bounding_box_interaction.handle(id, position) {
+                        return self.handle_message(message);
+                    }
+                } else if let Some(node) = self.document.get_node_mut(id) {
+                    self.bounding_box_interaction
+                        .update(node, &self.screen_descriptor);
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
                         component.transform_scale(&scale);
