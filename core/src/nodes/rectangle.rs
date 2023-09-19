@@ -59,8 +59,8 @@ impl RadiantRectangleNode {
                 position[1] / pixels_per_point,
             ),
             epaint::Pos2::new(
-                position[0] / pixels_per_point + scale[0],
-                position[1] / pixels_per_point + scale[1],
+                (position[0] + scale[0]) / pixels_per_point,
+                (position[1] + scale[1]) / pixels_per_point,
             ),
         );
         let rounding = epaint::Rounding::default();

@@ -138,8 +138,8 @@ impl BoundingBoxInteraction {
         match id {
             BOUNDING_BOX_TOP_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
-                position: [0.0, 0.0],
-                scale: [0.0, transform[1]],
+                position: [0.0, transform[1]],
+                scale: [0.0, -transform[1]],
             }),
             BOUNDING_BOX_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
@@ -153,8 +153,8 @@ impl BoundingBoxInteraction {
             }),
             BOUNDING_BOX_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
-                position: [0.0, 0.0],
-                scale: [transform[0], 0.0],
+                position: [transform[0], 0.0],
+                scale: [-transform[0], 0.0],
             }),
             _ => None,
         }
