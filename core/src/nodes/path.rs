@@ -49,18 +49,20 @@ impl RadiantPathNode {
         self.needs_tessellation = false;
 
         let position = self.transform.get_xy();
+        let scale = self.transform.get_scale();
+
         let points = vec![
             epaint::Pos2::new(
                 position[0] / pixels_per_point,
                 position[1] / pixels_per_point,
             ),
             epaint::Pos2::new(
-                position[0] / pixels_per_point + 200.0,
-                position[1] / pixels_per_point + 200.0,
+                (position[0] + scale[0]) / pixels_per_point + 200.0,
+                (position[1] + scale[1]) / pixels_per_point + 200.0,
             ),
             epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point + 400.0,
+                (position[0] + scale[0]) / pixels_per_point,
+                (position[1] + scale[1]) / pixels_per_point + 400.0,
             ),
             epaint::Pos2::new(
                 position[0] / pixels_per_point - 200.0,
