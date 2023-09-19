@@ -10,10 +10,7 @@ pub use line::*;
 pub use path::*;
 pub use rectangle::*;
 
-use crate::{
-    RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
-    ScreenDescriptor,
-};
+use crate::{RadiantComponent, RadiantComponentProvider, RadiantScene, ScreenDescriptor};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 
@@ -99,4 +96,22 @@ impl RadiantComponentProvider for RadiantNodeType {
             RadiantNodeType::Path(node) => node.get_component_mut(),
         }
     }
+}
+
+pub trait RadiantTessellatable {
+    fn attach_to_scene(&mut self, scene: &mut RadiantScene);
+    fn detach(&mut self);
+
+    fn set_needs_tessellation(&mut self);
+    fn tessellate(
+        &mut self,
+        selection: bool,
+        screen_descriptor: &ScreenDescriptor,
+    ) -> Vec<ClippedPrimitive>;
+}
+
+pub trait RadiantNode: RadiantTessellatable {
+    fn get_id(&self) -> u64;
+    fn set_id(&mut self, id: u64);
+    fn get_bounding_rect(&self) -> [f32; 4];
 }
