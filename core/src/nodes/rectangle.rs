@@ -1,6 +1,6 @@
 use crate::{
-    RadiantNode, RadiantScene, RadiantTessellatable, RadiantTransformable, ScreenDescriptor,
-    SelectionComponent, TransformComponent,
+    RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
+    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -20,6 +20,8 @@ pub struct RadiantRectangleNode {
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
     pub needs_tessellation: bool,
+    #[serde(skip)]
+    pub bounding_rect: [f32; 4],
 }
 
 impl RadiantRectangleNode {
@@ -37,15 +39,17 @@ impl RadiantRectangleNode {
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
             needs_tessellation: true,
+            bounding_rect: [0.0, 0.0, 0.0, 0.0],
         }
     }
 
-    fn tessellate(&mut self, pixels_per_point: f32) {
+    fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor) {
         if !self.needs_tessellation {
             return;
         }
         self.needs_tessellation = false;
 
+        let pixels_per_point = screen_descriptor.pixels_per_point;
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
 
@@ -64,22 +68,16 @@ impl RadiantRectangleNode {
         let color = epaint::Color32::LIGHT_RED;
         let rect_shape = epaint::RectShape::filled(rect, rounding, color);
         let bounding_rect = rect_shape.visual_bounding_rect();
-        let mut shapes = vec![ClippedShape(
+        self.bounding_rect = [
+            bounding_rect.min.x,
+            bounding_rect.min.y,
+            bounding_rect.max.x,
+            bounding_rect.max.y,
+        ];
+        let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
         )];
-        if self.selection.is_selected() {
-            let rounding = epaint::Rounding::none();
-            let rect_shape = epaint::RectShape::stroke(
-                bounding_rect,
-                rounding,
-                epaint::Stroke::new(1.0, epaint::Color32::BLUE),
-            );
-            shapes.push(ClippedShape(
-                Rect::EVERYTHING,
-                epaint::Shape::Rect(rect_shape),
-            ));
-        }
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
@@ -110,7 +108,7 @@ impl RadiantRectangleNode {
 
 impl RadiantTessellatable for RadiantRectangleNode {
     fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        self.tessellate(scene.screen_descriptor.pixels_per_point);
+        self.tessellate(&scene.screen_descriptor);
     }
 
     fn detach(&mut self) {
@@ -127,7 +125,7 @@ impl RadiantTessellatable for RadiantRectangleNode {
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
     ) -> Vec<ClippedPrimitive> {
-        self.tessellate(screen_descriptor.pixels_per_point);
+        self.tessellate(screen_descriptor);
         if selection {
             self.selection_primitives.clone()
         } else {
@@ -141,6 +139,12 @@ impl RadiantNode for RadiantRectangleNode {
         return self.id;
     }
 
+    fn get_bounding_rect(&self) -> [f32; 4] {
+        self.bounding_rect
+    }
+}
+
+impl RadiantComponentProvider for RadiantRectangleNode {
     fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
         if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
             unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }

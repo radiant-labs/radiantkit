@@ -1,3 +1,5 @@
+use crate::RadiantComponentProvider;
+
 use super::{
     RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable, ScreenDescriptor,
     SelectionComponent,
@@ -69,6 +71,12 @@ impl RadiantNode for RadiantArtboardNode {
         self.id
     }
 
+    fn get_bounding_rect(&self) -> [f32; 4] {
+        [0.0, 0.0, 0.0, 0.0]
+    }
+}
+
+impl RadiantComponentProvider for RadiantArtboardNode {
     fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
         None
     }
