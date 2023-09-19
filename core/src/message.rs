@@ -1,8 +1,8 @@
-use crate::RadiantNodeType;
+use crate::{RadiantNodeType, RadiantToolType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum RadiantSceneMessage {
+pub enum RadiantMessage {
     AddArtboard,
     SelectArtboard(u64),
 
@@ -13,13 +13,8 @@ pub enum RadiantSceneMessage {
         position: [f32; 2],
         scale: [f32; 2],
     },
-}
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum RadiantMessage {
-    Scene(RadiantSceneMessage),
-
-    SelectTool(u64),
+    SelectTool(RadiantToolType),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,41 +1,44 @@
-pub mod rect;
-pub mod select;
+pub mod rectangle_tool;
+pub mod selection_tool;
+pub mod tool_manager;
 
-pub use rect::*;
-pub use select::*;
+pub use rectangle_tool::*;
+pub use selection_tool::*;
+pub use tool_manager::*;
 
-use crate::RadiantScene;
+use crate::{RadiantDocumentNode, RadiantMessage};
+use serde::{Deserialize, Serialize};
 
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 pub enum RadiantToolType {
-    Selection(SelectionTool),
-    Rectangle(RectangleTool),
-}
-
-pub trait RadiantTool {
-    fn on_mouse_down(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool;
-    fn on_mouse_move(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool;
-    fn on_mouse_up(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool;
+    Selection,
+    Rectangle,
 }
 
 impl RadiantToolType {
-    fn get_tool_mut(&mut self) -> &mut dyn RadiantTool {
+    pub fn get_tool(&self) -> Box<dyn RadiantTool> {
         match self {
-            RadiantToolType::Selection(tool) => tool,
-            RadiantToolType::Rectangle(tool) => tool,
+            RadiantToolType::Selection => Box::new(SelectionTool::new()),
+            RadiantToolType::Rectangle => Box::new(RectangleTool::new()),
         }
     }
 }
 
-impl RadiantTool for RadiantToolType {
-    fn on_mouse_down(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool {
-        self.get_tool_mut().on_mouse_down(scene, position)
-    }
-
-    fn on_mouse_move(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool {
-        self.get_tool_mut().on_mouse_move(scene, position)
-    }
-
-    fn on_mouse_up(&mut self, scene: &mut RadiantScene, position: [f32; 2]) -> bool {
-        self.get_tool_mut().on_mouse_up(scene, position)
-    }
+pub trait RadiantTool {
+    fn on_mouse_down(
+        &mut self,
+        node_id: u64,
+        document: &RadiantDocumentNode,
+        position: [f32; 2],
+    ) -> Option<RadiantMessage>;
+    fn on_mouse_move(
+        &mut self,
+        document: &RadiantDocumentNode,
+        position: [f32; 2],
+    ) -> Option<RadiantMessage>;
+    fn on_mouse_up(
+        &mut self,
+        document: &RadiantDocumentNode,
+        position: [f32; 2],
+    ) -> Option<RadiantMessage>;
 }

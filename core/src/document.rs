@@ -120,6 +120,8 @@ impl RadiantNode for RadiantDocumentNode {
         0
     }
 
+    fn set_id(&mut self, _id: u64) {}
+
     fn get_bounding_rect(&self) -> [f32; 4] {
         [0.0, 0.0, 0.0, 0.0]
     }

@@ -34,7 +34,8 @@ async fn run() {
 
         match event {
             RedrawRequested(..) => {
-                let output_frame = std::mem::replace(&mut app.scene.current_texture, None);
+                let output_frame =
+                    std::mem::replace(&mut app.scene.render_manager.current_texture, None);
                 output_frame.unwrap().present();
             }
             _ => {}

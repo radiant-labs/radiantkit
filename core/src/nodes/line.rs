@@ -130,6 +130,10 @@ impl RadiantNode for RadiantLineNode {
         return self.id;
     }
 
+    fn set_id(&mut self, id: u64) {
+        self.id = id;
+    }
+
     fn get_bounding_rect(&self) -> [f32; 4] {
         self.bounding_rect
     }
