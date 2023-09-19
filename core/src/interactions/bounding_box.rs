@@ -1,6 +1,7 @@
 use crate::{
     RadiantComponentProvider, RadiantInteraction, RadiantLineNode, RadiantNode, RadiantNodeType,
-    RadiantSceneMessage, RadiantTessellatable, ScreenDescriptor, TransformComponent, RadiantRectangleNode, RadiantTransformable
+    RadiantRectangleNode, RadiantSceneMessage, RadiantTessellatable, RadiantTransformable,
+    ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
 
@@ -39,7 +40,7 @@ impl BoundingBoxInteraction {
             RadiantRectangleNode::new(BOUNDING_BOX_TOP_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
         ];
         for node in &mut corner_nodes {
-            node.color.set_color(epaint::Color32::BLUE);
+            node.color.set_fill_color(epaint::Color32::BLUE);
         }
 
         Self {
@@ -86,10 +87,22 @@ impl BoundingBoxInteraction {
             self.nodes[3].start = [rect[0], rect[3]];
             self.nodes[3].end = [rect[0], rect[1]];
 
-            self.corner_nodes[0].transform.set_xy(&[rect[2] * screen_descriptor.pixels_per_point - 8.0, rect[1] * screen_descriptor.pixels_per_point - 8.0]);
-            self.corner_nodes[1].transform.set_xy(&[rect[2] * screen_descriptor.pixels_per_point - 8.0, rect[3] * screen_descriptor.pixels_per_point - 8.0]);
-            self.corner_nodes[2].transform.set_xy(&[rect[0] * screen_descriptor.pixels_per_point - 8.0, rect[3] * screen_descriptor.pixels_per_point - 8.0]);
-            self.corner_nodes[3].transform.set_xy(&[rect[0] * screen_descriptor.pixels_per_point - 8.0, rect[1] * screen_descriptor.pixels_per_point - 8.0]);
+            self.corner_nodes[0].transform.set_xy(&[
+                rect[2] * screen_descriptor.pixels_per_point - 8.0,
+                rect[1] * screen_descriptor.pixels_per_point - 8.0,
+            ]);
+            self.corner_nodes[1].transform.set_xy(&[
+                rect[2] * screen_descriptor.pixels_per_point - 8.0,
+                rect[3] * screen_descriptor.pixels_per_point - 8.0,
+            ]);
+            self.corner_nodes[2].transform.set_xy(&[
+                rect[0] * screen_descriptor.pixels_per_point - 8.0,
+                rect[3] * screen_descriptor.pixels_per_point - 8.0,
+            ]);
+            self.corner_nodes[3].transform.set_xy(&[
+                rect[0] * screen_descriptor.pixels_per_point - 8.0,
+                rect[1] * screen_descriptor.pixels_per_point - 8.0,
+            ]);
 
             for node in &mut self.nodes {
                 node.set_needs_tessellation();

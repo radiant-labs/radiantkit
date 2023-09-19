@@ -1,6 +1,6 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent, ColorComponent,
+    ColorComponent, RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
+    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -68,8 +68,8 @@ impl RadiantRectangleNode {
         );
         let rounding = epaint::Rounding::default();
 
-        let color = self.color.color();
-        let rect_shape = epaint::RectShape::filled(rect, rounding, color);
+        let fill_color = self.color.fill_color();
+        let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
         let bounding_rect = rect_shape.visual_bounding_rect();
         self.bounding_rect = [
             bounding_rect.min.x,
