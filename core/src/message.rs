@@ -15,6 +15,11 @@ pub enum RadiantMessage {
     },
 
     SelectTool(RadiantToolType),
+
+    AddImage {
+        name: String,
+        path: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

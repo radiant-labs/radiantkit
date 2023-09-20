@@ -1,5 +1,5 @@
 use crate::{RadiantRenderer, ScreenDescriptor};
-use epaint::{ClippedPrimitive, ImageDelta};
+use epaint::{textures::TexturesDelta, ClippedPrimitive, ImageDelta};
 
 pub struct RadiantRenderManager {
     pub config: wgpu::SurfaceConfiguration,
@@ -99,6 +99,19 @@ impl RadiantRenderManager {
                 mapped_at_creation: false,
             };
             self.offscreen_buffer = Some(self.device.create_buffer(&output_buffer_desc));
+        }
+    }
+
+    pub fn update_textures(&mut self, delta: TexturesDelta) {
+        for (texture_id, image_delta) in delta.set {
+            self.renderer
+                .update_texture(&self.device, &self.queue, texture_id, &image_delta);
+            self.offscreen_renderer.update_texture(
+                &self.device,
+                &self.queue,
+                texture_id,
+                &image_delta,
+            );
         }
     }
 
