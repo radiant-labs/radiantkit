@@ -1,9 +1,10 @@
-use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts};
+use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
 use crate::{
-    RadiantComponentProvider, RadiantDocumentNode, RadiantInteractionManager, RadiantMessage,
-    RadiantNode, RadiantNodeType, RadiantRenderManager, RadiantResponse, RadiantTessellatable,
-    RadiantToolManager, RadiantTransformable, TransformComponent,
+    RadiantComponentProvider, RadiantDocumentNode, RadiantImageNode, RadiantInteractionManager,
+    RadiantMessage, RadiantNode, RadiantNodeType, RadiantRenderManager, RadiantResponse,
+    RadiantTessellatable, RadiantTextureManager, RadiantToolManager, RadiantTransformable,
+    TransformComponent,
 };
 
 /// Information about the screen used for rendering.
@@ -36,6 +37,7 @@ pub struct RadiantScene {
     pub render_manager: RadiantRenderManager,
     tool_manager: RadiantToolManager,
     interaction_manager: RadiantInteractionManager,
+    texture_manager: RadiantTextureManager,
 }
 
 impl RadiantScene {
@@ -51,8 +53,16 @@ impl RadiantScene {
         let fonts = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
         fonts.begin_frame(screen_descriptor.pixels_per_point, 1600);
 
-        let image_delta = fonts.font_image_delta();
-        let render_manager = RadiantRenderManager::new(config, surface, device, queue, image_delta);
+        let texture_manager = RadiantTextureManager::default();
+
+        if let Some(font_image_delta) = fonts.font_image_delta() {
+            texture_manager
+                .0
+                .write()
+                .set(TextureId::default(), font_image_delta);
+        }
+
+        let render_manager = RadiantRenderManager::new(config, surface, device, queue, None);
 
         Self {
             document: RadiantDocumentNode::new(),
@@ -64,6 +74,7 @@ impl RadiantScene {
             render_manager,
             tool_manager: RadiantToolManager::new(),
             interaction_manager: RadiantInteractionManager::new(),
+            texture_manager,
         }
     }
 }
@@ -82,6 +93,9 @@ impl RadiantScene {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        let delta = self.texture_manager.0.write().take_delta();
+        self.render_manager.update_textures(delta);
+
         let primitives = self.get_primitives(false);
         self.render_manager
             .render(primitives, &self.screen_descriptor, false)
@@ -163,6 +177,22 @@ impl RadiantScene {
             }
             RadiantMessage::SelectTool(tool) => {
                 self.tool_manager.activate_tool(tool);
+            }
+            RadiantMessage::AddImage { .. } => {
+                let image = epaint::ColorImage::new([400, 100], epaint::Color32::RED);
+                let texture_handle =
+                    self.texture_manager
+                        .load_texture("test", image, Default::default());
+
+                let id = self.document.counter;
+                let node = RadiantNodeType::Image(RadiantImageNode::new(
+                    id,
+                    [400.0, 100.0],
+                    [100.0, 100.0],
+                    texture_handle,
+                ));
+                self.add(node);
+                return self.handle_message(RadiantMessage::SelectNode(id));
             }
         }
         None
