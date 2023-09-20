@@ -1,11 +1,13 @@
 pub mod artboard;
 pub mod document;
+pub mod image;
 pub mod line;
 pub mod path;
 pub mod rectangle;
 
 pub use artboard::*;
 pub use document::*;
+pub use image::*;
 pub use line::*;
 pub use path::*;
 pub use rectangle::*;
@@ -20,6 +22,7 @@ pub enum RadiantNodeType {
     Artboard(RadiantArtboardNode),
     Rectangle(RadiantRectangleNode),
     Path(RadiantPathNode),
+    Image(RadiantImageNode),
 }
 
 impl RadiantNodeType {
@@ -29,6 +32,7 @@ impl RadiantNodeType {
             RadiantNodeType::Artboard(node) => node,
             RadiantNodeType::Rectangle(node) => node,
             RadiantNodeType::Path(node) => node,
+            RadiantNodeType::Image(node) => node,
         }
     }
 
@@ -38,6 +42,7 @@ impl RadiantNodeType {
             RadiantNodeType::Artboard(node) => node,
             RadiantNodeType::Rectangle(node) => node,
             RadiantNodeType::Path(node) => node,
+            RadiantNodeType::Image(node) => node,
         }
     }
 }
@@ -85,6 +90,7 @@ impl RadiantComponentProvider for RadiantNodeType {
             RadiantNodeType::Artboard(node) => node.get_component(),
             RadiantNodeType::Rectangle(node) => node.get_component(),
             RadiantNodeType::Path(node) => node.get_component(),
+            RadiantNodeType::Image(node) => node.get_component(),
         }
     }
 
@@ -94,6 +100,7 @@ impl RadiantComponentProvider for RadiantNodeType {
             RadiantNodeType::Artboard(node) => node.get_component_mut(),
             RadiantNodeType::Rectangle(node) => node.get_component_mut(),
             RadiantNodeType::Path(node) => node.get_component_mut(),
+            RadiantNodeType::Image(node) => node.get_component_mut(),
         }
     }
 }
