@@ -3,16 +3,16 @@ import { useContext } from "react";
 import { RadiantAppContext } from "../contexts/RadiantAppContext";
 
 export function RadiantToolbar() {
-    const appState = useContext(RadiantAppContext);
+    const { controller } = useContext(RadiantAppContext);
 
     const select = async () => {
-        appState.controller && appState.controller.handleMessage({
+        controller && controller.handleMessage({
             SelectTool: "Selection"
         });
     }
 
     const rect = async () => {
-        appState.controller && appState.controller.handleMessage({
+        controller && controller.handleMessage({
             SelectTool: "Rectangle"
         });
     }
