@@ -1,16 +1,19 @@
 import { useState, createContext, useEffect, useRef } from "react";
 import init, { RadiantAppController } from "radiant-wasm";
 
-class RadiantAppState {
-    controller: RadiantAppController | null = null;
+interface RadiantAppState {
+    controller: RadiantAppController | null;
+    response: any;
 }
 
 const RadiantAppContext = createContext<RadiantAppState>({
     controller: null,
+    response: {},
 });
 
 function RadiantAppProvider({ children }: any) {
-    const [appState, setAppState] = useState<RadiantAppState>({ controller: null });
+    const [controller, setController] = useState<RadiantAppController | null>(null);
+    const [response, setResponse] = useState<any>({});
 
     const initWasm = async () => {
         console.log("Initializing wasm");
@@ -18,10 +21,9 @@ function RadiantAppProvider({ children }: any) {
             await init();
             let controller = await new RadiantAppController((message: any) => {
                 console.log(message);
+                setResponse(message);
             });
-            setAppState({
-                controller,
-            });
+            setController(controller);
         } catch (error) {
             console.log(error);
         }
@@ -40,7 +42,10 @@ function RadiantAppProvider({ children }: any) {
     }, []);
 
     return (
-        <RadiantAppContext.Provider value={appState}>
+        <RadiantAppContext.Provider value={{
+            controller,
+            response,
+        }}>
             {children}
         </RadiantAppContext.Provider>
     )

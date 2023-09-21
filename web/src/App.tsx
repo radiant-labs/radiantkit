@@ -1,6 +1,7 @@
 import { RadiantToolbar } from "./components/RadiantToolbar";
 import { Stack } from "@mui/material";
 import { RadiantAppProvider } from "./contexts/RadiantAppContext";
+import { RadiantPropertiesPanel } from "./components/RadiantPropertiesPanel";
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <div>
         <Stack direction="row" spacing={2}>
           <RadiantToolbar />
+          <RadiantPropertiesPanel />
         </Stack>
       </div>
     </RadiantAppProvider>
