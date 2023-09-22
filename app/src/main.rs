@@ -65,6 +65,13 @@ async fn run() {
     app.scene.add(radiant_main::RadiantNodeType::Path(
         radiant_main::RadiantPathNode::new(2, [400.0, 400.0]),
     ));
+    app.scene.add(radiant_main::RadiantNodeType::Text(
+        radiant_main::RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]),
+    ));
+    // app.scene.handle_message(RadiantMessage::AddText {
+    //     text: String::from("Hello World!"),
+    //     position: [400.0, 600.0],
+    // });
     app.scene.handle_message(RadiantMessage::AddImage {
         name: String::from("test"),
         path: String::from("test.png"),
