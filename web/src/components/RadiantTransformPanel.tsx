@@ -19,6 +19,7 @@ export function RadiantTransformPanel() {
             setRotation(transform.rotation);
         } else if (response?.TransformUpdated) {
             let transform = response.TransformUpdated;
+            setNodeId(transform.id);
             setPosition({ x: transform.position[0], y: transform.position[1]});
             setScale({ x: transform.scale[0], y: transform.scale[1]});
             // setRotation(transform.rotation);
