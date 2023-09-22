@@ -56,7 +56,7 @@ impl RadiantRectangleNode {
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
 
-        let rect = epaint::Rect::from_min_max(
+        let rect = epaint::Rect::from_two_pos(
             epaint::Pos2::new(
                 position[0] / pixels_per_point,
                 position[1] / pixels_per_point,
@@ -116,11 +116,23 @@ impl RadiantTessellatable for RadiantRectangleNode {
     fn set_needs_tessellation(&mut self) {
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
+
+        let rect = epaint::Rect::from_two_pos(
+            epaint::Pos2::new(
+                position[0],
+                position[1],
+            ),
+            epaint::Pos2::new(
+                position[0] + scale[0],
+                position[1] + scale[1],
+            ),
+        );
+
         self.bounding_rect = [
-            position[0],
-            position[1],
-            position[0] + scale[0],
-            position[1] + scale[1],
+            rect.left_top().x,
+            rect.left_top().y,
+            rect.right_bottom().x,
+            rect.right_bottom().y,
         ];
 
         self.needs_tessellation = true;
