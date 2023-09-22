@@ -55,8 +55,14 @@ impl RadiantLineNode {
         let pixels_per_point = screen_descriptor.pixels_per_point;
 
         let points = [
-            epaint::Pos2::new(self.start[0], self.start[1]),
-            epaint::Pos2::new(self.end[0], self.end[1]),
+            epaint::Pos2::new(
+                self.start[0] / pixels_per_point,
+                self.start[1] / pixels_per_point,
+            ),
+            epaint::Pos2::new(
+                self.end[0] / pixels_per_point,
+                self.end[1] / pixels_per_point,
+            ),
         ];
 
         let color = epaint::Color32::BLUE;

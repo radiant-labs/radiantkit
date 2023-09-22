@@ -71,7 +71,7 @@ impl BoundingBoxInteraction {
             || id == BOUNDING_BOX_TOP_LEFT_ID;
     }
 
-    pub fn enable(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
+    pub fn enable(&mut self, node: &RadiantNodeType, _screen_descriptor: &ScreenDescriptor) {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
@@ -87,22 +87,18 @@ impl BoundingBoxInteraction {
             self.nodes[3].start = [rect[0], rect[3]];
             self.nodes[3].end = [rect[0], rect[1]];
 
-            self.corner_nodes[0].transform.set_xy(&[
-                rect[2] * screen_descriptor.pixels_per_point - 8.0,
-                rect[1] * screen_descriptor.pixels_per_point - 8.0,
-            ]);
-            self.corner_nodes[1].transform.set_xy(&[
-                rect[2] * screen_descriptor.pixels_per_point - 8.0,
-                rect[3] * screen_descriptor.pixels_per_point - 8.0,
-            ]);
-            self.corner_nodes[2].transform.set_xy(&[
-                rect[0] * screen_descriptor.pixels_per_point - 8.0,
-                rect[3] * screen_descriptor.pixels_per_point - 8.0,
-            ]);
-            self.corner_nodes[3].transform.set_xy(&[
-                rect[0] * screen_descriptor.pixels_per_point - 8.0,
-                rect[1] * screen_descriptor.pixels_per_point - 8.0,
-            ]);
+            self.corner_nodes[0]
+                .transform
+                .set_xy(&[rect[2] - 8.0, rect[1] - 8.0]);
+            self.corner_nodes[1]
+                .transform
+                .set_xy(&[rect[2] - 8.0, rect[3] - 8.0]);
+            self.corner_nodes[2]
+                .transform
+                .set_xy(&[rect[0] - 8.0, rect[3] - 8.0]);
+            self.corner_nodes[3]
+                .transform
+                .set_xy(&[rect[0] - 8.0, rect[1] - 8.0]);
 
             for node in &mut self.nodes {
                 node.set_needs_tessellation();
