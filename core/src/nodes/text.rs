@@ -2,15 +2,18 @@ use crate::{
     ColorComponent, RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
-use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
+use epaint::{
+    text::{LayoutJob, TextFormat},
+    ClippedPrimitive, ClippedShape, Color32, FontFamily, FontId, Fonts, Rect, TessellationOptions,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RadiantRectangleNode {
+#[derive(Serialize, Deserialize, Clone)]
+pub struct RadiantTextNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
@@ -25,7 +28,19 @@ pub struct RadiantRectangleNode {
     pub bounding_rect: [f32; 4],
 }
 
-impl RadiantRectangleNode {
+impl Debug for RadiantTextNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RadiantTextNode")
+            .field("id", &self.id)
+            .field("transform", &self.transform)
+            .field("selection", &self.selection)
+            .field("needs_tessellation", &self.needs_tessellation)
+            .field("bounding_rect", &self.bounding_rect)
+            .finish()
+    }
+}
+
+impl RadiantTextNode {
     pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
@@ -46,7 +61,7 @@ impl RadiantRectangleNode {
         }
     }
 
-    fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor) {
+    fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor, fonts: &Fonts) {
         if !self.needs_tessellation {
             return;
         }
@@ -55,6 +70,42 @@ impl RadiantRectangleNode {
         let pixels_per_point = screen_descriptor.pixels_per_point;
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
+
+        let mut job = LayoutJob::default();
+        job.append(
+            "Hello ",
+            0.0,
+            TextFormat {
+                font_id: FontId::new(14.0, FontFamily::Proportional),
+                color: Color32::WHITE,
+                ..Default::default()
+            },
+        );
+        job.append(
+            "World!",
+            0.0,
+            TextFormat {
+                font_id: FontId::new(14.0, FontFamily::Monospace),
+                color: Color32::BLACK,
+                ..Default::default()
+            },
+        );
+
+        let galley = fonts.layout_job(job);
+
+        let shape = epaint::TextShape::new(
+            epaint::Pos2::new(
+                position[0] / pixels_per_point,
+                position[1] / pixels_per_point,
+            ),
+            galley,
+        );
+
+        let texture_atlas = fonts.texture_atlas();
+        let (font_tex_size, prepared_discs) = {
+            let atlas = texture_atlas.lock();
+            (atlas.size(), atlas.prepared_discs())
+        };
 
         let rect = epaint::Rect::from_two_pos(
             epaint::Pos2::new(
@@ -69,17 +120,12 @@ impl RadiantRectangleNode {
 
         let rounding = epaint::Rounding::default();
 
-        let fill_color = self.color.fill_color();
-        let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
-        let shapes = vec![ClippedShape(
-            Rect::EVERYTHING,
-            epaint::Shape::Rect(rect_shape),
-        )];
+        let shapes = vec![ClippedShape(Rect::EVERYTHING, epaint::Shape::Text(shape))];
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
-            [1, 1],
-            vec![],
+            font_tex_size,
+            prepared_discs,
             shapes,
         );
 
@@ -103,10 +149,8 @@ impl RadiantRectangleNode {
     }
 }
 
-impl RadiantTessellatable for RadiantRectangleNode {
-    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        self.tessellate(&scene.screen_descriptor);
-    }
+impl RadiantTessellatable for RadiantTextNode {
+    fn attach_to_scene(&mut self, _scene: &mut RadiantScene) {}
 
     fn detach(&mut self) {
         self.primitives.clear();
@@ -136,9 +180,9 @@ impl RadiantTessellatable for RadiantRectangleNode {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
-        _fonts_manager: &epaint::text::Fonts,
+        fonts: &Fonts,
     ) -> Vec<ClippedPrimitive> {
-        self.tessellate(screen_descriptor);
+        self.tessellate(screen_descriptor, fonts);
         if selection {
             self.selection_primitives.clone()
         } else {
@@ -147,7 +191,7 @@ impl RadiantTessellatable for RadiantRectangleNode {
     }
 }
 
-impl RadiantNode for RadiantRectangleNode {
+impl RadiantNode for RadiantTextNode {
     fn get_id(&self) -> u64 {
         return self.id;
     }
@@ -161,7 +205,7 @@ impl RadiantNode for RadiantRectangleNode {
     }
 }
 
-impl RadiantComponentProvider for RadiantRectangleNode {
+impl RadiantComponentProvider for RadiantTextNode {
     fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
         if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
             unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }

@@ -125,6 +125,7 @@ impl BoundingBoxInteraction {
         &mut self,
         selection: bool,
         screen_descriptor: &crate::ScreenDescriptor,
+        fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
         if self.active_node_id.is_none() {
             return Vec::new();
@@ -134,14 +135,22 @@ impl BoundingBoxInteraction {
             .nodes
             .iter_mut()
             .fold(Vec::new(), |mut primitives, node| {
-                primitives.append(&mut node.tessellate(selection, screen_descriptor));
+                primitives.append(&mut node.tessellate(
+                    selection,
+                    screen_descriptor,
+                    fonts_manager,
+                ));
                 primitives
             });
         self.primitives = self
             .corner_nodes
             .iter_mut()
             .fold(primitives, |mut primitives, node| {
-                primitives.append(&mut node.tessellate(selection, screen_descriptor));
+                primitives.append(&mut node.tessellate(
+                    selection,
+                    screen_descriptor,
+                    fonts_manager,
+                ));
                 primitives
             });
 
@@ -149,14 +158,14 @@ impl BoundingBoxInteraction {
             self.nodes
                 .iter_mut()
                 .fold(Vec::new(), |mut primitives, node| {
-                    primitives.append(&mut node.tessellate(true, screen_descriptor));
+                    primitives.append(&mut node.tessellate(true, screen_descriptor, fonts_manager));
                     primitives
                 });
         self.selection_primitives =
             self.corner_nodes
                 .iter_mut()
                 .fold(selection_primitives, |mut primitives, node| {
-                    primitives.append(&mut node.tessellate(true, screen_descriptor));
+                    primitives.append(&mut node.tessellate(true, screen_descriptor, fonts_manager));
                     primitives
                 });
 

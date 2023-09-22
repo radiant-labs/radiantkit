@@ -30,6 +30,10 @@ pub enum RadiantMessage {
 
     SelectTool(RadiantToolType),
 
+    AddText {
+        text: String,
+        position: [f32; 2],
+    },
     AddImage {
         name: String,
         path: String,
@@ -43,5 +47,5 @@ pub enum RadiantResponse {
         id: u64,
         position: [f32; 2],
         scale: [f32; 2],
-    }
+    },
 }
