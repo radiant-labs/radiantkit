@@ -4,7 +4,7 @@ use crate::{
     RadiantComponentProvider, RadiantDocumentNode, RadiantImageNode, RadiantInteractionManager,
     RadiantMessage, RadiantNode, RadiantNodeType, RadiantRenderManager, RadiantResponse,
     RadiantTessellatable, RadiantTextureManager, RadiantToolManager, RadiantTransformable,
-    TransformComponent,
+    TransformComponent, ColorComponent,
 };
 
 /// Information about the screen used for rendering.
@@ -169,10 +169,50 @@ impl RadiantScene {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
                         component.transform_scale(&scale);
+
+                        let response = RadiantResponse::TransformUpdated {
+                            id,
+                            position: component.get_xy(),
+                            scale: component.get_scale(),
+                        };
+
+                        node.set_needs_tessellation();
+                        self.interaction_manager
+                            .update_interactions(node, &self.screen_descriptor);
+
+                        return Some(response);
+                    }
+                }
+            }
+            RadiantMessage::SetTransform {
+                id,
+                position,
+                scale,
+            } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.set_xy(&position);
+                        component.set_scale(&scale);
                         node.set_needs_tessellation();
 
                         self.interaction_manager
                             .update_interactions(node, &self.screen_descriptor);
+                    }
+                }
+            }
+            RadiantMessage::SetFillColor { id, fill_color } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_fill_color(fill_color);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantMessage::SetStrokeColor { id, stroke_color } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_stroke_color(stroke_color);
+                        node.set_needs_tessellation();
                     }
                 }
             }

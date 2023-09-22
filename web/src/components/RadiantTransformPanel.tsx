@@ -2,8 +2,9 @@ import { useContext, useEffect, useState } from "react";
 import { RadiantAppContext } from "../contexts/RadiantAppContext";
 
 export function RadiantTransformPanel() {
-    const { response } = useContext(RadiantAppContext);
+    const { controller, response } = useContext(RadiantAppContext);
 
+    const [nodeId, setNodeId] = useState<number>(0); 
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState({ x: 1, y: 1 });
     const [rotation, setRotation] = useState(0);
@@ -11,12 +12,28 @@ export function RadiantTransformPanel() {
     useEffect(() => {
         if (response?.NodeSelected) {
             let node = response.NodeSelected.Rectangle;
+            setNodeId(node.id);
             let transform = node.transform;
             setPosition({ x: transform.position[0], y: transform.position[1]});
             setScale({ x: transform.scale[0], y: transform.scale[1]});
             setRotation(transform.rotation);
+        } else if (response?.TransformUpdated) {
+            let transform = response.TransformUpdated;
+            setPosition({ x: transform.position[0], y: transform.position[1]});
+            setScale({ x: transform.scale[0], y: transform.scale[1]});
+            // setRotation(transform.rotation);
         }
     }, [response]);
+
+    useEffect(() => {
+        controller && controller.handleMessage({
+            SetTransform: {
+                id: nodeId,
+                position: [position.x, position.y],
+                scale: [scale.x, scale.y],
+            }
+        });
+    }, [controller, nodeId, position, scale]);
 
     return (
         <div>
