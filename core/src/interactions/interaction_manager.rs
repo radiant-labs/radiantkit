@@ -52,8 +52,9 @@ impl RadiantInteractionManager {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
+        fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
         self.bounding_box_interaction
-            .tessellate(selection, screen_descriptor)
+            .tessellate(selection, screen_descriptor, fonts_manager)
     }
 }

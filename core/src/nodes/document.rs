@@ -105,11 +105,16 @@ impl RadiantTessellatable for RadiantDocumentNode {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
+        fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
         self.artboards
             .iter_mut()
             .fold(Vec::new(), |mut primitives, artboard| {
-                primitives.append(&mut artboard.tessellate(selection, screen_descriptor));
+                primitives.append(&mut artboard.tessellate(
+                    selection,
+                    screen_descriptor,
+                    fonts_manager,
+                ));
                 primitives
             })
     }

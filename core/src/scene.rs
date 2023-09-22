@@ -1,10 +1,10 @@
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
 use crate::{
-    RadiantComponentProvider, RadiantDocumentNode, RadiantImageNode, RadiantInteractionManager,
-    RadiantMessage, RadiantNode, RadiantNodeType, RadiantRenderManager, RadiantResponse,
-    RadiantTessellatable, RadiantTextureManager, RadiantToolManager, RadiantTransformable,
-    TransformComponent, ColorComponent,
+    ColorComponent, RadiantComponentProvider, RadiantDocumentNode, RadiantImageNode,
+    RadiantInteractionManager, RadiantMessage, RadiantNode, RadiantNodeType, RadiantRenderManager,
+    RadiantResponse, RadiantTessellatable, RadiantTextNode, RadiantTextureManager,
+    RadiantToolManager, RadiantTransformable, TransformComponent,
 };
 
 /// Information about the screen used for rendering.
@@ -32,8 +32,7 @@ pub struct RadiantScene {
 
     pub screen_descriptor: ScreenDescriptor,
 
-    pub fonts: epaint::Fonts,
-
+    pub fonts_manager: epaint::Fonts,
     pub render_manager: RadiantRenderManager,
     tool_manager: RadiantToolManager,
     interaction_manager: RadiantInteractionManager,
@@ -50,18 +49,8 @@ impl RadiantScene {
         handler: Box<dyn Fn(RadiantResponse)>,
     ) -> Self {
         let font_definitions = FontDefinitions::default();
-        let fonts = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
-        fonts.begin_frame(screen_descriptor.pixels_per_point, 1600);
-
+        let fonts_manager = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
         let texture_manager = RadiantTextureManager::default();
-
-        if let Some(font_image_delta) = fonts.font_image_delta() {
-            texture_manager
-                .0
-                .write()
-                .set(TextureId::default(), font_image_delta);
-        }
-
         let render_manager = RadiantRenderManager::new(config, surface, device, queue, None);
 
         Self {
@@ -69,8 +58,8 @@ impl RadiantScene {
             handler,
 
             screen_descriptor,
-            fonts,
 
+            fonts_manager,
             render_manager,
             tool_manager: RadiantToolManager::new(),
             interaction_manager: RadiantInteractionManager::new(),
@@ -93,6 +82,15 @@ impl RadiantScene {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.fonts_manager
+            .begin_frame(self.screen_descriptor.pixels_per_point, 1024);
+        if let Some(font_image_delta) = self.fonts_manager.font_image_delta() {
+            self.texture_manager
+                .0
+                .write()
+                .set(TextureId::default(), font_image_delta);
+        }
+
         let delta = self.texture_manager.0.write().take_delta();
         self.render_manager.update_textures(delta);
 
@@ -110,11 +108,15 @@ impl RadiantScene {
     }
 
     fn get_primitives(&mut self, selection: bool) -> Vec<ClippedPrimitive> {
-        let mut primitives = self.document.tessellate(selection, &self.screen_descriptor);
+        let mut primitives =
+            self.document
+                .tessellate(selection, &self.screen_descriptor, &self.fonts_manager);
 
-        let mut p2 = self
-            .interaction_manager
-            .tessellate(selection, &self.screen_descriptor);
+        let mut p2 = self.interaction_manager.tessellate(
+            selection,
+            &self.screen_descriptor,
+            &self.fonts_manager,
+        );
         primitives.append(&mut p2);
 
         primitives
@@ -232,6 +234,13 @@ impl RadiantScene {
                     [100.0, 100.0],
                     texture_handle,
                 ));
+                self.add(node);
+                return self.handle_message(RadiantMessage::SelectNode(id));
+            }
+            RadiantMessage::AddText { position, .. } => {
+                let id = self.document.counter;
+                let node =
+                    RadiantNodeType::Text(RadiantTextNode::new(id, position, [100.0, 100.0]));
                 self.add(node);
                 return self.handle_message(RadiantMessage::SelectNode(id));
             }

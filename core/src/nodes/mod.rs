@@ -4,6 +4,7 @@ pub mod image;
 pub mod line;
 pub mod path;
 pub mod rectangle;
+pub mod text;
 
 pub use artboard::*;
 pub use document::*;
@@ -11,6 +12,7 @@ pub use image::*;
 pub use line::*;
 pub use path::*;
 pub use rectangle::*;
+pub use text::*;
 
 use crate::{RadiantComponent, RadiantComponentProvider, RadiantScene, ScreenDescriptor};
 use epaint::ClippedPrimitive;
@@ -23,6 +25,7 @@ pub enum RadiantNodeType {
     Rectangle(RadiantRectangleNode),
     Path(RadiantPathNode),
     Image(RadiantImageNode),
+    Text(RadiantTextNode),
 }
 
 impl RadiantNodeType {
@@ -33,6 +36,7 @@ impl RadiantNodeType {
             RadiantNodeType::Rectangle(node) => node,
             RadiantNodeType::Path(node) => node,
             RadiantNodeType::Image(node) => node,
+            RadiantNodeType::Text(node) => node,
         }
     }
 
@@ -43,6 +47,7 @@ impl RadiantNodeType {
             RadiantNodeType::Rectangle(node) => node,
             RadiantNodeType::Path(node) => node,
             RadiantNodeType::Image(node) => node,
+            RadiantNodeType::Text(node) => node,
         }
     }
 }
@@ -64,8 +69,10 @@ impl RadiantTessellatable for RadiantNodeType {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
+        fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
-        self.get_node_mut().tessellate(selection, screen_descriptor)
+        self.get_node_mut()
+            .tessellate(selection, screen_descriptor, fonts_manager)
     }
 }
 
@@ -91,6 +98,7 @@ impl RadiantComponentProvider for RadiantNodeType {
             RadiantNodeType::Rectangle(node) => node.get_component(),
             RadiantNodeType::Path(node) => node.get_component(),
             RadiantNodeType::Image(node) => node.get_component(),
+            RadiantNodeType::Text(node) => node.get_component(),
         }
     }
 
@@ -101,6 +109,7 @@ impl RadiantComponentProvider for RadiantNodeType {
             RadiantNodeType::Rectangle(node) => node.get_component_mut(),
             RadiantNodeType::Path(node) => node.get_component_mut(),
             RadiantNodeType::Image(node) => node.get_component_mut(),
+            RadiantNodeType::Text(node) => node.get_component_mut(),
         }
     }
 }
@@ -114,6 +123,7 @@ pub trait RadiantTessellatable {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
+        fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive>;
 }
 

@@ -155,6 +155,7 @@ impl RadiantTessellatable for RadiantImageNode {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
+        _fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
         self.tessellate(screen_descriptor);
         if selection {
