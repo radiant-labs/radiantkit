@@ -66,17 +66,11 @@ impl RadiantRectangleNode {
                 (position[1] + scale[1]) / pixels_per_point,
             ),
         );
+
         let rounding = epaint::Rounding::default();
 
         let fill_color = self.color.fill_color();
         let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
-        let bounding_rect = rect_shape.visual_bounding_rect();
-        self.bounding_rect = [
-            bounding_rect.min.x,
-            bounding_rect.min.y,
-            bounding_rect.max.x,
-            bounding_rect.max.y,
-        ];
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
@@ -89,12 +83,12 @@ impl RadiantRectangleNode {
             shapes,
         );
 
-        let color = epaint::Color32::from_rgb(
+        let fill_color = epaint::Color32::from_rgb(
             (self.id + 1 >> 0) as u8 & 0xFF,
             (self.id + 1 >> 8) as u8 & 0xFF,
             (self.id + 1 >> 16) as u8 & 0xFF,
         );
-        let rect_shape = epaint::RectShape::filled(rect, rounding, color);
+        let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
@@ -120,6 +114,15 @@ impl RadiantTessellatable for RadiantRectangleNode {
     }
 
     fn set_needs_tessellation(&mut self) {
+        let position = self.transform.get_xy();
+        let scale = self.transform.get_scale();
+        self.bounding_rect = [
+            position[0],
+            position[1],
+            position[0] + scale[0],
+            position[1] + scale[1],
+        ];
+
         self.needs_tessellation = true;
     }
 

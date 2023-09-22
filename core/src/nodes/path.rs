@@ -57,45 +57,26 @@ impl RadiantPathNode {
                 position[1] / pixels_per_point,
             ),
             epaint::Pos2::new(
-                (position[0] + scale[0]) / pixels_per_point + 200.0,
-                (position[1] + scale[1]) / pixels_per_point + 200.0,
+                (position[0] + scale[0] + 200.0) / pixels_per_point,
+                (position[1] + scale[1] + 200.0) / pixels_per_point,
             ),
             epaint::Pos2::new(
                 (position[0] + scale[0]) / pixels_per_point,
-                (position[1] + scale[1]) / pixels_per_point + 400.0,
+                (position[1] + scale[1] + 400.0) / pixels_per_point,
             ),
             epaint::Pos2::new(
-                position[0] / pixels_per_point - 200.0,
-                position[1] / pixels_per_point + 200.0,
+                (position[0] - 200.0) / pixels_per_point,
+                (position[1] + 200.0) / pixels_per_point,
             ),
         ];
 
         let color = epaint::Color32::LIGHT_RED;
         let stroke = epaint::Stroke::new(1.0, color);
         let path_shape = epaint::PathShape::convex_polygon(points.clone(), color, stroke);
-        let bounding_rect = path_shape.visual_bounding_rect();
-        self.bounding_rect = [
-            bounding_rect.min.x,
-            bounding_rect.min.y,
-            bounding_rect.max.x,
-            bounding_rect.max.y,
-        ];
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Path(path_shape),
         )];
-        // if self.selection.is_selected() {
-        //     let rounding = epaint::Rounding::none();
-        //     let rect_shape = epaint::RectShape::stroke(
-        //         bounding_rect,
-        //         rounding,
-        //         epaint::Stroke::new(1.0, epaint::Color32::BLUE),
-        //     );
-        //     shapes.push(ClippedShape(
-        //         Rect::EVERYTHING,
-        //         epaint::Shape::Rect(rect_shape),
-        //     ));
-        // }
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
@@ -136,6 +117,30 @@ impl RadiantTessellatable for RadiantPathNode {
     }
 
     fn set_needs_tessellation(&mut self) {
+        let position = self.transform.get_xy();
+        let scale = self.transform.get_scale();
+
+        let points = vec![
+            epaint::Pos2::new(position[0], position[1]),
+            epaint::Pos2::new(
+                (position[0] + scale[0]) + 200.0,
+                (position[1] + scale[1]) + 200.0,
+            ),
+            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1] + 400.0),
+            epaint::Pos2::new(position[0] - 200.0, position[1] + 200.0),
+        ];
+
+        let color = epaint::Color32::LIGHT_RED;
+        let stroke = epaint::Stroke::new(1.0, color);
+        let path_shape = epaint::PathShape::convex_polygon(points.clone(), color, stroke);
+        let bounding_rect = path_shape.visual_bounding_rect();
+        self.bounding_rect = [
+            bounding_rect.min.x,
+            bounding_rect.min.y,
+            bounding_rect.max.x,
+            bounding_rect.max.y,
+        ];
+
         self.needs_tessellation = true;
     }
 

@@ -166,12 +166,13 @@ impl RadiantScene {
                         return self.handle_message(message);
                     }
                 } else if let Some(node) = self.document.get_node_mut(id) {
-                    self.interaction_manager
-                        .update_interactions(node, &self.screen_descriptor);
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
                         component.transform_scale(&scale);
                         node.set_needs_tessellation();
+
+                        self.interaction_manager
+                            .update_interactions(node, &self.screen_descriptor);
                     }
                 }
             }

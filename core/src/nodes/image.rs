@@ -91,14 +91,6 @@ impl RadiantImageNode {
         );
         let rounding = epaint::Rounding::default();
 
-        let rect_shape = epaint::RectShape::filled(rect, rounding, epaint::Color32::WHITE);
-        let bounding_rect = rect_shape.visual_bounding_rect();
-        self.bounding_rect = [
-            bounding_rect.min.x,
-            bounding_rect.min.y,
-            bounding_rect.max.x,
-            bounding_rect.max.y,
-        ];
         let mut mesh = epaint::Mesh::with_texture(self.texture_handle.clone().unwrap().id());
         let uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
         mesh.add_rect_with_uv(rect, uv, self.tint.fill_color());
@@ -142,6 +134,24 @@ impl RadiantTessellatable for RadiantImageNode {
     }
 
     fn set_needs_tessellation(&mut self) {
+        let position = self.transform.get_xy();
+        let scale = self.transform.get_scale();
+
+        let rect = epaint::Rect::from_min_max(
+            epaint::Pos2::new(position[0], position[1]),
+            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
+        );
+        let rounding = epaint::Rounding::default();
+
+        let rect_shape = epaint::RectShape::filled(rect, rounding, epaint::Color32::WHITE);
+        let bounding_rect = rect_shape.visual_bounding_rect();
+        self.bounding_rect = [
+            bounding_rect.min.x,
+            bounding_rect.min.y,
+            bounding_rect.max.x,
+            bounding_rect.max.y,
+        ];
+
         self.needs_tessellation = true;
     }
 
