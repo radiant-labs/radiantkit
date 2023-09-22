@@ -79,7 +79,7 @@ impl RadiantImageNode {
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
 
-        let rect = epaint::Rect::from_min_max(
+        let rect = epaint::Rect::from_two_pos(
             epaint::Pos2::new(
                 position[0] / pixels_per_point,
                 position[1] / pixels_per_point,
@@ -141,15 +141,11 @@ impl RadiantTessellatable for RadiantImageNode {
             epaint::Pos2::new(position[0], position[1]),
             epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
         );
-        let rounding = epaint::Rounding::default();
-
-        let rect_shape = epaint::RectShape::filled(rect, rounding, epaint::Color32::WHITE);
-        let bounding_rect = rect_shape.visual_bounding_rect();
         self.bounding_rect = [
-            bounding_rect.min.x,
-            bounding_rect.min.y,
-            bounding_rect.max.x,
-            bounding_rect.max.y,
+            rect.left_top().x,
+            rect.left_top().y,
+            rect.right_bottom().x,
+            rect.right_bottom().y,
         ];
 
         self.needs_tessellation = true;
