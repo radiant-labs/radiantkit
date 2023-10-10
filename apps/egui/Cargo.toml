@@ -1,12 +1,12 @@
 [package]
-name = "app"
+name = "radiant-egui-app"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-radiant-main = { path = "../main" }
+radiant-main = { path = "../../main" }
 pollster = "0.3"
 winit = "0.28"
 env_logger = "0.10"

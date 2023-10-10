@@ -201,22 +201,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
-name = "app"
-version = "0.1.0"
-dependencies = [
- "eframe",
- "egui",
- "egui_demo_lib",
- "egui_wgpu_backend",
- "egui_winit_platform",
- "env_logger",
- "pollster",
- "radiant-main",
- "wgpu",
- "winit",
-]
-
-[[package]]
 name = "approx"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3493,16 +3477,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-app"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
-]
-
-[[package]]
 name = "radiant-core"
 version = "0.1.0"
 dependencies = [
@@ -3514,6 +3488,22 @@ dependencies = [
  "pollster",
  "serde",
  "wgpu",
+]
+
+[[package]]
+name = "radiant-egui-app"
+version = "0.1.0"
+dependencies = [
+ "eframe",
+ "egui",
+ "egui_demo_lib",
+ "egui_wgpu_backend",
+ "egui_winit_platform",
+ "env_logger",
+ "pollster",
+ "radiant-main",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]
@@ -3531,6 +3521,16 @@ dependencies = [
  "radiant-core",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "radiant-tauri-app"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
 ]
 
 [[package]]

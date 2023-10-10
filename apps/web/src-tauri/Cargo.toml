@@ -1,11 +1,11 @@
 [package]
-name = "radiant-app"
+name = "radiant-tauri-app"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
 repository = ""
-default-run = "radiant-app"
+default-run = "radiant-tauri-app"
 edition = "2021"
 rust-version = "1.60"
 
