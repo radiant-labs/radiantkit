@@ -1,5 +1,4 @@
 import { RadiantToolbar } from './components/RadiantToolbar'
-import { Stack } from '@mui/material'
 import { RadiantAppProvider } from './contexts/RadiantAppContext'
 import { RadiantPropertiesPanel } from './components/RadiantPropertiesPanel'
 
