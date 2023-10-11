@@ -18,7 +18,7 @@ export function RadiantToolbar() {
     }
 
     return (
-        <ButtonGroup orientation="vertical">
+        <ButtonGroup orientation="vertical" style={{ pointerEvents: 'all' }}>
             <Button onClick={select}>Select</Button>
             <Button onClick={rect}>Rectangle</Button>
         </ButtonGroup>
