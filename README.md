@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-    <b>Build graphics applications with ease!</b> <br />
+    <b>Build Graphics Apps 10X Faster!</b> <br />
 </p>
 
 <h3 align="center">
