@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'export',
   images: { unoptimized: true },
-  basePath: '/lp',
+  basePath: '/radiant',
 }
 
 module.exports = nextConfig
