@@ -66,7 +66,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            .next/cache
+            lp/.next/cache
           # Generate a new cache whenever packages or source files change.
           key: ${{ runner.os }}-nextjs-${{ hashFiles('lp/**/package-lock.json', 'lp/**/yarn.lock') }}-${{ hashFiles('lp/**.[jt]s', 'lp/**.[jt]sx') }}
           # If source files changed but packages didn't, rebuild from a prior cache.
