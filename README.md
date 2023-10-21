@@ -7,7 +7,7 @@
 </p>
 
 <h3 align="center">
-  <a href="https://radiant-labs.github.io/">Website</a> &bull;
+  <a href="https://radiant-labs.github.io/radiant/">Website</a> &bull;
   <a href="https://radiant-labs.gitbook.io/radiant/">Docs</a> &bull;
   <a href="https://join.slack.com/t/radiant-canvas/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q">Community</a>
 </h3>
