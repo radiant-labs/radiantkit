@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "homepage": "https://radiant-labs.github.io/radiant",
+    "homepage": "https://radiant-labs.github.io/radiant"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.14",
