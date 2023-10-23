@@ -1,4 +1,8 @@
 {
     "private": true,
-    "workspaces": ["crates/wasm/pkg", "apps/web"]
+    "workspaces": [
+        "crates/wasm/pkg", 
+        "sdk/web",
+        "apps/web"
+    ]
 }
