@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        // target
+        "target": "ES2019",
+        // DOM is not really valid here, but TextEncoder available only in DOM lib
+        "lib": [
+          "ESNext",
+          "DOM"
+        ],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        // build
+        "esModuleInterop": true,
+        "preserveConstEnums": true,
+        "skipLibCheck": true,
+        "importHelpers": true,
+        "noEmit": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        // linting
+        "strict": true,
+    //    "noUnusedLocals": true,
+    //    "noUnusedParameters": true,
+        "noImplicitOverride": true,
+        "noUncheckedIndexedAccess": true,
+        "noFallthroughCasesInSwitch": true,
+        "forceConsistentCasingInFileNames": true,
+        "noErrorTruncation": true,
+        "importsNotUsedAsValues": "error",
+        // sources
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+        "inlineSources": true,
+        "baseUrl": "./src"
+    },
+    "rootDir": "./src",
+    "include": ["src/**/*.ts", "tests/**/*.ts"]
+  }

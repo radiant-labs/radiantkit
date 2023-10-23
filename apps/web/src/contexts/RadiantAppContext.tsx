@@ -1,5 +1,5 @@
 import { useState, createContext, useEffect, useRef } from "react";
-import init, { RadiantAppController } from "radiant-wasm";
+import { RadiantAppController, RadiantSdk } from "radiant-sdk";
 
 interface RadiantAppState {
     controller: RadiantAppController | null;
@@ -18,8 +18,7 @@ function RadiantAppProvider({ children }: any) {
     const initWasm = async () => {
         console.log("Initializing wasm");
         try {
-            await init();
-            let controller = await new RadiantAppController((message: any) => {
+            let controller = await RadiantSdk.createAppController((message: any) => {
                 console.log(message);
                 setResponse(message);
             });
