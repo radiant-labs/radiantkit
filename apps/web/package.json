@@ -15,7 +15,7 @@
     "@types/node": "^16.18.44",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
-    "radiant-wasm": "file:../../wasm/pkg",
+    "radiant-wasm": "0.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -25,7 +25,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "build:wasm": "cd ../../wasm && ~/.cargo/bin/wasm-pack build --target web",
+    "build:wasm": "cd ../../crates/wasm && ~/.cargo/bin/wasm-pack build --target web",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

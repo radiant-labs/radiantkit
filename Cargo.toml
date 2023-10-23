@@ -1,8 +1,8 @@
 [workspace]
 members = [
     "apps/egui",
-    "core",
-	"main",
-    "wasm",
+    "crates/core",
+	"crates/main",
+    "crates/wasm",
     "apps/web/src-tauri"
 ]
