@@ -41,10 +41,12 @@ export default function Newsletter() {
                 {/* <p className="text-gray-300 text-lg mb-6">Lorem ipsum dolor sit amet consectetur adipisicing elit nemo expedita voluptas culpa sapiente.</p> */}
 
                 {/* CTA form */}
-                <form className="w-full lg:w-auto">
+                <form action="https://gmail.us21.list-manage.com/subscribe/post" method="POST" className="w-full lg:w-auto">
                   <div className="flex flex-col sm:flex-row justify-center max-w-xs mx-auto sm:max-w-md lg:mx-0">
-                    <input type="email" className="form-input w-full appearance-none bg-gray-800 border border-gray-700 focus:border-gray-600 rounded-sm px-4 py-3 mb-2 sm:mb-0 sm:mr-2 text-white placeholder-gray-500" placeholder="Your email…" aria-label="Your email…" />
-                    <a className="btn text-white bg-blue-600 hover:bg-blue-700 shadow" href="#0">Subscribe</a>
+                    <input type="hidden" name="u" value="5a28522117022e236c854ab6f" />
+                    <input type="hidden" name="id" value="d6ca7b6605" />
+                    <input name="MERGE0" id="MERGE0"  type="email" className="form-input w-full appearance-none bg-gray-800 border border-gray-700 focus:border-gray-600 rounded-sm px-4 py-3 mb-2 sm:mb-0 sm:mr-2 text-white placeholder-gray-500" placeholder="Your email…" aria-label="Your email…" />
+                    <button type="submit"  className="btn text-white bg-blue-600 hover:bg-blue-700 shadow">Subscribe</button>
                   </div>
                   {/* Success message */}
                   {/* <p className="text-sm text-gray-400 mt-3">Thanks for subscribing!</p> */}
