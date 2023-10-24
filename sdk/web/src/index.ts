@@ -1,4 +1,3 @@
 export * from "./context";
 export * from "./controller";
-
-export * from "./components/RadiantCanvas";
+export * from "./components";
