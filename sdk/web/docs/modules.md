@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-[sdk/web/src/context/index.tsx:15](https://github.com/radiant-labs/radiant/blob/1f0a953/sdk/web/src/context/index.tsx#L15)
+[sdk/web/src/context/index.tsx:15](https://github.com/radiant-labs/radiant/blob/e0d39ae/sdk/web/src/context/index.tsx#L15)
 
 ___
 
@@ -64,4 +64,4 @@ ___
 
 #### Defined in
 
-[sdk/web/src/context/index.tsx:55](https://github.com/radiant-labs/radiant/blob/1f0a953/sdk/web/src/context/index.tsx#L55)
+[sdk/web/src/context/index.tsx:55](https://github.com/radiant-labs/radiant/blob/e0d39ae/sdk/web/src/context/index.tsx#L55)
