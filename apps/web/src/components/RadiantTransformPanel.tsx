@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react'
-import { RadiantAppContext } from '../contexts/RadiantAppContext'
+import { useEffect, useState } from 'react'
+import { useCurrentController } from 'radiant-sdk'
 
 export function RadiantTransformPanel() {
-    const { controller, response } = useContext(RadiantAppContext)
+    const { controller, response } = useCurrentController();
 
     const [nodeId, setNodeId] = useState<number>(0)
     const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -27,14 +27,7 @@ export function RadiantTransformPanel() {
     }, [response])
 
     useEffect(() => {
-        controller &&
-            controller.handleMessage({
-                SetTransform: {
-                    id: nodeId,
-                    position: [position.x, position.y],
-                    scale: [scale.x, scale.y],
-                },
-            })
+        controller && controller.setTransform(nodeId, [position.x, position.y], [scale.x, scale.y]);
     }, [controller, nodeId, position, scale])
 
     return (

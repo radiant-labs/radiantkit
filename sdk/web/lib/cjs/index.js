@@ -1,16 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RadiantSdk = void 0;
+exports.RadiantCanvas = void 0;
 const tslib_1 = require("tslib");
 tslib_1.__exportStar(require("radiant-wasm"), exports);
-const radiant_wasm_1 = tslib_1.__importStar(require("radiant-wasm"));
-class RadiantSdk {
-    static createAppController(f) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            yield (0, radiant_wasm_1.default)();
-            return yield new radiant_wasm_1.RadiantAppController(f);
-        });
-    }
-}
-exports.RadiantSdk = RadiantSdk;
+tslib_1.__exportStar(require("./context"), exports);
+tslib_1.__exportStar(require("./controller"), exports);
+const RadiantCanvas_1 = tslib_1.__importDefault(require("./components/RadiantCanvas"));
+exports.RadiantCanvas = RadiantCanvas_1.default;
 //# sourceMappingURL=index.js.map

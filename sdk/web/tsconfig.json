@@ -7,6 +7,7 @@
           "ESNext",
           "DOM"
         ],
+        "allowJs": true,
         "module": "commonjs",
         "moduleResolution": "node",
         // build
@@ -32,8 +33,13 @@
         "declaration": true,
         "declarationMap": true,
         "inlineSources": true,
-        "baseUrl": "./src"
+        "baseUrl": "./src",
+        "jsx": "react"
     },
     "rootDir": "./src",
-    "include": ["src/**/*.ts", "tests/**/*.ts"]
+    "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts"],
+    "exclude": [
+      "node_modules",
+      "lib"
+    ]
   }

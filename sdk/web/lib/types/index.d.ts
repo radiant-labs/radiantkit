@@ -1,6 +1,6 @@
 export * from "radiant-wasm";
-import { RadiantAppController } from "radiant-wasm";
-export declare class RadiantSdk {
-    static createAppController(f: Function): Promise<RadiantAppController>;
-}
+export * from "./context";
+export * from "./controller";
+import RadiantCanvas from "./components/RadiantCanvas";
+export { RadiantCanvas };
 //# sourceMappingURL=index.d.ts.map

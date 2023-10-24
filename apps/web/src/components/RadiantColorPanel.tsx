@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { RadiantAppContext } from '../contexts/RadiantAppContext'
+import { useCurrentController } from 'radiant-sdk'
 
 function componentToHex(c: number) {
     var hex = c.toString(16)
@@ -23,7 +23,7 @@ function hexTorgba(hex: string) {
 }
 
 export function RadiantColorPanel() {
-    const { controller, response } = useContext(RadiantAppContext)
+    const { controller, response } = useCurrentController();
 
     const [nodeId, setNodeId] = useState<number>(0)
     const [fillColor, setFillColor] = useState('#000000')
@@ -42,23 +42,11 @@ export function RadiantColorPanel() {
     }, [response])
 
     useEffect(() => {
-        controller &&
-            controller.handleMessage({
-                SetFillColor: {
-                    id: nodeId,
-                    fill_color: hexTorgba(fillColor),
-                },
-            })
+        controller && controller.setFillColor(nodeId, hexTorgba(fillColor));
     }, [controller, fillColor, nodeId])
 
     useEffect(() => {
-        controller &&
-            controller.handleMessage({
-                setStrokeColor: {
-                    id: nodeId,
-                    stroke_color: hexTorgba(strokeColor),
-                },
-            })
+        controller && controller.setStrokeColor(nodeId, hexTorgba(strokeColor));
     }, [controller, strokeColor, nodeId])
 
     return (

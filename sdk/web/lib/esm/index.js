@@ -1,9 +1,6 @@
 export * from "radiant-wasm";
-import init, { RadiantAppController } from "radiant-wasm";
-export class RadiantSdk {
-    static async createAppController(f) {
-        await init();
-        return await new RadiantAppController(f);
-    }
-}
+export * from "./context";
+export * from "./controller";
+import RadiantCanvas from "./components/RadiantCanvas";
+export { RadiantCanvas };
 //# sourceMappingURL=index.js.map

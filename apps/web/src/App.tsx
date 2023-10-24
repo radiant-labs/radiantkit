@@ -1,10 +1,10 @@
 import { RadiantToolbar } from './components/RadiantToolbar'
-import { RadiantAppProvider } from './contexts/RadiantAppContext'
 import { RadiantPropertiesPanel } from './components/RadiantPropertiesPanel'
+import { RadiantCanvas, RadiantProvider } from 'radiant-sdk';
 
 function App() {
     return (
-        <RadiantAppProvider>
+        <RadiantProvider>
             <div
                 id="overlay"
                 style={{
@@ -19,19 +19,8 @@ function App() {
                 <RadiantToolbar />
                 <RadiantPropertiesPanel />
             </div>
-            <div
-                id="canvas-container"
-                style={{
-                    position: 'absolute',
-                    zIndex: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    height: '100%',
-                    justifyContent: 'center',
-                    width: '100%',
-                }}
-            />
-        </RadiantAppProvider>
+            <RadiantCanvas />
+        </RadiantProvider>
     )
 }
 
