@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[context/index.tsx:6](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/context/index.tsx#L6)
+[context/index.tsx:6](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/context/index.tsx#L6)
 
 ___
 
@@ -29,4 +29,4 @@ ___
 
 #### Defined in
 
-[context/index.tsx:7](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/context/index.tsx#L7)
+[context/index.tsx:7](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/context/index.tsx#L7)
