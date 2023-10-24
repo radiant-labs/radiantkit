@@ -22,7 +22,7 @@
     "token:generate": "ts-node examples/generate-token.ts",
     "test": "jest",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "docs": "rm -rf docs && typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts"
+    "docs": "rm -rf docs && typedoc --plugin typedoc-plugin-markdown --out docs src/**/*.ts src/**/*.tsx"
   },
   "keywords": [],
   "author": "",

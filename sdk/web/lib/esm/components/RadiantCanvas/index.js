@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-const RadiantCanvas = forwardRef(({}, ref) => {
+export const RadiantCanvas = forwardRef(({}, ref) => {
     return (React.createElement("div", { id: "canvas-container", style: {
             position: 'absolute',
             zIndex: 0,
@@ -10,5 +10,4 @@ const RadiantCanvas = forwardRef(({}, ref) => {
             width: '100%',
         } }));
 });
-export default RadiantCanvas;
 //# sourceMappingURL=index.js.map
