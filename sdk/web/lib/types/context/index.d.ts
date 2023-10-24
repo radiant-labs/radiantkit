@@ -1,6 +1,6 @@
 import React from "react";
-import RadiantController from "../controller";
-interface RadiantState {
+import { RadiantController } from "../controller";
+export interface RadiantState {
     controller: RadiantController | null;
     response: any;
 }

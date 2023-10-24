@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-const RadiantCanvas = forwardRef(({}, ref) => {
+export const RadiantCanvas = forwardRef(({}, ref) => {
     return (
         <div
             id="canvas-container"
@@ -16,5 +16,3 @@ const RadiantCanvas = forwardRef(({}, ref) => {
         />
     );
 });
-
-export default RadiantCanvas;

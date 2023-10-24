@@ -1,6 +1,6 @@
 import { RadiantAppController } from "radiant-wasm";
 
-export default class RadiantController {
+export class RadiantController {
     _controller: RadiantAppController;
 
     constructor(controller: RadiantAppController) {

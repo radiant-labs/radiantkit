@@ -1,11 +1,16 @@
 import { RadiantAppController } from "radiant-wasm";
-export default class RadiantController {
+export class RadiantController {
     constructor(controller) {
         this._controller = controller;
     }
     static async createController(f) {
         return new RadiantController(await new RadiantAppController(f));
     }
+    /**
+     * Activates the provided tool.
+     *
+     * @param tool the tool to activate.
+     */
     activateTool(tool) {
         this._controller.handleMessage({
             SelectTool: tool
