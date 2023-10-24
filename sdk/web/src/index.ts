@@ -1,4 +1,3 @@
-export * from "radiant-wasm";
 export * from "./context";
 export * from "./controller";
 

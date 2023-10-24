@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCurrentController } from 'radiant-sdk'
 
 function componentToHex(c: number) {
