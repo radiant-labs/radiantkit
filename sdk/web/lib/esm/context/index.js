@@ -1,6 +1,6 @@
 import React, { useState, createContext, useEffect, useRef, useContext } from "react";
 import init from "radiant-wasm";
-import RadiantController from "../controller";
+import { RadiantController } from "../controller";
 const RadiantContext = createContext({
     controller: null,
     response: {},

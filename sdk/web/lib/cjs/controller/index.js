@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RadiantController = void 0;
 const tslib_1 = require("tslib");
 const radiant_wasm_1 = require("radiant-wasm");
 class RadiantController {
@@ -11,6 +12,11 @@ class RadiantController {
             return new RadiantController(yield new radiant_wasm_1.RadiantAppController(f));
         });
     }
+    /**
+     * Activates the provided tool.
+     *
+     * @param tool the tool to activate.
+     */
     activateTool(tool) {
         this._controller.handleMessage({
             SelectTool: tool
@@ -42,5 +48,5 @@ class RadiantController {
         });
     }
 }
-exports.default = RadiantController;
+exports.RadiantController = RadiantController;
 //# sourceMappingURL=index.js.map

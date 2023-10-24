@@ -1,8 +1,13 @@
 import { RadiantAppController } from "radiant-wasm";
-export default class RadiantController {
+export declare class RadiantController {
     _controller: RadiantAppController;
     constructor(controller: RadiantAppController);
     static createController(f: Function): Promise<RadiantController>;
+    /**
+     * Activates the provided tool.
+     *
+     * @param tool the tool to activate.
+     */
     activateTool(tool: string): void;
     setTransform(nodeId: number, position: number[], scale: number[]): void;
     setFillColor(nodeId: number, color: number[]): void;
