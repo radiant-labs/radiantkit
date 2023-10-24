@@ -28,6 +28,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.0.3",
+    "@types/react": "^18.2.31",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
     "concurrently": "^7.3.0",
@@ -48,6 +49,9 @@
   },
   "dependencies": {
     "radiant-wasm": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=18"
   },
   "engines": {
     "node": ">=16"

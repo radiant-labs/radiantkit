@@ -8,12 +8,14 @@
       "declarationDir": "lib/types"
     },
     "rootDir": "./src",
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "src/**/*.tsx"],
     "exclude": [
       "./**/node_modules",
       "src/**/*.spec.ts",
       "src/**/*.test.ts",
       "tests/**/*.test.ts",
-      "tests/**/*.spec.ts"
+      "tests/**/*.spec.ts",
+      "node_modules",
+      "lib"
     ]
   }

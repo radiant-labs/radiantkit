@@ -1,20 +1,15 @@
 import { Button, ButtonGroup } from "@mui/material";
-import { useContext } from "react";
-import { RadiantAppContext } from "../contexts/RadiantAppContext";
+import { useCurrentController } from 'radiant-sdk'
 
 export function RadiantToolbar() {
-    const { controller } = useContext(RadiantAppContext);
+    const { controller } = useCurrentController();
 
     const select = async () => {
-        controller && controller.handleMessage({
-            SelectTool: "Selection"
-        });
+        controller && controller.activateTool("Selection");
     }
 
     const rect = async () => {
-        controller && controller.handleMessage({
-            SelectTool: "Rectangle"
-        });
+        controller && controller.activateTool("Rectangle");
     }
 
     return (
