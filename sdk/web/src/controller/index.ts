@@ -11,6 +11,11 @@ export default class RadiantController {
         return new RadiantController(await new RadiantAppController(f));   
     }
 
+    /**
+     * Activates the provided tool.
+     *
+     * @param tool the tool to activate.
+     */
     activateTool(tool: string) {
         this._controller.handleMessage({
             SelectTool: tool
