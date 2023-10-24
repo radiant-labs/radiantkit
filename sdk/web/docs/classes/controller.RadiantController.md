@@ -36,7 +36,7 @@
 
 #### Defined in
 
-[controller/index.ts:6](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L6)
+[controller/index.ts:6](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L6)
 
 ## Properties
 
@@ -46,7 +46,7 @@
 
 #### Defined in
 
-[controller/index.ts:4](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L4)
+[controller/index.ts:4](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L4)
 
 ## Methods
 
@@ -68,7 +68,7 @@ Activates the provided tool.
 
 #### Defined in
 
-[controller/index.ts:19](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L19)
+[controller/index.ts:19](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L19)
 
 ___
 
@@ -89,7 +89,7 @@ ___
 
 #### Defined in
 
-[controller/index.ts:35](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L35)
+[controller/index.ts:35](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L35)
 
 ___
 
@@ -110,7 +110,7 @@ ___
 
 #### Defined in
 
-[controller/index.ts:44](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L44)
+[controller/index.ts:44](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L44)
 
 ___
 
@@ -132,7 +132,7 @@ ___
 
 #### Defined in
 
-[controller/index.ts:25](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L25)
+[controller/index.ts:25](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L25)
 
 ___
 
@@ -152,4 +152,4 @@ ___
 
 #### Defined in
 
-[controller/index.ts:10](https://github.com/radiant-labs/radiant/blob/11e8e99/sdk/web/src/controller/index.ts#L10)
+[controller/index.ts:10](https://github.com/radiant-labs/radiant/blob/10f16bf/sdk/web/src/controller/index.ts#L10)

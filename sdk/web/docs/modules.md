@@ -6,5 +6,6 @@
 
 ### Modules
 
+- [components](modules/components.md)
 - [context](modules/context.md)
 - [controller](modules/controller.md)
