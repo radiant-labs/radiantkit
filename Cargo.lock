@@ -3612,11 +3612,13 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "env_logger",
+ "epaint",
  "futures-intrusive",
  "image 0.23.14",
  "log",
  "pollster",
  "radiant-scene",
+ "serde",
  "wgpu",
  "winit",
 ]
