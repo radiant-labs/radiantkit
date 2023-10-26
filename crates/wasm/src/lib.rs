@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
-use radiant_runtime::{RadiantNodeType, RadiantResponse, RadiantRectangleNode};
 use radiant_runtime::RadiantRuntime;
+use radiant_runtime::{RadiantNodeType, RadiantRectangleNode, RadiantResponse};
 use wasm_bindgen::prelude::*;
 use winit::platform::web::EventLoopExtWebSys;
 
@@ -25,9 +25,14 @@ impl RadiantAppController {
         });
 
         let mut runtime = RadiantRuntime::new(handler).await;
-        runtime.app.scene.add(RadiantNodeType::Rectangle(
-            RadiantRectangleNode::new(1, [100.0, 100.0], [100.0, 100.0]),
-        ));
+        runtime
+            .app
+            .scene
+            .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
+                1,
+                [100.0, 100.0],
+                [100.0, 100.0],
+            )));
 
         let event_loop = std::mem::replace(&mut runtime.app.event_loop, None);
 
@@ -42,7 +47,10 @@ impl RadiantAppController {
                         if let Some(message) = runtime.app.handle_event(&event, control_flow) {
                             if let Some(response) = runtime.handle_message(message) {
                                 let this = JsValue::null();
-                                let _ = f3.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
+                                let _ = f3.call1(
+                                    &this,
+                                    &serde_wasm_bindgen::to_value(&response).unwrap(),
+                                );
                             }
                         }
                     }

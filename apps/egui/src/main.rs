@@ -1,4 +1,7 @@
-use radiant_runtime::{RadiantNodeType, RadiantRectangleNode, RadiantPathNode, RadiantTextNode, RadiantMessage, RadiantResponse, RadiantRuntime, RectangleTool};
+use radiant_runtime::{
+    RadiantMessage, RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
+    RadiantRuntime, RadiantTextNode, RectangleTool,
+};
 use std::iter;
 use winit::event::Event::RedrawRequested;
 
@@ -26,10 +29,12 @@ impl RadiantAppController {
             .show(ctx, |ui| {
                 ui.heading("Radiant App");
                 if ui.button("Select").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool { id: 0 });
+                    self.pending_messages
+                        .push(RadiantMessage::SelectTool { id: 0 });
                 }
                 if ui.button("Rect").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool { id: 1 });
+                    self.pending_messages
+                        .push(RadiantMessage::SelectTool { id: 1 });
                 }
                 ui.add_space(10.0);
             });
@@ -48,16 +53,34 @@ async fn run() {
     });
 
     let mut runtime = RadiantRuntime::new(handler).await;
-    runtime.app.scene.tool_manager.register_tool(Box::new(RectangleTool::new()));
-    runtime.app.scene.add(RadiantNodeType::Rectangle(
-        RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]),
-    ));
-    runtime.app.scene.add(RadiantNodeType::Path(
-        RadiantPathNode::new(2, [400.0, 400.0]),
-    ));
-    runtime.app.scene.add(RadiantNodeType::Text(
-        RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]),
-    ));
+    runtime
+        .app
+        .scene
+        .tool_manager
+        .register_tool(Box::new(RectangleTool::new()));
+    runtime
+        .app
+        .scene
+        .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
+            1,
+            [200.0, 200.0],
+            [200.0, 200.0],
+        )));
+    runtime
+        .app
+        .scene
+        .add(RadiantNodeType::Path(RadiantPathNode::new(
+            2,
+            [400.0, 400.0],
+        )));
+    runtime
+        .app
+        .scene
+        .add(RadiantNodeType::Text(RadiantTextNode::new(
+            3,
+            [400.0, 600.0],
+            [200.0, 200.0],
+        )));
     // app.scene.handle_message(RadiantMessage::AddText {
     //     text: String::from("Hello World!"),
     //     position: [400.0, 600.0],
@@ -105,11 +128,19 @@ async fn run() {
 
             match event {
                 RedrawRequested(..) => {
-                    let output_frame =
-                        std::mem::replace(&mut runtime.app.scene.render_manager.current_texture, None);
+                    let output_frame = std::mem::replace(
+                        &mut runtime.app.scene.render_manager.current_texture,
+                        None,
+                    );
                     let output_frame = output_frame.unwrap();
 
-                    let output_view = runtime.app.scene.render_manager.current_view.as_ref().unwrap();
+                    let output_view = runtime
+                        .app
+                        .scene
+                        .render_manager
+                        .current_view
+                        .as_ref()
+                        .unwrap();
 
                     platform.begin_frame();
 
@@ -139,11 +170,14 @@ async fn run() {
                         &screen_descriptor,
                     );
 
-                    let mut encoder = runtime.app.scene.render_manager.device.create_command_encoder(
-                        &wgpu::CommandEncoderDescriptor {
+                    let mut encoder = runtime
+                        .app
+                        .scene
+                        .render_manager
+                        .device
+                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                             label: Some("encoder"),
-                        },
-                    );
+                        });
                     // Record all render passes.
                     egui_rpass
                         .execute(
@@ -156,7 +190,9 @@ async fn run() {
                         )
                         .unwrap();
                     // Submit the commands.
-                    runtime.app.scene
+                    runtime
+                        .app
+                        .scene
                         .render_manager
                         .queue
                         .submit(iter::once(encoder.finish()));

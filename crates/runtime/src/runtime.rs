@@ -1,7 +1,10 @@
-use radiant_core::{SelectionTool, RadiantComponentProvider, RadiantTessellatable, TransformComponent, RadiantTransformable, ColorComponent, RadiantRectangleNode};
+use radiant_core::{
+    ColorComponent, RadiantComponentProvider, RadiantRectangleNode, RadiantTessellatable,
+    RadiantTransformable, SelectionTool, TransformComponent,
+};
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
-use radiant_winit::RadiantApp;
+use radiant_winit::{RadiantApp, Runtime};
 
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
 
@@ -9,7 +12,6 @@ pub struct RadiantRuntime {
     pub app: RadiantApp<RadiantMessage, RadiantNodeType>,
     pub handler: Box<dyn Fn(RadiantResponse)>,
 }
-
 
 impl RadiantRuntime {
     pub async fn new(handler: Box<dyn Fn(RadiantResponse)>) -> Self {
@@ -31,7 +33,9 @@ impl RadiantRuntime {
                 if !self.app.scene.interaction_manager.is_interaction(id) {
                     self.app.scene.document.select(id);
                     if let Some(node) = self.app.scene.document.get_node(id) {
-                        self.app.scene.interaction_manager
+                        self.app
+                            .scene
+                            .interaction_manager
                             .enable_interactions(node, &self.app.scene.screen_descriptor);
                         return Some(RadiantResponse::NodeSelected(node.clone()));
                     } else {
@@ -46,13 +50,10 @@ impl RadiantRuntime {
             } => {
                 let id = self.app.scene.document.counter;
                 let node = match node_type.as_str() {
-                    "Rectangle" =>
-                        Some(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
-                            id,
-                            position,
-                            scale,
-                        ))),
-                    _ => None
+                    "Rectangle" => Some(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
+                        id, position, scale,
+                    ))),
+                    _ => None,
                 };
                 if let Some(node) = node {
                     self.app.scene.add(node);
@@ -65,7 +66,12 @@ impl RadiantRuntime {
                 scale,
             } => {
                 if self.app.scene.interaction_manager.is_interaction(id) {
-                    if let Some(message) = self.app.scene.interaction_manager.handle_interaction(message) {
+                    if let Some(message) = self
+                        .app
+                        .scene
+                        .interaction_manager
+                        .handle_interaction(message)
+                    {
                         return self.handle_message(message);
                     }
                 } else if let Some(node) = self.app.scene.document.get_node_mut(id) {
@@ -80,7 +86,9 @@ impl RadiantRuntime {
                         };
 
                         node.set_needs_tessellation();
-                        self.app.scene.interaction_manager
+                        self.app
+                            .scene
+                            .interaction_manager
                             .update_interactions(node, &self.app.scene.screen_descriptor);
 
                         return Some(response);
@@ -98,7 +106,9 @@ impl RadiantRuntime {
                         component.set_scale(&scale);
                         node.set_needs_tessellation();
 
-                        self.app.scene.interaction_manager
+                        self.app
+                            .scene
+                            .interaction_manager
                             .update_interactions(node, &self.app.scene.screen_descriptor);
                     }
                 }
@@ -125,7 +135,9 @@ impl RadiantRuntime {
             RadiantMessage::AddImage { .. } => {
                 let image = epaint::ColorImage::new([400, 100], epaint::Color32::RED);
                 let texture_handle =
-                    self.app.scene.texture_manager
+                    self.app
+                        .scene
+                        .texture_manager
                         .load_texture("test", image, Default::default());
 
                 let id = self.app.scene.document.counter;
@@ -160,5 +172,15 @@ impl RadiantRuntime {
         if let Some(response) = response {
             (self.handler)(response);
         }
+    }
+}
+
+impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
+    fn app(&mut self) -> &mut RadiantApp<RadiantMessage, RadiantNodeType> {
+        &mut self.app
+    }
+
+    fn handle_runtime_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+        self.handle_message(message)
     }
 }

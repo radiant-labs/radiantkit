@@ -1,6 +1,6 @@
+use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
-use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum InteractionMessage {
@@ -52,7 +52,9 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>> RadiantInteracti
 
     pub fn handle_interaction(&mut self, message: M) -> Option<M> {
         match message.try_into() {
-            Ok(InteractionMessage::TransformNode { id, position, .. }) if self.is_interaction(id) => {
+            Ok(InteractionMessage::TransformNode { id, position, .. })
+                if self.is_interaction(id) =>
+            {
                 if let Some(m) = self.bounding_box_interaction.handle(id, position) {
                     Some(m.into())
                 } else {
