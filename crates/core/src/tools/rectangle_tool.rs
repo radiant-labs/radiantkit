@@ -1,4 +1,4 @@
-use crate::{RadiantDocumentNode, RadiantMessage, RadiantRectangleNode, RadiantTool};
+use crate::{RadiantMessage, RadiantTool};
 
 pub struct RectangleTool {
     active_node_id: Option<u64>,
@@ -17,16 +17,20 @@ impl RectangleTool {
 }
 
 impl RadiantTool for RectangleTool {
+    fn tool_id(&self) -> u32 {
+        1
+    }
+
     fn on_mouse_down(
         &mut self,
-        _node_id: u64,
-        document: &RadiantDocumentNode,
+        node_id: u64,
         position: [f32; 2],
     ) -> Option<RadiantMessage> {
-        let node_id = document.counter;
-        let message = RadiantMessage::AddNode(crate::RadiantNodeType::Rectangle(
-            RadiantRectangleNode::new(node_id, position, [10.0, 10.0]),
-        ));
+        let message = RadiantMessage::AddNode {
+            node_type: String::from("Rectangle"),
+            position,
+            scale: [10.0, 10.0],
+        };
         self.active_node_id = Some(node_id);
         self.start_position = position;
         self.prev_position = position;
@@ -35,7 +39,6 @@ impl RadiantTool for RectangleTool {
 
     fn on_mouse_move(
         &mut self,
-        _document: &RadiantDocumentNode,
         position: [f32; 2],
     ) -> Option<RadiantMessage> {
         let result = if let Some(id) = self.active_node_id {
@@ -57,7 +60,6 @@ impl RadiantTool for RectangleTool {
 
     fn on_mouse_up(
         &mut self,
-        _document: &RadiantDocumentNode,
         _position: [f32; 2],
     ) -> Option<RadiantMessage> {
         self.active_node_id = None;
