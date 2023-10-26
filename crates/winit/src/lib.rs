@@ -303,8 +303,11 @@ pub fn run_wasm<
     runtime: Arc<RwLock<impl Runtime<M, N, R> + 'static>>,
     f: js_sys::Function,
 ) {
-    let Ok(mut runtime_) = runtime.write() else { return; };
-    let event_loop = std::mem::replace(&mut runtime_.app().event_loop, None);
+    let event_loop;
+    {
+        let Ok(mut runtime_) = runtime.write() else { return; };
+        event_loop = std::mem::replace(&mut runtime_.app().event_loop, None);
+    }
 
     let weak_runtime = Arc::downgrade(&runtime);
 

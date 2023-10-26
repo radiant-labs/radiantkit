@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use crate::RadiantRuntime;
-use crate::{RadiantNodeType, RadiantRectangleNode, RadiantResponse};
+use crate::{RadiantNodeType, RadiantRectangleNode, RadiantResponse, RectangleTool};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = RadiantAppController)]
@@ -24,6 +24,11 @@ impl RadiantAppController {
         });
 
         let mut runtime = RadiantRuntime::new(handler).await;
+        runtime
+            .app
+            .scene
+            .tool_manager
+            .register_tool(Box::new(RectangleTool::new()));
         runtime
             .app
             .scene
