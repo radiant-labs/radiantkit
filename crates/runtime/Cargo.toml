@@ -1,11 +1,12 @@
 [package]
-name = "radiant-scene"
+name = "radiant-runtime"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+env_logger = "0.10"
 wgpu = { version = "0.17", features = ["webgl"]}
 bytemuck = { version = "1.12", features = [ "derive" ] }
 log = "0.4"
@@ -18,3 +19,4 @@ radiant-core  = { path = "../core" }
 radiant-image-node = { path = "../image" }
 radiant-text-node = { path = "../text" }
 radiant-path-node = { path = "../path" }
+radiant-winit = { path = "../winit" }
