@@ -1,6 +1,18 @@
-use radiant_core::{RadiantMessage, RadiantTool};
+use serde::{Deserialize, Serialize};
+use radiant_core::RadiantTool;
 
 // Todo: This is a stub. Implement the PathTool.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum PathToolMessage {
+    SelectNode(u64),
+    TransformNode {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
+}
+
+
 pub struct PathTool {
     active_node_id: Option<u64>,
     prev_position: [f32; 2],
@@ -15,20 +27,16 @@ impl PathTool {
     }
 }
 
-impl RadiantTool for PathTool {
-    fn tool_id(&self) -> u32 {
-        2
-    }
-
+impl<M: From<PathToolMessage>> RadiantTool<M> for PathTool {
     fn on_mouse_down(
         &mut self,
         node_id: u64,
         _position: [f32; 2],
-    ) -> Option<RadiantMessage> {
+    ) -> Option<M> {
         if node_id > 0 {
             self.active_node_id = Some(node_id - 1);
-            let message = RadiantMessage::SelectNode(node_id - 1);
-            Some(message)
+            let message = PathToolMessage::SelectNode(node_id - 1);
+            Some(message.into())
         } else {
             None
         }
@@ -37,9 +45,9 @@ impl RadiantTool for PathTool {
     fn on_mouse_move(
         &mut self,
         position: [f32; 2],
-    ) -> Option<RadiantMessage> {
+    ) -> Option<M> {
         let result = if let Some(id) = self.active_node_id {
-            let message = RadiantMessage::TransformNode {
+            let message = PathToolMessage::TransformNode {
                 id: id,
                 position: [
                     position[0] - self.prev_position[0],
@@ -47,7 +55,7 @@ impl RadiantTool for PathTool {
                 ],
                 scale: [0.0, 0.0],
             };
-            Some(message)
+            Some(message.into())
         } else {
             None
         };
@@ -58,7 +66,7 @@ impl RadiantTool for PathTool {
     fn on_mouse_up(
         &mut self,
         _position: [f32; 2],
-    ) -> Option<RadiantMessage> {
+    ) -> Option<M> {
         self.active_node_id = None;
         self.prev_position = [0.0, 0.0];
         None
