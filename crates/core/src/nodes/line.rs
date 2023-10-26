@@ -1,6 +1,6 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    RadiantComponentProvider, RadiantNode, RadiantTessellatable, RadiantTransformable,
+    ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};

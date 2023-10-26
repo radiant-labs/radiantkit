@@ -1,6 +1,6 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantComponent,
-    RadiantSelectable, RadiantTessellatable, ScreenDescriptor, SelectionComponent, RadiantGroupNode
+    RadiantComponent, RadiantComponentProvider, RadiantGroupNode, RadiantNode, RadiantSelectable,
+    RadiantTessellatable, ScreenDescriptor, SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};

@@ -1,7 +1,6 @@
 use crate::{
-    RadiantInteraction, RadiantLineNode, RadiantNode,
-    RadiantRectangleNode, RadiantTessellatable, RadiantTransformable,
-    ScreenDescriptor, TransformComponent, InteractionMessage
+    InteractionMessage, RadiantInteraction, RadiantLineNode, RadiantNode, RadiantRectangleNode,
+    RadiantTessellatable, RadiantTransformable, ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
 

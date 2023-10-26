@@ -1,8 +1,8 @@
+use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use radiant_core::{
-    RadiantComponentProvider, RadiantNode, RadiantTessellatable, RadiantComponent,
+    RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
-use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
 use std::{
     any::{Any, TypeId},

@@ -2,7 +2,7 @@ use epaint::Color32;
 use radiant_path_node::PathToolMessage;
 use serde::{Deserialize, Serialize};
 
-use radiant_core::{RectangleToolMessage, SelectionToolMessage, InteractionMessage};
+use radiant_core::{InteractionMessage, RectangleToolMessage, SelectionToolMessage};
 
 use crate::RadiantNodeType;
 

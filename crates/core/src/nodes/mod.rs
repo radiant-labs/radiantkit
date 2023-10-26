@@ -1,15 +1,15 @@
+pub mod document;
+pub mod group;
 pub mod line;
 pub mod rectangle;
-pub mod group;
-pub mod document;
 
+pub use document::*;
+pub use group::*;
 pub use line::*;
 pub use rectangle::*;
-pub use group::*;
-pub use document::*;
 
+use crate::{RadiantComponentProvider, ScreenDescriptor};
 use epaint::ClippedPrimitive;
-use crate::{ScreenDescriptor, RadiantComponentProvider};
 
 pub trait RadiantTessellatable {
     fn attach(&mut self, screen_descriptor: &ScreenDescriptor);

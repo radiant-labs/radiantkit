@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::RadiantTool;
 
@@ -33,11 +33,7 @@ impl RectangleTool {
 }
 
 impl<M: From<RectangleToolMessage>> RadiantTool<M> for RectangleTool {
-    fn on_mouse_down(
-        &mut self,
-        node_id: u64,
-        position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_down(&mut self, node_id: u64, position: [f32; 2]) -> Option<M> {
         let message = RectangleToolMessage::AddNode {
             node_type: String::from("Rectangle"),
             position,
@@ -49,10 +45,7 @@ impl<M: From<RectangleToolMessage>> RadiantTool<M> for RectangleTool {
         Some(message.into())
     }
 
-    fn on_mouse_move(
-        &mut self,
-        position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
         let result = if let Some(id) = self.active_node_id {
             let message = RectangleToolMessage::TransformNode {
                 id: id,
@@ -70,10 +63,7 @@ impl<M: From<RectangleToolMessage>> RadiantTool<M> for RectangleTool {
         result
     }
 
-    fn on_mouse_up(
-        &mut self,
-        _position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_up(&mut self, _position: [f32; 2]) -> Option<M> {
         self.active_node_id = None;
         self.start_position = [0.0, 0.0];
         self.prev_position = [0.0, 0.0];
