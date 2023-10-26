@@ -1,8 +1,12 @@
 pub mod line;
 pub mod rectangle;
+pub mod group;
+pub mod document;
 
 pub use line::*;
 pub use rectangle::*;
+pub use group::*;
+pub use document::*;
 
 use epaint::ClippedPrimitive;
 use crate::{ScreenDescriptor, RadiantComponentProvider};
