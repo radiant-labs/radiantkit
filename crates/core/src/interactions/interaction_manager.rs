@@ -1,15 +1,26 @@
 use epaint::ClippedPrimitive;
+use serde::{Deserialize, Serialize};
+use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
 
-use crate::{BoundingBoxInteraction, RadiantMessage, RadiantNode, ScreenDescriptor};
-
-pub struct RadiantInteractionManager {
-    pub bounding_box_interaction: BoundingBoxInteraction,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum InteractionMessage {
+    TransformNode {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
 }
 
-impl RadiantInteractionManager {
+pub struct RadiantInteractionManager<M> {
+    pub bounding_box_interaction: BoundingBoxInteraction,
+    _phantom: std::marker::PhantomData<M>,
+}
+
+impl<M: From<InteractionMessage> + TryInto<InteractionMessage>> RadiantInteractionManager<M> {
     pub fn new() -> Self {
         Self {
             bounding_box_interaction: BoundingBoxInteraction::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -39,10 +50,14 @@ impl RadiantInteractionManager {
             .update(node, screen_descriptor);
     }
 
-    pub fn handle_interaction(&mut self, message: RadiantMessage) -> Option<RadiantMessage> {
-        match message {
-            RadiantMessage::TransformNode { id, position, .. } if self.is_interaction(id) => {
-                self.bounding_box_interaction.handle(id, position)
+    pub fn handle_interaction(&mut self, message: M) -> Option<M> {
+        match message.try_into() {
+            Ok(InteractionMessage::TransformNode { id, position, .. }) if self.is_interaction(id) => {
+                if let Some(m) = self.bounding_box_interaction.handle(id, position) {
+                    Some(m.into())
+                } else {
+                    None
+                }
             }
             _ => None,
         }

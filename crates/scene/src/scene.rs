@@ -3,13 +3,13 @@ use radiant_path_node::PathTool;
 use serde::{Deserialize, Serialize};
 use radiant_core::{
     ColorComponent,
-    RadiantInteractionManager, RadiantMessage, RadiantRenderManager,
+    RadiantInteractionManager, RadiantRenderManager,
      RadiantTextureManager, RadiantTessellatable, RadiantComponentProvider, RadiantTransformable,
     RadiantToolManager, TransformComponent, ScreenDescriptor, RadiantRectangleNode,
 };
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
-use crate::{RadiantDocumentNode, RadiantNodeType};
+use crate::{RadiantDocumentNode, RadiantNodeType, RadiantMessage};
 
 pub struct RadiantScene {
     pub document: RadiantDocumentNode,
@@ -19,8 +19,8 @@ pub struct RadiantScene {
 
     pub fonts_manager: epaint::Fonts,
     pub render_manager: RadiantRenderManager,
-    tool_manager: RadiantToolManager,
-    interaction_manager: RadiantInteractionManager,
+    tool_manager: RadiantToolManager<RadiantMessage>,
+    interaction_manager: RadiantInteractionManager<RadiantMessage>,
     texture_manager: RadiantTextureManager,
 }
 
