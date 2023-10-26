@@ -1,5 +1,5 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
+    RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
@@ -104,8 +104,8 @@ impl RadiantLineNode {
 }
 
 impl RadiantTessellatable for RadiantLineNode {
-    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
-        self.tessellate(&scene.screen_descriptor);
+    fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
+        self.tessellate(screen_descriptor);
     }
 
     fn detach(&mut self) {

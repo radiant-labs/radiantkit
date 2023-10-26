@@ -1,6 +1,6 @@
 use crate::{
-    RadiantComponentProvider, RadiantInteraction, RadiantLineNode, RadiantMessage, RadiantNode,
-    RadiantNodeType, RadiantRectangleNode, RadiantTessellatable, RadiantTransformable,
+    RadiantMessage, RadiantInteraction, RadiantLineNode, RadiantNode,
+    RadiantRectangleNode, RadiantTessellatable, RadiantTransformable,
     ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
@@ -71,7 +71,7 @@ impl BoundingBoxInteraction {
             || id == BOUNDING_BOX_TOP_LEFT_ID;
     }
 
-    pub fn enable(&mut self, node: &RadiantNodeType, _screen_descriptor: &ScreenDescriptor) {
+    pub fn enable(&mut self, node: &impl RadiantNode, _screen_descriptor: &ScreenDescriptor) {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
@@ -115,7 +115,7 @@ impl BoundingBoxInteraction {
         self.active_node_id = None;
     }
 
-    pub fn update(&mut self, node: &RadiantNodeType, screen_descriptor: &ScreenDescriptor) {
+    pub fn update(&mut self, node: &impl RadiantNode, screen_descriptor: &ScreenDescriptor) {
         self.enable(node, screen_descriptor);
     }
 }

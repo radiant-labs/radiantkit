@@ -1,0 +1,17 @@
+[package]
+name = "radiant-image-node"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wgpu = { version = "0.17", features = ["webgl"]}
+bytemuck = { version = "1.12", features = [ "derive" ] }
+log = "0.4"
+cgmath = "0.18"
+serde = { version = "1.0", features = ["derive"] }
+epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
+pollster = "0.3"
+futures-intrusive = "0.5"
+radiant-core = { path = "../core" }

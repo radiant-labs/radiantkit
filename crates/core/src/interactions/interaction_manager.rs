@@ -1,6 +1,6 @@
 use epaint::ClippedPrimitive;
 
-use crate::{BoundingBoxInteraction, RadiantMessage, RadiantNodeType, ScreenDescriptor};
+use crate::{BoundingBoxInteraction, RadiantMessage, RadiantNode, ScreenDescriptor};
 
 pub struct RadiantInteractionManager {
     pub bounding_box_interaction: BoundingBoxInteraction,
@@ -19,7 +19,7 @@ impl RadiantInteractionManager {
 
     pub fn enable_interactions(
         &mut self,
-        node: &RadiantNodeType,
+        node: &impl RadiantNode,
         screen_descriptor: &ScreenDescriptor,
     ) {
         self.bounding_box_interaction
@@ -32,7 +32,7 @@ impl RadiantInteractionManager {
 
     pub fn update_interactions(
         &mut self,
-        node: &RadiantNodeType,
+        node: &impl RadiantNode,
         screen_descriptor: &ScreenDescriptor,
     ) {
         self.bounding_box_interaction

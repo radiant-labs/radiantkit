@@ -1,6 +1,7 @@
-use crate::{RadiantNodeType, RadiantToolType};
 use epaint::Color32;
 use serde::{Deserialize, Serialize};
+
+use crate::RadiantToolId;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantMessage {
@@ -8,7 +9,11 @@ pub enum RadiantMessage {
     SelectArtboard(u64),
 
     SelectNode(u64),
-    AddNode(RadiantNodeType),
+    AddNode {
+        node_type: String,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
     TransformNode {
         id: u64,
         position: [f32; 2],
@@ -28,7 +33,9 @@ pub enum RadiantMessage {
         stroke_color: Color32,
     },
 
-    SelectTool(RadiantToolType),
+    SelectTool {
+        id: RadiantToolId,
+    },
 
     AddText {
         text: String,
@@ -40,12 +47,3 @@ pub enum RadiantMessage {
     },
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum RadiantResponse {
-    NodeSelected(RadiantNodeType),
-    TransformUpdated {
-        id: u64,
-        position: [f32; 2],
-        scale: [f32; 2],
-    },
-}

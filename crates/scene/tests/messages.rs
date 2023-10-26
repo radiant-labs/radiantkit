@@ -1,4 +1,4 @@
-use radiant_core::RadiantDocumentNode;
+use radiant_scene::RadiantDocumentNode;
 
 #[test]
 fn test_add_artboard() {
