@@ -1,40 +1,38 @@
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
+use std::any::TypeId;
+use crate::{RadiantTool, SelectionTool, RectangleTool, SelectionToolMessage, RectangleToolMessage};
 
-use crate::{RadiantTool, SelectionTool, RectangleTool};
-
-pub type RadiantToolId = u32;
-
-pub struct RadiantToolManager {
-    pub tools: HashMap<RadiantToolId, Box<dyn RadiantTool>>,
-    pub active_tool_id: RadiantToolId,
+pub struct RadiantToolManager<M> {
+    pub tools: BTreeMap<TypeId, Box<dyn RadiantTool<M>>>,
+    pub active_tool_id: TypeId,
 }
 
-impl RadiantToolManager {
+impl<M: From<SelectionToolMessage> + From<RectangleToolMessage>> RadiantToolManager<M> {
     pub fn new() -> Self {
         Self {
-            tools: HashMap::from([
-                (0u32, Box::new(SelectionTool::new()) as Box<dyn RadiantTool>),
-                (1u32, Box::new(RectangleTool::new()) as Box<dyn RadiantTool>),
+            tools: BTreeMap::from([
+                (TypeId::of::<SelectionTool>(), Box::new(SelectionTool::new()) as Box<dyn RadiantTool<M>>),
+                (TypeId::of::<RectangleTool>(), Box::new(RectangleTool::new()) as Box<dyn RadiantTool<M>>),
             ]),
-            active_tool_id: 0,
+            active_tool_id: TypeId::of::<RectangleTool>(),
         }
     }
 
-    pub fn register_tool(&mut self, tool: Box<dyn RadiantTool>) {
-        self.tools.insert(tool.tool_id(), tool);
+    pub fn register_tool<T: RadiantTool<M> + 'static>(&mut self, tool: Box<T>) {
+        self.tools.insert(TypeId::of::<T>(), tool);
     }
 
-    pub fn active_tool(&mut self) -> &mut dyn RadiantTool {
+    pub fn active_tool(&mut self) -> &mut dyn RadiantTool<M> {
         self.tools
             .get_mut(&self.active_tool_id)
             .expect("Active tool not found")
             .as_mut()
     }
 
-    pub fn activate_tool(&mut self, tool_id: RadiantToolId) {
-        if self.tools.contains_key(&tool_id) {
-            self.active_tool_id = tool_id;
+    pub fn activate_tool(&mut self, id: u32) {
+        if self.tools.len() > id as usize {
+            self.active_tool_id = *self.tools.keys().nth(id as usize).unwrap();
         }
     }
 }

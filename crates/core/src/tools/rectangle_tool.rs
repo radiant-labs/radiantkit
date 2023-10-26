@@ -1,4 +1,20 @@
-use crate::{RadiantMessage, RadiantTool};
+use serde::{Serialize, Deserialize};
+
+use crate::RadiantTool;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RectangleToolMessage {
+    AddNode {
+        node_type: String,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
+    TransformNode {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
+}
 
 pub struct RectangleTool {
     active_node_id: Option<u64>,
@@ -16,17 +32,13 @@ impl RectangleTool {
     }
 }
 
-impl RadiantTool for RectangleTool {
-    fn tool_id(&self) -> u32 {
-        1
-    }
-
+impl<M: From<RectangleToolMessage>> RadiantTool<M> for RectangleTool {
     fn on_mouse_down(
         &mut self,
         node_id: u64,
         position: [f32; 2],
-    ) -> Option<RadiantMessage> {
-        let message = RadiantMessage::AddNode {
+    ) -> Option<M> {
+        let message = RectangleToolMessage::AddNode {
             node_type: String::from("Rectangle"),
             position,
             scale: [10.0, 10.0],
@@ -34,15 +46,15 @@ impl RadiantTool for RectangleTool {
         self.active_node_id = Some(node_id);
         self.start_position = position;
         self.prev_position = position;
-        Some(message)
+        Some(message.into())
     }
 
     fn on_mouse_move(
         &mut self,
         position: [f32; 2],
-    ) -> Option<RadiantMessage> {
+    ) -> Option<M> {
         let result = if let Some(id) = self.active_node_id {
-            let message = RadiantMessage::TransformNode {
+            let message = RectangleToolMessage::TransformNode {
                 id: id,
                 position: [0.0, 0.0],
                 scale: [
@@ -50,7 +62,7 @@ impl RadiantTool for RectangleTool {
                     position[1] - self.prev_position[1],
                 ],
             };
-            Some(message)
+            Some(message.into())
         } else {
             None
         };
@@ -61,7 +73,7 @@ impl RadiantTool for RectangleTool {
     fn on_mouse_up(
         &mut self,
         _position: [f32; 2],
-    ) -> Option<RadiantMessage> {
+    ) -> Option<M> {
         self.active_node_id = None;
         self.start_position = [0.0, 0.0];
         self.prev_position = [0.0, 0.0];
