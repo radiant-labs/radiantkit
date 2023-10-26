@@ -4,6 +4,7 @@ pub mod nodes;
 pub mod render;
 pub mod texture;
 pub mod tools;
+pub mod scene;
 
 pub use components::*;
 pub use interactions::*;
@@ -11,6 +12,7 @@ pub use nodes::*;
 pub use render::*;
 pub use texture::*;
 pub use tools::*;
+pub use scene::*;
 
 /// Information about the screen used for rendering.
 pub struct ScreenDescriptor {

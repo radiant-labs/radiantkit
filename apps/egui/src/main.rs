@@ -68,7 +68,7 @@ async fn run() {
     //     text: String::from("Hello World!"),
     //     position: [400.0, 600.0],
     // });
-    app.scene.handle_message(RadiantMessage::AddImage {
+    app.handle_message(RadiantMessage::AddImage {
         name: String::from("test"),
         path: String::from("test.png"),
     });

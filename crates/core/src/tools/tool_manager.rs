@@ -1,21 +1,20 @@
 
 use std::collections::BTreeMap;
 use std::any::TypeId;
-use crate::{RadiantTool, SelectionTool, RectangleTool, SelectionToolMessage, RectangleToolMessage};
+use crate::RadiantTool;
 
 pub struct RadiantToolManager<M> {
     pub tools: BTreeMap<TypeId, Box<dyn RadiantTool<M>>>,
     pub active_tool_id: TypeId,
 }
 
-impl<M: From<SelectionToolMessage> + From<RectangleToolMessage>> RadiantToolManager<M> {
-    pub fn new() -> Self {
+impl<M> RadiantToolManager<M> {
+    pub fn new<T: RadiantTool<M> + 'static>(tool: Box<T>) -> Self {
         Self {
             tools: BTreeMap::from([
-                (TypeId::of::<SelectionTool>(), Box::new(SelectionTool::new()) as Box<dyn RadiantTool<M>>),
-                (TypeId::of::<RectangleTool>(), Box::new(RectangleTool::new()) as Box<dyn RadiantTool<M>>),
+                (TypeId::of::<T>(), tool as Box<dyn RadiantTool<M>>),
             ]),
-            active_tool_id: TypeId::of::<RectangleTool>(),
+            active_tool_id: TypeId::of::<T>(),
         }
     }
 
