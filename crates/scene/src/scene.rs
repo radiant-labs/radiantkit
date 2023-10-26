@@ -4,15 +4,15 @@ use serde::{Deserialize, Serialize};
 use radiant_core::{
     ColorComponent,
     RadiantInteractionManager, RadiantRenderManager,
-     RadiantTextureManager, RadiantTessellatable, RadiantComponentProvider, RadiantTransformable,
+     RadiantTextureManager, RadiantTessellatable, RadiantComponentProvider, RadiantTransformable, RadiantDocumentNode,
     RadiantToolManager, TransformComponent, ScreenDescriptor, RadiantRectangleNode,
 };
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
-use crate::{RadiantDocumentNode, RadiantNodeType, RadiantMessage};
+use crate::{RadiantNodeType, RadiantMessage};
 
 pub struct RadiantScene {
-    pub document: RadiantDocumentNode,
+    pub document: RadiantDocumentNode<RadiantNodeType>,
     pub handler: Box<dyn Fn(RadiantResponse)>,
 
     pub screen_descriptor: ScreenDescriptor,

@@ -4,12 +4,12 @@ use epaint::ClippedPrimitive;
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
 use radiant_path_node::RadiantPathNode;
-use crate::{RadiantDocumentNode, RadiantArtboardNode};
+use radiant_core::{RadiantDocumentNode, RadiantGroupNode};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantNodeType {
-    Document(RadiantDocumentNode),
-    Artboard(RadiantArtboardNode),
+    Document(RadiantDocumentNode<RadiantNodeType>),
+    Artboard(RadiantGroupNode<RadiantNodeType>),
     Rectangle(RadiantRectangleNode),
     Path(RadiantPathNode),
     Image(RadiantImageNode),

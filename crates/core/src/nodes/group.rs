@@ -1,20 +1,19 @@
-use radiant_core::{
+use crate::{
     RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     ScreenDescriptor, SelectionComponent, RadiantComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use crate::RadiantNodeType;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RadiantArtboardNode {
+pub struct RadiantGroupNode<N: RadiantNode> {
     pub id: u64,
     pub selection: SelectionComponent,
-    pub nodes: BTreeMap<u64, RadiantNodeType>,
+    pub nodes: BTreeMap<u64, N>,
 }
 
-impl RadiantArtboardNode {
+impl<N: RadiantNode> RadiantGroupNode<N> {
     pub fn new(id: u64) -> Self {
         let selection = SelectionComponent::new();
         Self {
@@ -24,20 +23,20 @@ impl RadiantArtboardNode {
         }
     }
 
-    pub fn add(&mut self, node: RadiantNodeType) {
+    pub fn add(&mut self, node: N) {
         self.nodes.insert(node.get_id(), node);
     }
 
-    pub fn get_node(&self, id: u64) -> Option<&RadiantNodeType> {
+    pub fn get_node(&self, id: u64) -> Option<&N> {
         self.nodes.get(&id)
     }
 
-    pub fn get_node_mut(&mut self, id: u64) -> Option<&mut RadiantNodeType> {
+    pub fn get_node_mut(&mut self, id: u64) -> Option<&mut N> {
         self.nodes.get_mut(&id)
     }
 }
 
-impl RadiantTessellatable for RadiantArtboardNode {
+impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
     fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
         for node in &mut self.nodes.values_mut() {
             node.attach(screen_descriptor);
@@ -66,19 +65,21 @@ impl RadiantTessellatable for RadiantArtboardNode {
     }
 }
 
-impl RadiantNode for RadiantArtboardNode {
+impl<N: RadiantNode> RadiantNode for RadiantGroupNode<N> {
     fn get_id(&self) -> u64 {
         self.id
     }
 
-    fn set_id(&mut self, _id: u64) {}
+    fn set_id(&mut self, id: u64) {
+        self.id = id;
+    }
 
     fn get_bounding_rect(&self) -> [f32; 4] {
         [0.0, 0.0, 0.0, 0.0]
     }
 }
 
-impl RadiantComponentProvider for RadiantArtboardNode {
+impl<N: RadiantNode> RadiantComponentProvider for RadiantGroupNode<N> {
     fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
         None
     }
