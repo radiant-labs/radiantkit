@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::RadiantTool;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SelectionToolMessage {
@@ -26,11 +26,7 @@ impl SelectionTool {
 }
 
 impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
-    fn on_mouse_down(
-        &mut self,
-        node_id: u64,
-        _position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_down(&mut self, node_id: u64, _position: [f32; 2]) -> Option<M> {
         if node_id > 0 {
             self.active_node_id = Some(node_id - 1);
             let message = SelectionToolMessage::SelectNode(node_id - 1);
@@ -40,10 +36,7 @@ impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
         }
     }
 
-    fn on_mouse_move(
-        &mut self,
-        position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
         let result = if let Some(id) = self.active_node_id {
             let message = SelectionToolMessage::TransformNode {
                 id: id,
@@ -61,10 +54,7 @@ impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
         result
     }
 
-    fn on_mouse_up(
-        &mut self,
-        _position: [f32; 2],
-    ) -> Option<M> {
+    fn on_mouse_up(&mut self, _position: [f32; 2]) -> Option<M> {
         self.active_node_id = None;
         self.prev_position = [0.0, 0.0];
         None

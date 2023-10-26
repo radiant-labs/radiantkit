@@ -1,4 +1,4 @@
-use radiant_core::{RadiantScene, ScreenDescriptor, RadiantNode, InteractionMessage, RadiantTool};
+use radiant_core::{InteractionMessage, RadiantNode, RadiantScene, RadiantTool, ScreenDescriptor};
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
 use winit::{event::*, event_loop::ControlFlow};
@@ -17,14 +17,14 @@ pub struct RadiantApp<M, N: RadiantNode> {
     mouse_dragging: bool,
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode> RadiantApp<M, N> {
+impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantApp<M, N> {
     pub async fn new(default_tool: impl RadiantTool<M> + 'static) -> Self {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
 
         #[cfg(target_arch = "wasm32")]
         {
-             // Winit prevents sizing with CSS, so we have to set
+            // Winit prevents sizing with CSS, so we have to set
             // the size manually when on web.
             use winit::dpi::PhysicalSize;
             window.set_inner_size(PhysicalSize::new(1600, 1200));
@@ -106,7 +106,14 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode>
             pixels_per_point: window.scale_factor() as f32,
         };
 
-        let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, default_tool);
+        let scene = RadiantScene::new(
+            config,
+            surface,
+            device,
+            queue,
+            screen_descriptor,
+            default_tool,
+        );
 
         Self {
             window,
@@ -127,11 +134,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode>
         false
     }
 
-    pub fn handle_event(
-        &mut self,
-        event: &Event<()>,
-        control_flow: &mut ControlFlow,
-    ) -> Option<M> {
+    pub fn handle_event(&mut self, event: &Event<()>, control_flow: &mut ControlFlow) -> Option<M> {
         log::debug!("Event: {:?}", event);
         match event {
             Event::WindowEvent {
@@ -161,11 +164,11 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode>
                                 let is_pressed = *state == ElementState::Pressed;
                                 self.mouse_dragging = is_pressed;
                                 if is_pressed {
-                                    return self.on_mouse_down(self.mouse_position)
+                                    return self.on_mouse_down(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 } else {
-                                    return self.on_mouse_up(self.mouse_position)
+                                    return self.on_mouse_up(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 }
@@ -174,7 +177,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode>
                         WindowEvent::CursorMoved { position, .. } => {
                             let current_position = [position.x as f32, position.y as f32];
                             self.mouse_position = current_position;
-                            return self.on_mouse_move(self.mouse_position) 
+                            return self.on_mouse_move(self.mouse_position);
                             //     self.window.request_redraw();
                             // }
                         }
@@ -185,22 +188,22 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>,  N: RadiantNode>
                             self.mouse_position = current_position;
                             match phase {
                                 TouchPhase::Started => {
-                                    return self.on_mouse_down(self.mouse_position) 
+                                    return self.on_mouse_down(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 }
                                 TouchPhase::Moved => {
-                                    return self.on_mouse_move(self.mouse_position) 
+                                    return self.on_mouse_move(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 }
                                 TouchPhase::Ended => {
-                                    return self.on_mouse_up(self.mouse_position) 
+                                    return self.on_mouse_up(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 }
                                 TouchPhase::Cancelled => {
-                                    return self.on_mouse_up(self.mouse_position) 
+                                    return self.on_mouse_up(self.mouse_position);
                                     //     self.window.request_redraw();
                                     // }
                                 }
@@ -234,27 +237,52 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
         if id > 1000 {
             id = self.scene.document.counter;
         }
-        self.scene.tool_manager
-                .active_tool()
-                .on_mouse_down(id,  position)
+        self.scene
+            .tool_manager
+            .active_tool()
+            .on_mouse_down(id, position)
     }
 
     pub fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
-        self
-            .scene
+        self.scene
             .tool_manager
             .active_tool()
             .on_mouse_move(position)
     }
 
     pub fn on_mouse_up(&mut self, position: [f32; 2]) -> Option<M> {
-        self
-            .scene
-            .tool_manager
-            .active_tool()
-            .on_mouse_up(position)
+        self.scene.tool_manager.active_tool().on_mouse_up(position)
     }
 }
 
+pub trait Runtime<M, N: RadiantNode, R> {
+    fn app(&mut self) -> &mut RadiantApp<M, N>;
+    fn handle_runtime_message(&mut self, message: M) -> Option<R>;
+}
 
+pub fn run_native<
+    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
+    N: RadiantNode + 'static,
+    R,
+>(
+    mut runtime: impl Runtime<M, N, R> + 'static,
+) {
+    if let Some(event_loop) = std::mem::replace(&mut runtime.app().event_loop, None) {
+        event_loop.run(move |event, _, control_flow| {
+            if let Some(message) = runtime.app().handle_event(&event, control_flow) {
+                runtime.handle_runtime_message(message);
+            }
 
+            match event {
+                RedrawRequested(..) => {
+                    let output_frame = std::mem::replace(
+                        &mut runtime.app().scene.render_manager.current_texture,
+                        None,
+                    );
+                    output_frame.unwrap().present();
+                }
+                _ => {}
+            }
+        });
+    }
+}

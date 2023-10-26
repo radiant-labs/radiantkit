@@ -1,9 +1,9 @@
-use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 use crate::{
-    RadiantInteractionManager, RadiantRenderManager,
-    RadiantTextureManager, RadiantTessellatable, RadiantDocumentNode,
-    RadiantToolManager, ScreenDescriptor, RadiantNode, RadiantTool, InteractionMessage,
+    InteractionMessage, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
+    RadiantRenderManager, RadiantTessellatable, RadiantTextureManager, RadiantTool,
+    RadiantToolManager, ScreenDescriptor,
 };
+use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
 pub struct RadiantScene<M, N: RadiantNode> {
     pub document: RadiantDocumentNode<N>,

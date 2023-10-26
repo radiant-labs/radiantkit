@@ -1,10 +1,13 @@
-use serde::{Deserialize, Serialize};
-use radiant_core::{RadiantComponent, RadiantComponentProvider, ScreenDescriptor, RadiantNode, RadiantRectangleNode, RadiantTessellatable};
 use epaint::ClippedPrimitive;
-use radiant_image_node::RadiantImageNode;
-use radiant_text_node::RadiantTextNode;
-use radiant_path_node::RadiantPathNode;
+use radiant_core::{
+    RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantRectangleNode,
+    RadiantTessellatable, ScreenDescriptor,
+};
 use radiant_core::{RadiantDocumentNode, RadiantGroupNode};
+use radiant_image_node::RadiantImageNode;
+use radiant_path_node::RadiantPathNode;
+use radiant_text_node::RadiantTextNode;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantNodeType {
@@ -57,12 +60,24 @@ impl RadiantTessellatable for RadiantNodeType {
         fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
         match self {
-            RadiantNodeType::Document(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
-            RadiantNodeType::Artboard(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
-            RadiantNodeType::Rectangle(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
-            RadiantNodeType::Path(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
-            RadiantNodeType::Image(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
-            RadiantNodeType::Text(node) => node.tessellate(selection, screen_descriptor, fonts_manager),
+            RadiantNodeType::Document(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
+            RadiantNodeType::Artboard(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
+            RadiantNodeType::Rectangle(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
+            RadiantNodeType::Path(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
+            RadiantNodeType::Image(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
+            RadiantNodeType::Text(node) => {
+                node.tessellate(selection, screen_descriptor, fonts_manager)
+            }
         }
     }
 }

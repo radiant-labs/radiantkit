@@ -1,7 +1,6 @@
-
-use std::collections::BTreeMap;
-use std::any::TypeId;
 use crate::RadiantTool;
+use std::any::TypeId;
+use std::collections::BTreeMap;
 
 pub struct RadiantToolManager<M> {
     pub tools: BTreeMap<TypeId, Box<dyn RadiantTool<M>>>,
@@ -11,9 +10,7 @@ pub struct RadiantToolManager<M> {
 impl<M> RadiantToolManager<M> {
     pub fn new<T: RadiantTool<M> + 'static>(tool: Box<T>) -> Self {
         Self {
-            tools: BTreeMap::from([
-                (TypeId::of::<T>(), tool as Box<dyn RadiantTool<M>>),
-            ]),
+            tools: BTreeMap::from([(TypeId::of::<T>(), tool as Box<dyn RadiantTool<M>>)]),
             active_tool_id: TypeId::of::<T>(),
         }
     }
