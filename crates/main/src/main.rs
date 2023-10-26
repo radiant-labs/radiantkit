@@ -1,4 +1,4 @@
-use radiant_core::{RadiantPathNode, RadiantRectangleNode};
+use radiant_scene::{RadiantPathNode, RadiantRectangleNode};
 use radiant_main::{RadiantApp, RadiantResponse};
 use winit::event::Event::RedrawRequested;
 use winit::{event_loop::EventLoop, window::WindowBuilder};
@@ -18,11 +18,11 @@ async fn run() {
     });
 
     let mut app = RadiantApp::new(window, handler).await;
-    app.scene.add(radiant_core::RadiantNodeType::Rectangle(
+    app.scene.add(radiant_scene::RadiantNodeType::Rectangle(
         RadiantRectangleNode::new(1, [100.0, 100.0], [200.0, 200.0]),
     ));
     app.scene
-        .add(radiant_core::RadiantNodeType::Path(RadiantPathNode::new(
+        .add(radiant_scene::RadiantNodeType::Path(RadiantPathNode::new(
             2,
             [400.0, 400.0],
         )));

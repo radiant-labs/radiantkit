@@ -1,10 +1,9 @@
-use crate::{
-    ColorComponent, RadiantComponentProvider, RadiantNode, RadiantScene, RadiantTessellatable,
+use radiant_core::{
+    ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{
-    text::{LayoutJob, TextFormat},
-    ClippedPrimitive, ClippedShape, Color32, FontFamily, FontId, Fonts, Rect, TessellationOptions,
+    pos2, ClippedPrimitive, ClippedShape, Color32, Rect, TessellationOptions, TextureHandle,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,11 +12,13 @@ use std::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct RadiantTextNode {
+pub struct RadiantImageNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
-    pub color: ColorComponent,
+    pub tint: ColorComponent,
+    #[serde(skip)]
+    pub texture_handle: Option<TextureHandle>,
     #[serde(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
@@ -28,9 +29,9 @@ pub struct RadiantTextNode {
     pub bounding_rect: [f32; 4],
 }
 
-impl Debug for RadiantTextNode {
+impl Debug for RadiantImageNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RadiantTextNode")
+        f.debug_struct("RadiantImageNode")
             .field("id", &self.id)
             .field("transform", &self.transform)
             .field("selection", &self.selection)
@@ -40,20 +41,27 @@ impl Debug for RadiantTextNode {
     }
 }
 
-impl RadiantTextNode {
-    pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
+impl RadiantImageNode {
+    pub fn new(
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+        texture_handle: TextureHandle,
+    ) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
         transform.set_scale(&scale);
 
         let selection = SelectionComponent::new();
-        let color = ColorComponent::new();
+        let mut tint = ColorComponent::new();
+        tint.set_fill_color(Color32::WHITE);
 
         Self {
             id,
             transform,
             selection,
-            color,
+            tint,
+            texture_handle: Some(texture_handle),
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
             needs_tessellation: true,
@@ -61,7 +69,7 @@ impl RadiantTextNode {
         }
     }
 
-    fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor, fonts: &Fonts) {
+    fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor) {
         if !self.needs_tessellation {
             return;
         }
@@ -70,42 +78,6 @@ impl RadiantTextNode {
         let pixels_per_point = screen_descriptor.pixels_per_point;
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
-
-        let mut job = LayoutJob::default();
-        job.append(
-            "Hello ",
-            0.0,
-            TextFormat {
-                font_id: FontId::new(14.0, FontFamily::Proportional),
-                color: Color32::WHITE,
-                ..Default::default()
-            },
-        );
-        job.append(
-            "World!",
-            0.0,
-            TextFormat {
-                font_id: FontId::new(14.0, FontFamily::Monospace),
-                color: Color32::BLACK,
-                ..Default::default()
-            },
-        );
-
-        let galley = fonts.layout_job(job);
-
-        let shape = epaint::TextShape::new(
-            epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point,
-            ),
-            galley,
-        );
-
-        let texture_atlas = fonts.texture_atlas();
-        let (font_tex_size, prepared_discs) = {
-            let atlas = texture_atlas.lock();
-            (atlas.size(), atlas.prepared_discs())
-        };
 
         let rect = epaint::Rect::from_two_pos(
             epaint::Pos2::new(
@@ -117,24 +89,26 @@ impl RadiantTextNode {
                 (position[1] + scale[1]) / pixels_per_point,
             ),
         );
-
         let rounding = epaint::Rounding::default();
 
-        let shapes = vec![ClippedShape(Rect::EVERYTHING, epaint::Shape::Text(shape))];
+        let mut mesh = epaint::Mesh::with_texture(self.texture_handle.clone().unwrap().id());
+        let uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+        mesh.add_rect_with_uv(rect, uv, self.tint.fill_color());
+        let shapes = vec![ClippedShape(Rect::EVERYTHING, epaint::Shape::Mesh(mesh))];
         self.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
-            font_tex_size,
-            prepared_discs,
+            [1, 1],
+            vec![],
             shapes,
         );
 
-        let fill_color = epaint::Color32::from_rgb(
+        let color = epaint::Color32::from_rgb(
             (self.id + 1 >> 0) as u8 & 0xFF,
             (self.id + 1 >> 8) as u8 & 0xFF,
             (self.id + 1 >> 16) as u8 & 0xFF,
         );
-        let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
+        let rect_shape = epaint::RectShape::filled(rect, rounding, color);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
@@ -149,8 +123,10 @@ impl RadiantTextNode {
     }
 }
 
-impl RadiantTessellatable for RadiantTextNode {
-    fn attach_to_scene(&mut self, _scene: &mut RadiantScene) {}
+impl RadiantTessellatable for RadiantImageNode {
+    fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
+        self.tessellate(screen_descriptor);
+    }
 
     fn detach(&mut self) {
         self.primitives.clear();
@@ -161,11 +137,10 @@ impl RadiantTessellatable for RadiantTextNode {
         let position = self.transform.get_xy();
         let scale = self.transform.get_scale();
 
-        let rect = epaint::Rect::from_two_pos(
+        let rect = epaint::Rect::from_min_max(
             epaint::Pos2::new(position[0], position[1]),
             epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
         );
-
         self.bounding_rect = [
             rect.left_top().x,
             rect.left_top().y,
@@ -180,9 +155,9 @@ impl RadiantTessellatable for RadiantTextNode {
         &mut self,
         selection: bool,
         screen_descriptor: &ScreenDescriptor,
-        fonts: &Fonts,
+        _fonts_manager: &epaint::text::Fonts,
     ) -> Vec<ClippedPrimitive> {
-        self.tessellate(screen_descriptor, fonts);
+        self.tessellate(screen_descriptor);
         if selection {
             self.selection_primitives.clone()
         } else {
@@ -191,7 +166,7 @@ impl RadiantTessellatable for RadiantTextNode {
     }
 }
 
-impl RadiantNode for RadiantTextNode {
+impl RadiantNode for RadiantImageNode {
     fn get_id(&self) -> u64 {
         return self.id;
     }
@@ -205,26 +180,26 @@ impl RadiantNode for RadiantTextNode {
     }
 }
 
-impl RadiantComponentProvider for RadiantTextNode {
-    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+impl RadiantComponentProvider for RadiantImageNode {
+    fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
         if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
             unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }
         } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
             unsafe { Some(&*(&self.transform as *const dyn Any as *const T)) }
         } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
-            unsafe { Some(&*(&self.color as *const dyn Any as *const T)) }
+            unsafe { Some(&*(&self.tint as *const dyn Any as *const T)) }
         } else {
             None
         }
     }
 
-    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+    fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
         if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
             unsafe { Some(&mut *(&mut self.selection as *mut dyn Any as *mut T)) }
         } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
             unsafe { Some(&mut *(&mut self.transform as *mut dyn Any as *mut T)) }
         } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
-            unsafe { Some(&mut *(&mut self.color as *mut dyn Any as *mut T)) }
+            unsafe { Some(&mut *(&mut self.tint as *mut dyn Any as *mut T)) }
         } else {
             None
         }

@@ -1,7 +1,12 @@
 [workspace]
+resolver = "2"
 members = [
     "apps/egui",
     "crates/core",
+    "crates/image",
+    "crates/text",
+    "crates/path",
+    "crates/scene",
 	"crates/main",
     "crates/wasm",
     "apps/web/src-tauri"

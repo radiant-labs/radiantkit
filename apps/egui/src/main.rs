@@ -27,14 +27,10 @@ impl RadiantAppController {
             .show(ctx, |ui| {
                 ui.heading("Radiant App");
                 if ui.button("Select").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool(
-                        radiant_main::RadiantToolType::Selection,
-                    ));
+                    self.pending_messages.push(RadiantMessage::SelectTool { id: 0 });
                 }
                 if ui.button("Rect").clicked() {
-                    self.pending_messages.push(RadiantMessage::SelectTool(
-                        radiant_main::RadiantToolType::Rectangle,
-                    ));
+                    self.pending_messages.push(RadiantMessage::SelectTool { id: 1 });
                 }
                 ui.add_space(10.0);
             });

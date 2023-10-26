@@ -1,10 +1,11 @@
-use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantNodeType, RadiantScene, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent,
+use radiant_core::{
+    RadiantComponentProvider, RadiantNode, RadiantTessellatable,
+    ScreenDescriptor, SelectionComponent, RadiantComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use crate::RadiantNodeType;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantArtboardNode {
@@ -37,9 +38,9 @@ impl RadiantArtboardNode {
 }
 
 impl RadiantTessellatable for RadiantArtboardNode {
-    fn attach_to_scene(&mut self, scene: &mut RadiantScene) {
+    fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
         for node in &mut self.nodes.values_mut() {
-            node.attach_to_scene(scene);
+            node.attach(screen_descriptor);
         }
     }
 
@@ -78,11 +79,11 @@ impl RadiantNode for RadiantArtboardNode {
 }
 
 impl RadiantComponentProvider for RadiantArtboardNode {
-    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+    fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
         None
     }
 
-    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+    fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
         None
     }
 }

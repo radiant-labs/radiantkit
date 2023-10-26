@@ -1,11 +1,12 @@
-use crate::{RadiantMessage, RadiantTool};
+use radiant_core::{RadiantMessage, RadiantTool};
 
-pub struct SelectionTool {
+// Todo: This is a stub. Implement the PathTool.
+pub struct PathTool {
     active_node_id: Option<u64>,
     prev_position: [f32; 2],
 }
 
-impl SelectionTool {
+impl PathTool {
     pub fn new() -> Self {
         Self {
             active_node_id: None,
@@ -14,9 +15,9 @@ impl SelectionTool {
     }
 }
 
-impl RadiantTool for SelectionTool {
+impl RadiantTool for PathTool {
     fn tool_id(&self) -> u32 {
-        0
+        2
     }
 
     fn on_mouse_down(

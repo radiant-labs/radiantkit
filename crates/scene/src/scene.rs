@@ -1,30 +1,15 @@
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
-
-use crate::{
-    ColorComponent, RadiantComponentProvider, RadiantDocumentNode, RadiantImageNode,
-    RadiantInteractionManager, RadiantMessage, RadiantNode, RadiantNodeType, RadiantRenderManager,
-    RadiantResponse, RadiantTessellatable, RadiantTextNode, RadiantTextureManager,
-    RadiantToolManager, RadiantTransformable, TransformComponent,
+use radiant_path_node::PathTool;
+use serde::{Deserialize, Serialize};
+use radiant_core::{
+    ColorComponent,
+    RadiantInteractionManager, RadiantMessage, RadiantRenderManager,
+     RadiantTextureManager, RadiantTessellatable, RadiantComponentProvider, RadiantTransformable,
+    RadiantToolManager, TransformComponent, ScreenDescriptor, RadiantRectangleNode,
 };
-
-/// Information about the screen used for rendering.
-pub struct ScreenDescriptor {
-    /// Size of the window in physical pixels.
-    pub size_in_pixels: [u32; 2],
-
-    /// HiDPI scale factor (pixels per point).
-    pub pixels_per_point: f32,
-}
-
-impl ScreenDescriptor {
-    /// size in "logical" points
-    pub fn screen_size_in_points(&self) -> [f32; 2] {
-        [
-            self.size_in_pixels[0] as f32 / self.pixels_per_point,
-            self.size_in_pixels[1] as f32 / self.pixels_per_point,
-        ]
-    }
-}
+use radiant_image_node::RadiantImageNode;
+use radiant_text_node::RadiantTextNode;
+use crate::{RadiantDocumentNode, RadiantNodeType};
 
 pub struct RadiantScene {
     pub document: RadiantDocumentNode,
@@ -53,6 +38,9 @@ impl RadiantScene {
         let texture_manager = RadiantTextureManager::default();
         let render_manager = RadiantRenderManager::new(config, surface, device, queue, None);
 
+        let mut tool_manager = RadiantToolManager::new();
+        tool_manager.register_tool(Box::new(PathTool::new()));
+
         Self {
             document: RadiantDocumentNode::new(),
             handler,
@@ -61,7 +49,7 @@ impl RadiantScene {
 
             fonts_manager,
             render_manager,
-            tool_manager: RadiantToolManager::new(),
+            tool_manager,
             interaction_manager: RadiantInteractionManager::new(),
             texture_manager,
         }
@@ -70,7 +58,7 @@ impl RadiantScene {
 
 impl RadiantScene {
     pub fn add(&mut self, mut node: RadiantNodeType) {
-        node.attach_to_scene(self);
+        node.attach(&self.screen_descriptor);
         self.document.add(node);
     }
 
@@ -150,13 +138,25 @@ impl RadiantScene {
                     }
                 }
             }
-            RadiantMessage::AddNode(mut node) => {
-                let id = node.get_id();
-                if id == 0 {
-                    node.set_id(id);
+            RadiantMessage::AddNode {
+                node_type,
+                position,
+                scale,
+            } => {
+                let id = self.document.counter;
+                let node = match node_type.as_str() {
+                    "Rectangle" =>
+                        Some(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
+                            id,
+                            position,
+                            scale,
+                        ))),
+                    _ => None
+                };
+                if let Some(node) = node {
+                    self.add(node);
+                    return self.handle_message(RadiantMessage::SelectNode(id));
                 }
-                self.add(node);
-                return self.handle_message(RadiantMessage::SelectNode(id));
             }
             RadiantMessage::TransformNode {
                 id,
@@ -218,8 +218,8 @@ impl RadiantScene {
                     }
                 }
             }
-            RadiantMessage::SelectTool(tool) => {
-                self.tool_manager.activate_tool(tool);
+            RadiantMessage::SelectTool { id } => {
+                self.tool_manager.activate_tool(id);
             }
             RadiantMessage::AddImage { .. } => {
                 let image = epaint::ColorImage::new([400, 100], epaint::Color32::RED);
@@ -261,8 +261,8 @@ impl RadiantScene {
         let id = pollster::block_on(self.select(position));
         if let Some(message) =
             self.tool_manager
-                .active_tool
-                .on_mouse_down(id, &self.document, position)
+                .active_tool()
+                .on_mouse_down(id,  position)
         {
             self.process_message(message);
             true
@@ -274,8 +274,8 @@ impl RadiantScene {
     pub fn on_mouse_move(&mut self, position: [f32; 2]) -> bool {
         if let Some(message) = self
             .tool_manager
-            .active_tool
-            .on_mouse_move(&self.document, position)
+            .active_tool()
+            .on_mouse_move(position)
         {
             self.process_message(message);
             true
@@ -287,8 +287,8 @@ impl RadiantScene {
     pub fn on_mouse_up(&mut self, position: [f32; 2]) -> bool {
         if let Some(message) = self
             .tool_manager
-            .active_tool
-            .on_mouse_up(&self.document, position)
+            .active_tool()
+            .on_mouse_up(position)
         {
             self.process_message(message);
             true
@@ -296,4 +296,14 @@ impl RadiantScene {
             false
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantResponse {
+    NodeSelected(RadiantNodeType),
+    TransformUpdated {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
 }

@@ -1,4 +1,4 @@
-use radiant_core::{RadiantMessage, RadiantResponse, RadiantScene, ScreenDescriptor};
+use radiant_scene::{RadiantMessage, RadiantResponse, RadiantScene, ScreenDescriptor};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
