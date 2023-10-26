@@ -4,7 +4,7 @@ source "$HOME/.cargo/env"
 
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -y
 
-cd ../../crates/wasm && ~/.cargo/bin/wasm-pack build --target web && cd -
+cd ../../crates/runtime && ~/.cargo/bin/wasm-pack build --target web && cd -
 
 yarn install
 
