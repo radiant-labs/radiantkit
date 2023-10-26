@@ -1,4 +1,5 @@
-use radiant_scene::{RadiantMessage, RadiantResponse, RadiantScene, ScreenDescriptor};
+use radiant_scene::{RadiantMessage, RadiantScene, ScreenDescriptor, RadiantNodeType, RadiantRectangleNode, RadiantTessellatable, RadiantComponentProvider, ColorComponent, RadiantTextNode, RadiantImageNode, TransformComponent, RadiantTransformable, SelectionTool};
+use serde::{Serialize, Deserialize};
 use winit::window::Window;
 use winit::{event::*, event_loop::ControlFlow};
 
@@ -6,10 +7,12 @@ pub struct RadiantApp {
     pub window: Window,
     pub size: winit::dpi::PhysicalSize<u32>,
 
-    pub scene: RadiantScene,
+    pub scene: RadiantScene<RadiantMessage, RadiantNodeType>,
 
     mouse_position: [f32; 2],
     mouse_dragging: bool,
+
+    pub handler: Box<dyn Fn(RadiantResponse)>,
 }
 
 impl RadiantApp {
@@ -79,7 +82,7 @@ impl RadiantApp {
             pixels_per_point: window.scale_factor() as f32,
         };
 
-        let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, handler);
+        let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor, SelectionTool::new());
 
         Self {
             window,
@@ -87,6 +90,7 @@ impl RadiantApp {
             scene,
             mouse_position: [0.0, 0.0],
             mouse_dragging: false,
+            handler,
         }
     }
 
@@ -131,11 +135,11 @@ impl RadiantApp {
                             if button == &MouseButton::Left {
                                 let is_pressed = *state == ElementState::Pressed;
                                 if is_pressed {
-                                    if self.scene.on_mouse_down(self.mouse_position) {
+                                    if self.on_mouse_down(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 } else {
-                                    if self.scene.on_mouse_up(self.mouse_position) {
+                                    if self.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
@@ -149,7 +153,7 @@ impl RadiantApp {
                             //     current_position[1] - self.mouse_position[1],
                             // ];
                             self.mouse_position = current_position;
-                            if self.scene.on_mouse_move(self.mouse_position) {
+                            if self.on_mouse_move(self.mouse_position) {
                                 self.window.request_redraw();
                             }
                         }
@@ -164,22 +168,22 @@ impl RadiantApp {
                             self.mouse_position = current_position;
                             match phase {
                                 TouchPhase::Started => {
-                                    if self.scene.on_mouse_down(self.mouse_position) {
+                                    if self.on_mouse_down(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Moved => {
-                                    if self.scene.on_mouse_move(self.mouse_position) {
+                                    if self.on_mouse_move(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Ended => {
-                                    if self.scene.on_mouse_up(self.mouse_position) {
+                                    if self.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
                                 TouchPhase::Cancelled => {
-                                    if self.scene.on_mouse_up(self.mouse_position) {
+                                    if self.on_mouse_up(self.mouse_position) {
                                         self.window.request_redraw();
                                     }
                                 }
@@ -208,6 +212,199 @@ impl RadiantApp {
 
 impl RadiantApp {
     pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        self.scene.handle_message(message)
+        match message {
+            RadiantMessage::AddArtboard => {
+                self.scene.document.add_artboard();
+            }
+            RadiantMessage::SelectArtboard(id) => {
+                self.scene.document.set_active_artboard(id);
+            }
+            RadiantMessage::SelectNode(id) => {
+                if !self.scene.interaction_manager.is_interaction(id) {
+                    self.scene.document.select(id);
+                    if let Some(node) = self.scene.document.get_node(id) {
+                        self.scene.interaction_manager
+                            .enable_interactions(node, &self.scene.screen_descriptor);
+                        return Some(RadiantResponse::NodeSelected(node.clone()));
+                    } else {
+                        self.scene.interaction_manager.disable_interactions();
+                    }
+                }
+            }
+            RadiantMessage::AddNode {
+                node_type,
+                position,
+                scale,
+            } => {
+                let id = self.scene.document.counter;
+                let node = match node_type.as_str() {
+                    "Rectangle" =>
+                        Some(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
+                            id,
+                            position,
+                            scale,
+                        ))),
+                    _ => None
+                };
+                if let Some(node) = node {
+                    self.scene.add(node);
+                    return self.handle_message(RadiantMessage::SelectNode(id));
+                }
+            }
+            RadiantMessage::TransformNode {
+                id,
+                position,
+                scale,
+            } => {
+                if self.scene.interaction_manager.is_interaction(id) {
+                    if let Some(message) = self.scene.interaction_manager.handle_interaction(message) {
+                        return self.handle_message(message);
+                    }
+                } else if let Some(node) = self.scene.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.transform_xy(&position);
+                        component.transform_scale(&scale);
+
+                        let response = RadiantResponse::TransformUpdated {
+                            id,
+                            position: component.get_xy(),
+                            scale: component.get_scale(),
+                        };
+
+                        node.set_needs_tessellation();
+                        self.scene.interaction_manager
+                            .update_interactions(node, &self.scene.screen_descriptor);
+
+                        return Some(response);
+                    }
+                }
+            }
+            RadiantMessage::SetTransform {
+                id,
+                position,
+                scale,
+            } => {
+                if let Some(node) = self.scene.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.set_xy(&position);
+                        component.set_scale(&scale);
+                        node.set_needs_tessellation();
+
+                        self.scene.interaction_manager
+                            .update_interactions(node, &self.scene.screen_descriptor);
+                    }
+                }
+            }
+            RadiantMessage::SetFillColor { id, fill_color } => {
+                if let Some(node) = self.scene.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_fill_color(fill_color);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantMessage::SetStrokeColor { id, stroke_color } => {
+                if let Some(node) = self.scene.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_stroke_color(stroke_color);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantMessage::SelectTool { id } => {
+                self.scene.tool_manager.activate_tool(id);
+            }
+            RadiantMessage::AddImage { .. } => {
+                let image = epaint::ColorImage::new([400, 100], epaint::Color32::RED);
+                let texture_handle =
+                    self.scene.texture_manager
+                        .load_texture("test", image, Default::default());
+
+                let id = self.scene.document.counter;
+                let node = RadiantNodeType::Image(RadiantImageNode::new(
+                    id,
+                    [400.0, 100.0],
+                    [100.0, 100.0],
+                    texture_handle,
+                ));
+                self.scene.add(node);
+                return self.handle_message(RadiantMessage::SelectNode(id));
+            }
+            RadiantMessage::AddText { position, .. } => {
+                let id = self.scene.document.counter;
+                let node =
+                    RadiantNodeType::Text(RadiantTextNode::new(id, position, [100.0, 100.0]));
+                self.scene.add(node);
+                return self.handle_message(RadiantMessage::SelectNode(id));
+            }
+        }
+        None
     }
+}
+
+impl RadiantApp {
+    pub fn process_message(&mut self, message: RadiantMessage) {
+        let response = self.handle_message(message);
+        self.handle_response(response);
+    }
+
+    fn handle_response(&self, response: Option<RadiantResponse>) {
+        if let Some(response) = response {
+            (self.handler)(response);
+        }
+    }
+}
+
+impl RadiantApp {
+    pub fn on_mouse_down(&mut self, position: [f32; 2]) -> bool {
+        let id = pollster::block_on(self.scene.select(position));
+        if let Some(message) =
+            self.scene.tool_manager
+                .active_tool()
+                .on_mouse_down(id,  position)
+        {
+            self.process_message(message);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn on_mouse_move(&mut self, position: [f32; 2]) -> bool {
+        if let Some(message) = self
+            .scene
+            .tool_manager
+            .active_tool()
+            .on_mouse_move(position)
+        {
+            self.process_message(message);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn on_mouse_up(&mut self, position: [f32; 2]) -> bool {
+        if let Some(message) = self
+            .scene
+            .tool_manager
+            .active_tool()
+            .on_mouse_up(position)
+        {
+            self.process_message(message);
+            true
+        } else {
+            false
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantResponse {
+    NodeSelected(RadiantNodeType),
+    TransformUpdated {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
 }
