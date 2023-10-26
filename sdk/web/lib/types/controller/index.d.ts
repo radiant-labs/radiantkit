@@ -1,4 +1,4 @@
-import { RadiantAppController } from "radiant-wasm";
+import { RadiantAppController } from "radiant-runtime";
 export declare class RadiantController {
     _controller: RadiantAppController;
     constructor(controller: RadiantAppController);
