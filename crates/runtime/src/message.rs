@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use radiant_core::{RectangleToolMessage, SelectionToolMessage, InteractionMessage};
 
+use crate::RadiantNodeType;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantMessage {
     AddArtboard,
@@ -140,4 +142,14 @@ impl TryInto<InteractionMessage> for RadiantMessage {
             _ => Err(()),
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum RadiantResponse {
+    NodeSelected(RadiantNodeType),
+    TransformUpdated {
+        id: u64,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
 }

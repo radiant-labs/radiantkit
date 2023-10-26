@@ -1,8 +1,10 @@
 pub mod node;
 pub mod message;
+pub mod runtime;
 
 pub use node::*;
 pub use message::*;
+pub use runtime::*;
 
 pub use radiant_core::*;
 pub use radiant_image_node::RadiantImageNode;

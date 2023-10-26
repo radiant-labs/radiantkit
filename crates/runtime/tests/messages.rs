@@ -1,5 +1,5 @@
 use radiant_core::RadiantDocumentNode;
-use radiant_scene::RadiantNodeType;
+use radiant_runtime::RadiantNodeType;
 
 #[test]
 fn test_add_artboard() {
