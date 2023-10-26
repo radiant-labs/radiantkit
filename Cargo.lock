@@ -3584,7 +3584,7 @@ dependencies = [
  "egui_winit_platform",
  "env_logger",
  "pollster",
- "radiant-main",
+ "radiant-runtime",
  "wgpu",
  "winit",
 ]
@@ -3605,25 +3605,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-main"
-version = "0.1.0"
-dependencies = [
- "cfg-if",
- "console_error_panic_hook",
- "console_log",
- "env_logger",
- "epaint",
- "futures-intrusive",
- "image 0.23.14",
- "log",
- "pollster",
- "radiant-scene",
- "serde",
- "wgpu",
- "winit",
-]
-
-[[package]]
 name = "radiant-path-node"
 version = "0.1.0"
 dependencies = [
@@ -3639,11 +3620,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-scene"
+name = "radiant-runtime"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
  "cgmath",
+ "env_logger",
  "epaint",
  "futures-intrusive",
  "log",
@@ -3652,6 +3634,7 @@ dependencies = [
  "radiant-image-node",
  "radiant-path-node",
  "radiant-text-node",
+ "radiant-winit",
  "serde",
  "wgpu",
 ]
@@ -3691,12 +3674,32 @@ dependencies = [
  "js-sys",
  "log",
  "pollster",
- "radiant-main",
+ "radiant-runtime",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "winit",
+]
+
+[[package]]
+name = "radiant-winit"
+version = "0.1.0"
+dependencies = [
+ "cfg-if",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger",
+ "epaint",
+ "futures-intrusive",
+ "image 0.23.14",
+ "log",
+ "pollster",
+ "radiant-core",
+ "serde",
+ "web-sys",
+ "wgpu",
  "winit",
 ]
 
