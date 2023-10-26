@@ -8,6 +8,5 @@ members = [
     "crates/path",
     "crates/runtime",
 	"crates/winit",
-    "crates/wasm",
     "apps/web/src-tauri"
 ]

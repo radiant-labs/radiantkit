@@ -2,14 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RadiantController = void 0;
 const tslib_1 = require("tslib");
-const radiant_wasm_1 = require("radiant-wasm");
+const radiant_runtime_1 = require("radiant-runtime");
 class RadiantController {
     constructor(controller) {
         this._controller = controller;
     }
     static createController(f) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return new RadiantController(yield new radiant_wasm_1.RadiantAppController(f));
+            return new RadiantController(yield new radiant_runtime_1.RadiantAppController(f));
         });
     }
     /**

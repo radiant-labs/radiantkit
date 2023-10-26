@@ -5,6 +5,13 @@ use winit::{event::*, event_loop::ControlFlow};
 
 pub use winit::event::Event::RedrawRequested;
 
+#[cfg(target_arch = "wasm32")]
+use std::sync::{Arc, RwLock};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use winit::platform::web::EventLoopExtWebSys;
+
 pub struct RadiantApp<M, N: RadiantNode> {
     pub window: Window,
     pub event_loop: Option<EventLoop<()>>,
@@ -282,6 +289,37 @@ pub fn run_native<
                     output_frame.unwrap().present();
                 }
                 _ => {}
+            }
+        });
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn run_wasm<
+    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
+    N: RadiantNode + 'static,
+    R: serde::ser::Serialize,
+>(
+    runtime: Arc<RwLock<impl Runtime<M, N, R> + 'static>>,
+    f: js_sys::Function,
+) {
+    let Ok(mut runtime_) = runtime.write() else { return; };
+    let event_loop = std::mem::replace(&mut runtime_.app().event_loop, None);
+
+    let weak_runtime = Arc::downgrade(&runtime);
+
+    if let Some(event_loop) = event_loop {
+        event_loop.spawn(move |event, _, control_flow| {
+            if let Some(runtime) = weak_runtime.upgrade() {
+                if let Ok(mut runtime) = runtime.write() {
+                    if let Some(message) = runtime.app().handle_event(&event, control_flow) {
+                        if let Some(response) = runtime.handle_runtime_message(message) {
+                            let this = JsValue::null();
+                            let _ =
+                                f.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
+                        }
+                    }
+                }
             }
         });
     }

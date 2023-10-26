@@ -3625,9 +3625,12 @@ version = "0.1.0"
 dependencies = [
  "bytemuck",
  "cgmath",
+ "console_error_panic_hook",
+ "console_log",
  "env_logger",
  "epaint",
  "futures-intrusive",
+ "js-sys",
  "log",
  "pollster",
  "radiant-core",
@@ -3636,6 +3639,10 @@ dependencies = [
  "radiant-text-node",
  "radiant-winit",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "wgpu",
 ]
 
@@ -3665,25 +3672,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-wasm"
-version = "0.1.0"
-dependencies = [
- "console_error_panic_hook",
- "console_log",
- "env_logger",
- "js-sys",
- "log",
- "pollster",
- "radiant-runtime",
- "serde",
- "serde-wasm-bindgen",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "winit",
-]
-
-[[package]]
 name = "radiant-winit"
 version = "0.1.0"
 dependencies = [
@@ -3694,10 +3682,13 @@ dependencies = [
  "epaint",
  "futures-intrusive",
  "image 0.23.14",
+ "js-sys",
  "log",
  "pollster",
  "radiant-core",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
  "web-sys",
  "wgpu",
  "winit",

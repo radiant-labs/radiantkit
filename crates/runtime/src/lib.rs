@@ -10,3 +10,6 @@ pub use radiant_core::*;
 pub use radiant_image_node::RadiantImageNode;
 pub use radiant_path_node::RadiantPathNode;
 pub use radiant_text_node::RadiantTextNode;
+
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
