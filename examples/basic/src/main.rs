@@ -1,5 +1,5 @@
 use radiant_runtime::{
-    RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
+    RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, run_native,
 };
 
 async fn run() {
@@ -30,7 +30,7 @@ async fn run() {
             [400.0, 400.0],
         )));
 
-    radiant_winit::run_native(runtime);
+    run_native(runtime);
 }
 
 fn main() {

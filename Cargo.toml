@@ -1,12 +1,13 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/egui",
     "crates/core",
     "crates/image",
     "crates/text",
     "crates/path",
     "crates/runtime",
 	"crates/winit",
-    "apps/web/src-tauri"
+    "examples/basic",
+    "examples/egui",
+    "examples/web/src-tauri"
 ]
