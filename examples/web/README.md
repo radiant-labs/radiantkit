@@ -1,1 +1,1 @@
-# Radiant Example
+# Radiant Web Example
