@@ -24,7 +24,7 @@ Install rust and follow these steps:
 1. `cd examples/basic`
 2. `cargo run`
 
-## POC Egui App
+## Egui Integration Example
 
 Install rust and follow these steps:
 1. `cd examples/egui`
