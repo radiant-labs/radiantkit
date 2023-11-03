@@ -4,6 +4,6 @@
         "crates/wasm/pkg", 
         "crates/runtime/pkg", 
         "sdk/web",
-        "apps/web"
+        "examples/web"
     ]
 }
