@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
+use macro_magic::import_tokens_attr;
 
 fn derive_tessellatable_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
     let item = syn::parse2::<syn::ItemEnum>(item)?;
@@ -121,6 +122,60 @@ fn derive_component_provider_internal(item: TokenStream2) -> syn::Result<TokenSt
     Ok(res)
 }
 
+fn combine_enum_internal(attr: TokenStream2, item: TokenStream2, foreign_path: syn::Path) -> syn::Result<TokenStream2> {
+    let mut local_enum = syn::parse2::<syn::ItemEnum>(item.clone())?;
+    let local_name = local_enum.ident.clone();
+
+    let foreign_enum = syn::parse2::<syn::ItemEnum>(attr)?;
+    let foreign_variants = foreign_enum.variants.iter().map(|variant| {
+        variant.ident.clone()
+    }).collect::<Vec<_>>();
+    let foreign_args = foreign_enum.variants.iter().map(|variant| {
+        variant.fields.iter().map(|field| {
+            field.ident.clone()
+        }).collect::<Vec<_>>()
+    }).collect::<Vec<_>>();
+
+    foreign_enum.variants.iter().for_each(|variant| {
+        if local_enum.variants.iter().any(|local_variant| local_variant.ident == variant.ident) {
+            return;
+        }
+        local_enum.variants.push(variant.clone());
+    });
+
+    let res = quote! {
+        #local_enum
+
+        impl From<#foreign_path> for #local_name {
+            fn from(foreign: #foreign_path) -> Self {
+                match foreign {
+                    #(
+                        #foreign_path::#foreign_variants { #(#foreign_args,)* } => Self::#foreign_variants { #(#foreign_args,)* },
+                    )*
+                }
+            }
+        }
+
+        impl TryInto<#foreign_path> for #local_name {
+            type Error = ();
+        
+            fn try_into(self) -> Result<#foreign_path, Self::Error> {
+                match self {
+                    #(
+                        Self::#foreign_variants { #(#foreign_args,)* } => Ok(#foreign_path::#foreign_variants { #(#foreign_args,)* }),
+                    )*
+                    _ => Err(()),
+                }
+            }
+        }
+    };
+
+    // use proc_utils::*;
+    // res.pretty_print();
+
+    Ok(res)
+}
+
 #[proc_macro_derive(RadiantTessellatable)]
 pub fn derive_tessellatable(item: TokenStream) -> TokenStream {
     let res = match derive_tessellatable_internal(item.into()) {
@@ -142,6 +197,17 @@ pub fn derive_node(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(RadiantComponentProvider)]
 pub fn derive_component_provider(item: TokenStream) -> TokenStream {
     let res = match derive_component_provider_internal(item.into()) {
+        Ok(res) => res,
+        Err(err) => err.to_compile_error(),
+    };
+    res.into()
+}
+
+#[import_tokens_attr]
+#[proc_macro_attribute]
+pub fn combine_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let foreign_path = syn::parse::<syn::Path>(__source_path).unwrap();
+    let res = match combine_enum_internal(attr.into(), item.into(), foreign_path) {
         Ok(res) => res,
         Err(err) => err.to_compile_error(),
     };

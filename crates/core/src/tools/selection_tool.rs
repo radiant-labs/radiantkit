@@ -1,9 +1,13 @@
 use crate::RadiantTool;
 use serde::{Deserialize, Serialize};
+use macro_magic::export_tokens;
 
+#[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SelectionToolMessage {
-    SelectNode(u64),
+    SelectNode { 
+        id: u64,
+    },
     TransformNode {
         id: u64,
         position: [f32; 2],
@@ -29,7 +33,7 @@ impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
     fn on_mouse_down(&mut self, node_id: u64, _position: [f32; 2]) -> Option<M> {
         if node_id > 0 {
             self.active_node_id = Some(node_id - 1);
-            let message = SelectionToolMessage::SelectNode(node_id - 1);
+            let message = SelectionToolMessage::SelectNode { id: node_id - 1 };
             Some(message.into())
         } else {
             None
