@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
-
 use crate::RadiantTool;
+use macro_magic::export_tokens;
 
+#[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RectangleToolMessage {
     AddNode {

@@ -1,7 +1,9 @@
 use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
+use macro_magic::export_tokens;
 
+#[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum InteractionMessage {
     TransformNode {

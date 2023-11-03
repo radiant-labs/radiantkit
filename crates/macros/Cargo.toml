@@ -11,3 +11,5 @@ proc-macro = true
 proc-macro2 = "1.0.69"
 quote = "1.0.33"
 syn = "2.0.38"
+macro_magic = { version = "0.5.0", features = ["proc_support"] }
+proc-utils = "0"
