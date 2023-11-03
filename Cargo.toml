@@ -4,6 +4,7 @@ members = [
     "crates/core",
     "crates/image",
     "crates/text",
+    "crates/macros",
     "crates/path",
     "crates/runtime",
 	"crates/winit",
