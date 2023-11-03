@@ -14,3 +14,4 @@ serde = { version = "1.0", features = ["derive"] }
 epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
 pollster = "0.3"
 futures-intrusive = "0.5"
+macro_magic = "0.5.0"

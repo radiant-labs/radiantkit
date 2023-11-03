@@ -23,13 +23,13 @@ impl RadiantRuntime {
 
     pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
         match message {
-            RadiantMessage::AddArtboard => {
+            RadiantMessage::AddArtboard { }=> {
                 self.app.scene.document.add_artboard();
             }
-            RadiantMessage::SelectArtboard(id) => {
+            RadiantMessage::SelectArtboard{ id } => {
                 self.app.scene.document.set_active_artboard(id);
             }
-            RadiantMessage::SelectNode(id) => {
+            RadiantMessage::SelectNode{ id } => {
                 if !self.app.scene.interaction_manager.is_interaction(id) {
                     self.app.scene.document.select(id);
                     if let Some(node) = self.app.scene.document.get_node(id) {
@@ -57,7 +57,7 @@ impl RadiantRuntime {
                 };
                 if let Some(node) = node {
                     self.app.scene.add(node);
-                    return self.handle_message(RadiantMessage::SelectNode(id));
+                    return self.handle_message(RadiantMessage::SelectNode { id });
                 }
             }
             RadiantMessage::TransformNode {
@@ -148,14 +148,14 @@ impl RadiantRuntime {
                     texture_handle,
                 ));
                 self.app.scene.add(node);
-                return self.handle_message(RadiantMessage::SelectNode(id));
+                return self.handle_message(RadiantMessage::SelectNode { id });
             }
             RadiantMessage::AddText { position, .. } => {
                 let id = self.app.scene.document.counter;
                 let node =
                     RadiantNodeType::Text(RadiantTextNode::new(id, position, [100.0, 100.0]));
                 self.app.scene.add(node);
-                return self.handle_message(RadiantMessage::SelectNode(id));
+                return self.handle_message(RadiantMessage::SelectNode { id });
             }
         }
         None

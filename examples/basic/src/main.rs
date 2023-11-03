@@ -1,5 +1,6 @@
 use radiant_runtime::{
-    RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, run_native,
+    run_native, RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
+    RadiantRuntime,
 };
 
 async fn run() {

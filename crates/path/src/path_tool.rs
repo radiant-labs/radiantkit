@@ -1,10 +1,14 @@
 use radiant_core::RadiantTool;
 use serde::{Deserialize, Serialize};
+use macro_magic::export_tokens;
 
 // Todo: This is a stub. Implement the PathTool.
+#[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum PathToolMessage {
-    SelectNode(u64),
+    SelectNode { 
+        id: u64
+    },
     TransformNode {
         id: u64,
         position: [f32; 2],
@@ -30,7 +34,7 @@ impl<M: From<PathToolMessage>> RadiantTool<M> for PathTool {
     fn on_mouse_down(&mut self, node_id: u64, _position: [f32; 2]) -> Option<M> {
         if node_id > 0 {
             self.active_node_id = Some(node_id - 1);
-            let message = PathToolMessage::SelectNode(node_id - 1);
+            let message = PathToolMessage::SelectNode { id: node_id - 1 };
             Some(message.into())
         } else {
             None
