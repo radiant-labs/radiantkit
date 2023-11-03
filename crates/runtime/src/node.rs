@@ -5,11 +5,13 @@ use radiant_core::{
 };
 use radiant_core::{RadiantDocumentNode, RadiantGroupNode};
 use radiant_image_node::RadiantImageNode;
+use radiant_macros::RadiantTessellatable;
 use radiant_path_node::RadiantPathNode;
 use radiant_text_node::RadiantTextNode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(RadiantTessellatable)]
 pub enum RadiantNodeType {
     Document(RadiantDocumentNode<RadiantNodeType>),
     Artboard(RadiantGroupNode<RadiantNodeType>),
@@ -17,69 +19,6 @@ pub enum RadiantNodeType {
     Path(RadiantPathNode),
     Image(RadiantImageNode),
     Text(RadiantTextNode),
-}
-
-impl RadiantTessellatable for RadiantNodeType {
-    fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
-        match self {
-            RadiantNodeType::Document(node) => node.attach(screen_descriptor),
-            RadiantNodeType::Artboard(node) => node.attach(screen_descriptor),
-            RadiantNodeType::Rectangle(node) => node.attach(screen_descriptor),
-            RadiantNodeType::Path(node) => node.attach(screen_descriptor),
-            RadiantNodeType::Image(node) => node.attach(screen_descriptor),
-            RadiantNodeType::Text(node) => node.attach(screen_descriptor),
-        }
-    }
-
-    fn detach(&mut self) {
-        match self {
-            RadiantNodeType::Document(node) => node.detach(),
-            RadiantNodeType::Artboard(node) => node.detach(),
-            RadiantNodeType::Rectangle(node) => node.detach(),
-            RadiantNodeType::Path(node) => node.detach(),
-            RadiantNodeType::Image(node) => node.detach(),
-            RadiantNodeType::Text(node) => node.detach(),
-        }
-    }
-
-    fn set_needs_tessellation(&mut self) {
-        match self {
-            RadiantNodeType::Document(node) => node.set_needs_tessellation(),
-            RadiantNodeType::Artboard(node) => node.set_needs_tessellation(),
-            RadiantNodeType::Rectangle(node) => node.set_needs_tessellation(),
-            RadiantNodeType::Path(node) => node.set_needs_tessellation(),
-            RadiantNodeType::Image(node) => node.set_needs_tessellation(),
-            RadiantNodeType::Text(node) => node.set_needs_tessellation(),
-        }
-    }
-
-    fn tessellate(
-        &mut self,
-        selection: bool,
-        screen_descriptor: &ScreenDescriptor,
-        fonts_manager: &epaint::text::Fonts,
-    ) -> Vec<ClippedPrimitive> {
-        match self {
-            RadiantNodeType::Document(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-            RadiantNodeType::Artboard(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-            RadiantNodeType::Rectangle(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-            RadiantNodeType::Path(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-            RadiantNodeType::Image(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-            RadiantNodeType::Text(node) => {
-                node.tessellate(selection, screen_descriptor, fonts_manager)
-            }
-        }
-    }
 }
 
 impl RadiantNode for RadiantNodeType {
