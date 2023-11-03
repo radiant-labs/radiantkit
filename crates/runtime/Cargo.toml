@@ -19,6 +19,7 @@ epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
 pollster = "0.3"
 futures-intrusive = "0.5"
 radiant-core  = { path = "../core" }
+radiant-macros  = { path = "../macros" }
 radiant-image-node = { path = "../image" }
 radiant-text-node = { path = "../text" }
 radiant-path-node = { path = "../path" }
