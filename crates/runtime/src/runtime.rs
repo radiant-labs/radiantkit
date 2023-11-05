@@ -1,10 +1,10 @@
 use radiant_core::{
     ColorComponent, RadiantComponentProvider, RadiantRectangleNode, RadiantTessellatable,
-    RadiantTransformable, SelectionTool, TransformComponent,
+    RadiantTransformable, SelectionTool, TransformComponent, Runtime,
 };
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
-use radiant_winit::{RadiantView, Runtime};
+use radiant_winit::RadiantView;
 
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
 
@@ -20,8 +20,14 @@ impl RadiantRuntime {
     }
 }
 
-impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
-    fn view(&mut self) -> &mut RadiantView<RadiantMessage, RadiantNodeType> {
+impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
+    type View = RadiantView<RadiantMessage, RadiantNodeType>;
+
+    fn view(&self) -> &RadiantView<RadiantMessage, RadiantNodeType> {
+        &self.view
+    }
+
+    fn view_mut(&mut self) -> &mut RadiantView<RadiantMessage, RadiantNodeType> {
         &mut self.view
     }
 

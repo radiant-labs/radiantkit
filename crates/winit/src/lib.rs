@@ -1,4 +1,4 @@
-use radiant_core::{InteractionMessage, RadiantNode, RadiantScene, RadiantTool, ScreenDescriptor};
+use radiant_core::{InteractionMessage, RadiantNode, RadiantScene, RadiantTool, ScreenDescriptor, Runtime, View};
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
 use winit::{event::*, event_loop::ControlFlow};
@@ -262,12 +262,16 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
     }
 }
 
-pub trait Runtime<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode, R> {
-    fn view(&mut self) -> &mut RadiantView<M, N>;
-    fn handle_message(&mut self, message: M) -> Option<R>;
+impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> View<M, N>
+    for RadiantView<M, N>
+{
+    fn scene(&self) -> &RadiantScene<M, N> {
+        &self.scene
+    }
 
-    fn scene(&mut self) -> &mut RadiantScene<M, N> { &mut self.view().scene }
-    fn add(&mut self, node: N) { self.scene().add(node); }
+    fn scene_mut(&mut self) -> &mut RadiantScene<M, N> {
+        &mut self.scene
+    }
 }
 
 pub fn run_native<
@@ -275,12 +279,12 @@ pub fn run_native<
     N: RadiantNode + 'static,
     R: 'static,
 >(
-    mut runtime: impl Runtime<M, N, R> + 'static,
+    mut runtime: impl Runtime<'static, M, N, R, View = RadiantView<M, N>> + 'static,
     handler: Box<dyn Fn(R)>,
 ) {
-    if let Some(event_loop) = std::mem::replace(&mut runtime.view().event_loop, None) {
+    if let Some(event_loop) = std::mem::replace(&mut runtime.view_mut().event_loop, None) {
         event_loop.run(move |event, _, control_flow| {
-            if let Some(message) = runtime.view().handle_event(&event, control_flow) {
+            if let Some(message) = runtime.view_mut().handle_event(&event, control_flow) {
                 if let Some(response) = runtime.handle_message(message) {
                     handler(response);
                 }
@@ -289,7 +293,7 @@ pub fn run_native<
             match event {
                 RedrawRequested(..) => {
                     let output_frame = std::mem::replace(
-                        &mut runtime.view().scene.render_manager.current_texture,
+                        &mut runtime.view_mut().scene_mut().render_manager.current_texture,
                         None,
                     );
                     output_frame.unwrap().present();
@@ -304,15 +308,15 @@ pub fn run_native<
 pub fn run_wasm<
     M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
     N: RadiantNode + 'static,
-    R: serde::ser::Serialize,
+    R: serde::ser::Serialize + 'static,
 >(
-    runtime: Arc<RwLock<impl Runtime<M, N, R> + 'static>>,
+    runtime: Arc<RwLock<impl Runtime<'static, M, N, R, View = RadiantView<M, N>> + 'static>>,
     f: js_sys::Function,
 ) {
     let event_loop;
     {
         let Ok(mut runtime_) = runtime.write() else { return; };
-        event_loop = std::mem::replace(&mut runtime_.view().event_loop, None);
+        event_loop = std::mem::replace(&mut runtime_.view_mut().event_loop, None);
     }
 
     let weak_runtime = Arc::downgrade(&runtime);
@@ -321,7 +325,7 @@ pub fn run_wasm<
         event_loop.spawn(move |event, _, control_flow| {
             if let Some(runtime) = weak_runtime.upgrade() {
                 if let Ok(mut runtime) = runtime.write() {
-                    if let Some(message) = runtime.view().handle_event(&event, control_flow) {
+                    if let Some(message) = runtime.view_mut().handle_event(&event, control_flow) {
                         if let Some(response) = runtime.handle_message(message) {
                             let this = JsValue::null();
                             let _ =
