@@ -1,5 +1,5 @@
 use radiant_core::{
-    InteractionMessage, RadiantNode, RadiantScene, RadiantTool, Runtime, ScreenDescriptor, View,
+    RadiantNode, RadiantScene, RadiantSceneMessage, RadiantTool, Runtime, ScreenDescriptor, View,
 };
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
@@ -26,7 +26,9 @@ pub struct RadiantView<M, N: RadiantNode> {
     mouse_dragging: bool,
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantView<M, N> {
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
+    RadiantView<M, N>
+{
     pub async fn new(default_tool: impl RadiantTool<M> + 'static) -> Self {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -239,13 +241,16 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
     }
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantView<M, N> {
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
+    RadiantView<M, N>
+{
     pub fn on_mouse_down(&mut self, position: [f32; 2]) -> Option<M> {
         let id = pollster::block_on(self.scene.select(position));
-        self.scene
-            .tool_manager
-            .active_tool()
-            .on_mouse_down(id, position)
+        self.scene.tool_manager.active_tool().on_mouse_down(
+            id,
+            self.scene.document.counter,
+            position,
+        )
     }
 
     pub fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
@@ -260,7 +265,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
     }
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> View<M, N>
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode> View<M, N>
     for RadiantView<M, N>
 {
     fn scene(&self) -> &RadiantScene<M, N> {
@@ -273,7 +278,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
 }
 
 pub fn run_native<
-    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
+    M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage> + 'static,
     N: RadiantNode + 'static,
     R: 'static,
 >(
@@ -308,7 +313,7 @@ pub fn run_native<
 
 #[cfg(target_arch = "wasm32")]
 pub fn run_wasm<
-    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
+    M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage> + 'static,
     N: RadiantNode + 'static,
     R: serde::ser::Serialize + 'static,
 >(
