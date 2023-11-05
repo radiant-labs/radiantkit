@@ -6,8 +6,8 @@ members = [
     "crates/text",
     "crates/macros",
     "crates/path",
-    "crates/runtime",
 	"crates/winit",
+    "runtime",
     "examples/basic",
     "examples/egui",
     "examples/web/src-tauri"
