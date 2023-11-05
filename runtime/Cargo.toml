@@ -18,12 +18,12 @@ serde = { version = "1.0", features = ["derive"] }
 epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
 pollster = "0.3"
 futures-intrusive = "0.5"
-radiant-core  = { path = "../core" }
-radiant-macros  = { path = "../macros" }
-radiant-image-node = { path = "../image" }
-radiant-text-node = { path = "../text" }
-radiant-path-node = { path = "../path" }
-radiant-winit = { path = "../winit" }
+radiant-core  = { path = "../crates/core" }
+radiant-macros  = { path = "../crates/macros" }
+radiant-image-node = { path = "../crates/image" }
+radiant-text-node = { path = "../crates/text" }
+radiant-path-node = { path = "../crates/path" }
+radiant-winit = { path = "../crates/winit" }
 macro_magic = "0.5.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
