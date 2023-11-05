@@ -35,7 +35,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
             RadiantMessage::SceneMessage(message) => {
                 if let Some(response) = self.view.scene.handle_message(message) {
                     match response {
-                        RadiantSceneResponse::Message(message) => {
+                        RadiantSceneResponse::Message { message } => {
                             return self.handle_message(message.into())
                         }
                         _ => return Some(response.into()),

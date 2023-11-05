@@ -10,8 +10,8 @@ export function RadiantTransformPanel() {
     const [rotation, setRotation] = useState(0)
 
     useEffect(() => {
-        if (response?.NodeSelected) {
-            let node = response.NodeSelected.Rectangle
+        if (response?.Selected) {
+            let node = response.Selected.node.Rectangle;
             setNodeId(node.id)
             let transform = node.transform
             setPosition({ x: transform.position[0], y: transform.position[1] })

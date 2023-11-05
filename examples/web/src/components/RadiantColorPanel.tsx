@@ -30,8 +30,8 @@ export function RadiantColorPanel() {
     const [strokeColor, setStrokeColor] = useState('#000000')
 
     useEffect(() => {
-        if (response?.NodeSelected) {
-            let node = response.NodeSelected.Rectangle
+        if (response?.Selected) {
+            let node = response.Selected.node.Rectangle
             setNodeId(node.id)
             let { fill_color, stroke_color } = node.color
             setFillColor(rgbToHex(fill_color[0], fill_color[1], fill_color[2]))
