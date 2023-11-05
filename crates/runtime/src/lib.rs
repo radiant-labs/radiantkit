@@ -12,6 +12,7 @@ pub use radiant_path_node::RadiantPathNode;
 pub use radiant_text_node::RadiantTextNode;
 
 pub use radiant_winit::run_native;
+pub use radiant_winit::Runtime;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;

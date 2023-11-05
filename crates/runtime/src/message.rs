@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 #[combine_enum(radiant_core::InteractionMessage)]
 #[combine_enum(radiant_image_node::RadiantImageMessage)]
 #[combine_enum(radiant_text_node::RadiantTextMessage)]
-#[combine_enum(radiant_path_node::PathToolMessage)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantMessage {
     AddArtboard {},

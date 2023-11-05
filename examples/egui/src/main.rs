@@ -1,6 +1,6 @@
 use radiant_runtime::{
     RadiantMessage, RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
-    RadiantRuntime, RadiantTextNode, RectangleTool,
+    RadiantRuntime, RadiantTextNode, RectangleTool, Runtime,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -54,12 +54,12 @@ async fn run() {
 
     let mut runtime = RadiantRuntime::new().await;
     runtime
-        .app
+        .view
         .scene
         .tool_manager
         .register_tool(Box::new(RectangleTool::new()));
     runtime
-        .app
+        .view
         .scene
         .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
             1,
@@ -67,21 +67,21 @@ async fn run() {
             [200.0, 200.0],
         )));
     runtime
-        .app
+        .view
         .scene
         .add(RadiantNodeType::Path(RadiantPathNode::new(
             2,
             [400.0, 400.0],
         )));
     runtime
-        .app
+        .view
         .scene
         .add(RadiantNodeType::Text(RadiantTextNode::new(
             3,
             [400.0, 600.0],
             [200.0, 200.0],
         )));
-    // app.scene.handle_message(RadiantMessage::AddText {
+    // view.scene.handle_message(RadiantMessage::AddText {
     //     text: String::from("Hello World!"),
     //     position: [400.0, 600.0],
     // });
@@ -90,8 +90,8 @@ async fn run() {
         path: String::from("test.png"),
     });
 
-    let size = runtime.app.window.inner_size();
-    let scale_factor = runtime.app.window.scale_factor();
+    let size = runtime.view.window.inner_size();
+    let scale_factor = runtime.view.window.scale_factor();
 
     let mut platform = Platform::new(PlatformDescriptor {
         physical_width: size.width as u32,
@@ -102,13 +102,13 @@ async fn run() {
     });
 
     let mut egui_rpass = RenderPass::new(
-        &runtime.app.scene.render_manager.device,
-        runtime.app.scene.render_manager.config.format,
+        &runtime.view.scene.render_manager.device,
+        runtime.view.scene.render_manager.config.format,
         1,
     );
     let mut demo_app = RadiantAppController::new();
 
-    if let Some(event_loop) = std::mem::replace(&mut runtime.app.event_loop, None) {
+    if let Some(event_loop) = std::mem::replace(&mut runtime.view.event_loop, None) {
         event_loop.run(move |event, _, control_flow| {
             if demo_app.pending_messages.len() > 0 {
                 for message in demo_app.pending_messages.drain(..) {
@@ -121,7 +121,7 @@ async fn run() {
             platform.handle_event(&event);
 
             if !platform.captures_event(&event) {
-                if let Some(message) = runtime.app.handle_event(&event, control_flow) {
+                if let Some(message) = runtime.view.handle_event(&event, control_flow) {
                     if let Some(response) = runtime.handle_message(message) {
                         println!("Response: {:?}", response);
                     }
@@ -131,13 +131,13 @@ async fn run() {
             match event {
                 RedrawRequested(..) => {
                     let output_frame = std::mem::replace(
-                        &mut runtime.app.scene.render_manager.current_texture,
+                        &mut runtime.view.scene.render_manager.current_texture,
                         None,
                     );
                     let output_frame = output_frame.unwrap();
 
                     let output_view = runtime
-                        .app
+                        .view
                         .scene
                         .render_manager
                         .current_view
@@ -148,32 +148,32 @@ async fn run() {
 
                     demo_app.update(&platform.context());
 
-                    let full_output = platform.end_frame(Some(&runtime.app.window));
+                    let full_output = platform.end_frame(Some(&runtime.view.window));
                     let paint_jobs = platform.context().tessellate(full_output.shapes);
 
                     // Upload all resources for the GPU.
                     let screen_descriptor = ScreenDescriptor {
-                        physical_width: runtime.app.scene.render_manager.config.width,
-                        physical_height: runtime.app.scene.render_manager.config.height,
+                        physical_width: runtime.view.scene.render_manager.config.width,
+                        physical_height: runtime.view.scene.render_manager.config.height,
                         scale_factor: scale_factor as f32,
                     };
                     let tdelta: egui::TexturesDelta = full_output.textures_delta;
                     egui_rpass
                         .add_textures(
-                            &runtime.app.scene.render_manager.device,
-                            &runtime.app.scene.render_manager.queue,
+                            &runtime.view.scene.render_manager.device,
+                            &runtime.view.scene.render_manager.queue,
                             &tdelta,
                         )
                         .expect("add texture ok");
                     egui_rpass.update_buffers(
-                        &runtime.app.scene.render_manager.device,
-                        &runtime.app.scene.render_manager.queue,
+                        &runtime.view.scene.render_manager.device,
+                        &runtime.view.scene.render_manager.queue,
                         &paint_jobs,
                         &screen_descriptor,
                     );
 
                     let mut encoder = runtime
-                        .app
+                        .view
                         .scene
                         .render_manager
                         .device
@@ -193,7 +193,7 @@ async fn run() {
                         .unwrap();
                     // Submit the commands.
                     runtime
-                        .app
+                        .view
                         .scene
                         .render_manager
                         .queue

@@ -1,6 +1,6 @@
 use radiant_runtime::{
     run_native, RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
-    RadiantRuntime,
+    RadiantRuntime, Runtime,
 };
 
 async fn run() {
@@ -16,16 +16,14 @@ async fn run() {
 
     let mut runtime = RadiantRuntime::new().await;
     runtime
-        .app
-        .scene
+        .scene()
         .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
             1,
             [100.0, 100.0],
             [200.0, 200.0],
         )));
     runtime
-        .app
-        .scene
+        .scene()
         .add(RadiantNodeType::Path(RadiantPathNode::new(
             2,
             [400.0, 400.0],
