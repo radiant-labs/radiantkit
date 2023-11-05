@@ -1,7 +1,7 @@
 use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
 use epaint::ClippedPrimitive;
-use serde::{Deserialize, Serialize};
 use macro_magic::export_tokens;
+use serde::{Deserialize, Serialize};
 
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]

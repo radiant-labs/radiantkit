@@ -264,20 +264,23 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
 
 pub trait Runtime<M, N: RadiantNode, R> {
     fn app(&mut self) -> &mut RadiantApp<M, N>;
-    fn handle_runtime_message(&mut self, message: M) -> Option<R>;
+    fn handle_message(&mut self, message: M) -> Option<R>;
 }
 
 pub fn run_native<
     M: From<InteractionMessage> + TryInto<InteractionMessage> + 'static,
     N: RadiantNode + 'static,
-    R,
+    R: 'static,
 >(
     mut runtime: impl Runtime<M, N, R> + 'static,
+    handler: Box<dyn Fn(R)>,
 ) {
     if let Some(event_loop) = std::mem::replace(&mut runtime.app().event_loop, None) {
         event_loop.run(move |event, _, control_flow| {
             if let Some(message) = runtime.app().handle_event(&event, control_flow) {
-                runtime.handle_runtime_message(message);
+                if let Some(response) = runtime.handle_message(message) {
+                    handler(response);
+                }
             }
 
             match event {
@@ -316,7 +319,7 @@ pub fn run_wasm<
             if let Some(runtime) = weak_runtime.upgrade() {
                 if let Ok(mut runtime) = runtime.write() {
                     if let Some(message) = runtime.app().handle_event(&event, control_flow) {
-                        if let Some(response) = runtime.handle_runtime_message(message) {
+                        if let Some(response) = runtime.handle_message(message) {
                             let this = JsValue::null();
                             let _ =
                                 f.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());

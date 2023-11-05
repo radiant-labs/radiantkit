@@ -1,11 +1,11 @@
 use crate::RadiantTool;
-use serde::{Deserialize, Serialize};
 use macro_magic::export_tokens;
+use serde::{Deserialize, Serialize};
 
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SelectionToolMessage {
-    SelectNode { 
+    SelectNode {
         id: u64,
     },
     TransformNode {

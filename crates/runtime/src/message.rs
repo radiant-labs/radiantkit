@@ -1,8 +1,8 @@
 use epaint::Color32;
 use radiant_macros::combine_enum;
 
-use serde::{Deserialize, Serialize};
 use crate::RadiantNodeType;
+use serde::{Deserialize, Serialize};
 
 #[combine_enum(radiant_core::RectangleToolMessage)]
 #[combine_enum(radiant_core::SelectionToolMessage)]
@@ -12,7 +12,7 @@ use crate::RadiantNodeType;
 #[combine_enum(radiant_path_node::PathToolMessage)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantMessage {
-    AddArtboard { },
+    AddArtboard {},
     SelectArtboard {
         id: u64,
     },
