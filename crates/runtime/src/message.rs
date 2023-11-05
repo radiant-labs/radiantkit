@@ -16,7 +16,7 @@ pub enum RadiantMessage {
         id: u64,
     },
     SelectNode {
-        id: u64,
+        id: Option<u64>,
     },
     AddNode {
         node_type: String,
