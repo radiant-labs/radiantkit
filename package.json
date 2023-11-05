@@ -1,9 +1,8 @@
 {
     "private": true,
     "workspaces": [
-        "crates/wasm/pkg", 
-        "crates/runtime/pkg", 
-        "sdk/web",
+        "runtime/pkg", 
+        "runtime/web",
         "examples/web"
     ]
 }
