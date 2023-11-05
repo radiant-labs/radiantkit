@@ -10,8 +10,15 @@ use radiant_path_node::RadiantPathNode;
 use radiant_text_node::RadiantTextNode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[derive(RadiantComponentProvider, RadiantNode, RadiantTessellatable)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    RadiantComponentProvider,
+    RadiantNode,
+    RadiantTessellatable,
+)]
 pub enum RadiantNodeType {
     Document(RadiantDocumentNode<RadiantNodeType>),
     Artboard(RadiantGroupNode<RadiantNodeType>),

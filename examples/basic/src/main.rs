@@ -14,7 +14,7 @@ async fn run() {
         println!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(handler).await;
+    let mut runtime = RadiantRuntime::new().await;
     runtime
         .app
         .scene
@@ -31,7 +31,7 @@ async fn run() {
             [400.0, 400.0],
         )));
 
-    run_native(runtime);
+    run_native(runtime, handler);
 }
 
 fn main() {

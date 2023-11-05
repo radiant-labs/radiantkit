@@ -1,15 +1,17 @@
+use macro_magic::import_tokens_attr;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use macro_magic::import_tokens_attr;
 
 fn derive_tessellatable_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
     let item = syn::parse2::<syn::ItemEnum>(item)?;
 
     let name = item.ident.clone();
-    let node_names = item.variants.iter().map(|variant| {
-        variant.ident.clone()
-    }).collect::<Vec<_>>();
+    let node_names = item
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
 
     let res = quote! {
         impl RadiantTessellatable for #name {
@@ -58,9 +60,11 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
     let item = syn::parse2::<syn::ItemEnum>(item)?;
 
     let name = item.ident.clone();
-    let node_names = item.variants.iter().map(|variant| {
-        variant.ident.clone()
-    }).collect::<Vec<_>>();
+    let node_names = item
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
 
     let res = quote! {
         impl RadiantNode for #name {
@@ -96,9 +100,11 @@ fn derive_component_provider_internal(item: TokenStream2) -> syn::Result<TokenSt
     let item = syn::parse2::<syn::ItemEnum>(item)?;
 
     let name = item.ident.clone();
-    let node_names = item.variants.iter().map(|variant| {
-        variant.ident.clone()
-    }).collect::<Vec<_>>();
+    let node_names = item
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
 
     let res = quote! {
         impl RadiantComponentProvider for #name {
@@ -122,22 +128,38 @@ fn derive_component_provider_internal(item: TokenStream2) -> syn::Result<TokenSt
     Ok(res)
 }
 
-fn combine_enum_internal(attr: TokenStream2, item: TokenStream2, foreign_path: syn::Path) -> syn::Result<TokenStream2> {
+fn combine_enum_internal(
+    attr: TokenStream2,
+    item: TokenStream2,
+    foreign_path: syn::Path,
+) -> syn::Result<TokenStream2> {
     let mut local_enum = syn::parse2::<syn::ItemEnum>(item.clone())?;
     let local_name = local_enum.ident.clone();
 
     let foreign_enum = syn::parse2::<syn::ItemEnum>(attr)?;
-    let foreign_variants = foreign_enum.variants.iter().map(|variant| {
-        variant.ident.clone()
-    }).collect::<Vec<_>>();
-    let foreign_args = foreign_enum.variants.iter().map(|variant| {
-        variant.fields.iter().map(|field| {
-            field.ident.clone()
-        }).collect::<Vec<_>>()
-    }).collect::<Vec<_>>();
+    let foreign_variants = foreign_enum
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
+    let foreign_args = foreign_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .map(|field| field.ident.clone())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
 
     foreign_enum.variants.iter().for_each(|variant| {
-        if local_enum.variants.iter().any(|local_variant| local_variant.ident == variant.ident) {
+        if local_enum
+            .variants
+            .iter()
+            .any(|local_variant| local_variant.ident == variant.ident)
+        {
             return;
         }
         local_enum.variants.push(variant.clone());
@@ -158,7 +180,7 @@ fn combine_enum_internal(attr: TokenStream2, item: TokenStream2, foreign_path: s
 
         impl TryInto<#foreign_path> for #local_name {
             type Error = ();
-        
+
             fn try_into(self) -> Result<#foreign_path, Self::Error> {
                 match self {
                     #(
