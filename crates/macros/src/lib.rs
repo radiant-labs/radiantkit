@@ -1,7 +1,7 @@
 use macro_magic::import_tokens_attr;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::quote;
+use quote::{quote, ToTokens};
 
 fn derive_tessellatable_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
     let item = syn::parse2::<syn::ItemEnum>(item)?;
@@ -212,7 +212,7 @@ fn combine_enum_internal(
     Ok(res)
 }
 
-fn derive_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
+fn nested_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
     let item = syn::parse2::<syn::ItemEnum>(item)?;
 
     let name = item.ident.clone();
@@ -221,14 +221,20 @@ fn derive_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
         .iter()
         .map(|variant| variant.ident.clone())
         .collect::<Vec<_>>();
-    let messages = item.variants.iter().map(|variant| {
-        let fields = variant.fields.iter();
-        quote! {
-            #(#fields)*
-        }
-    }).collect::<Vec<_>>();
+    let messages = item
+        .variants
+        .iter()
+        .map(|variant| {
+            let fields = variant.fields.iter();
+            quote! {
+                #(#fields)*
+            }
+        })
+        .collect::<Vec<_>>();
 
     let res = quote! {
+        #item
+
         #(
             impl From<#messages> for #name {
                 fn from(message: #messages) -> Self {
@@ -240,7 +246,7 @@ fn derive_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
         #(
             impl TryFrom<#name> for #messages {
                 type Error = ();
-            
+
                 fn try_from(message: #name) -> Result<Self, Self::Error> {
                     match message {
                         #name::#message_names(message) => Ok(message),
@@ -250,6 +256,112 @@ fn derive_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
             }
         )*
     };
+    Ok(res)
+}
+
+fn combine_response_internal(
+    attr: TokenStream2,
+    item: TokenStream2,
+    foreign_path: syn::Path,
+) -> syn::Result<TokenStream2> {
+    let mut m_replacement: Option<TokenStream2> = None;
+    let mut n_replacement: Option<TokenStream2> = None;
+
+    let path = foreign_path.segments.last().unwrap().clone();
+    if let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+        args, ..
+    }) = path.arguments
+    {
+        let mut iter = args.iter();
+        if let Some(arg1) = iter.next() {
+            if let syn::GenericArgument::Type(ty) = arg1 {
+                m_replacement = Some(quote!(#ty));
+            }
+        }
+        if let Some(arg2) = iter.next() {
+            if let syn::GenericArgument::Type(ty) = arg2 {
+                n_replacement = Some(quote!(#ty));
+            }
+        }
+    }
+
+    let mut local_enum = syn::parse2::<syn::ItemEnum>(item.clone())?;
+    let local_name = local_enum.ident.clone();
+
+    let foreign_enum = syn::parse2::<syn::ItemEnum>(attr)?;
+    let foreign_name = foreign_enum.ident.clone();
+
+    let foreign_variants = foreign_enum
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
+
+    let foreign_args = foreign_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .map(|field| field.ident.clone())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    foreign_enum.variants.iter().for_each(|variant| {
+        if local_enum
+            .variants
+            .iter()
+            .any(|local_variant| local_variant.ident == variant.ident)
+        {
+            return;
+        }
+        let mut variant = variant.clone();
+        for field in variant.fields.iter_mut() {
+            match &(field.ty.to_token_stream().to_string())[..] {
+                "M" => {
+                    field.ty = syn::parse2::<syn::Type>(quote! { #m_replacement }).unwrap();
+                }
+                "N" => {
+                    field.ty = syn::parse2::<syn::Type>(quote! { #n_replacement }).unwrap();
+                }
+                _ => {}
+            }
+        }
+        local_enum.variants.push(variant);
+    });
+
+    let res = quote! {
+        #local_enum
+
+        impl From<#foreign_path> for #local_name {
+            fn from(response: #foreign_path) -> Self {
+                match response {
+                    #(
+                        #foreign_name::#foreign_variants { #(#foreign_args,)* } => Self::#foreign_variants { #(#foreign_args,)* },
+                    )*
+                }
+            }
+        }
+
+        impl TryInto<#foreign_path> for #local_name {
+            type Error = ();
+
+            fn try_into(self) -> Result<#foreign_path, Self::Error> {
+                match self {
+                    #(
+                        Self::#foreign_variants { #(#foreign_args,)* } => Ok(#foreign_name::#foreign_variants { #(#foreign_args,)* }),
+                    )*
+                    _ => Err(()),
+                }
+            }
+        }
+    };
+
+    // use proc_utils::*;
+    // res.pretty_print();
+
     Ok(res)
 }
 
@@ -291,9 +403,20 @@ pub fn combine_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
     res.into()
 }
 
-#[proc_macro_derive(RadiantMessage)]
-pub fn derive_message(item: TokenStream) -> TokenStream {
-    let res = match derive_message_internal(item.into()) {
+#[proc_macro_attribute]
+pub fn nested_message(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let res = match nested_message_internal(item.into()) {
+        Ok(res) => res,
+        Err(err) => err.to_compile_error(),
+    };
+    res.into()
+}
+
+#[import_tokens_attr]
+#[proc_macro_attribute]
+pub fn combine_response(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let foreign_path = syn::parse::<syn::Path>(__source_path).unwrap();
+    let res = match combine_response_internal(attr.into(), item.into(), foreign_path) {
         Ok(res) => res,
         Err(err) => err.to_compile_error(),
     };

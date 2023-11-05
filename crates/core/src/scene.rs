@@ -125,7 +125,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                         if let Some(node) = self.document.get_node(id) {
                             self.interaction_manager
                                 .enable_interactions(node, &self.screen_descriptor);
-                            return Some(RadiantSceneResponse::NodeSelected(node.clone()));
+                            return Some(RadiantSceneResponse::Selected { node: node.clone() });
                         } else {
                             self.interaction_manager.disable_interactions();
                         }
@@ -143,7 +143,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     if let Some(message) =
                         self.interaction_manager.handle_interaction(message.into())
                     {
-                        return Some(RadiantSceneResponse::Message(message));
+                        return Some(RadiantSceneResponse::Message { message });
                     }
                 } else if let Some(node) = self.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
