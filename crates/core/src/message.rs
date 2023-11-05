@@ -1,3 +1,4 @@
+use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
 
 use crate::RadiantNode;
@@ -34,10 +35,15 @@ pub enum RadiantSceneMessage {
     },
 }
 
+#[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantSceneResponse<M, N: RadiantNode> {
-    Message(M),
-    NodeSelected(N),
+    Message {
+        message: M,
+    },
+    Selected {
+        node: N,
+    },
     TransformUpdated {
         id: u64,
         position: [f32; 2],
