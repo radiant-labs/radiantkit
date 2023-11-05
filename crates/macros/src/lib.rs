@@ -65,6 +65,14 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
         .iter()
         .map(|variant| variant.ident.clone())
         .collect::<Vec<_>>();
+    let nodes = item.variants.iter().map(|variant| {
+        let fields = variant
+            .fields
+            .iter();
+        quote! {
+            #(#fields)*
+        }
+    });
 
     let res = quote! {
         impl RadiantNode for #name {
@@ -92,6 +100,14 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
                 }
             }
         }
+
+        #(
+            impl From<#nodes> for #name {
+                fn from(node: #nodes) -> Self {
+                    Self::#node_names(node)
+                }
+            }
+        )*
     };
     Ok(res)
 }
