@@ -1,6 +1,6 @@
 use radiant_core::{
     ColorComponent, RadiantComponentProvider, RadiantRectangleNode, RadiantTessellatable,
-    RadiantTransformable, SelectionTool, TransformComponent, Runtime,
+    RadiantTransformable, Runtime, SelectionTool, TransformComponent,
 };
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
