@@ -1,9 +1,10 @@
 use radiant_core::{RadiantSceneMessage, RadiantSceneResponse};
-use radiant_macros::combine_enum;
+use radiant_macros::{combine_enum, RadiantMessage};
 
 use crate::RadiantNodeType;
 use serde::{Deserialize, Serialize};
 
+#[derive(RadiantMessage)]
 #[combine_enum(radiant_core::RadiantRectangleMessage)]
 #[combine_enum(radiant_image_node::RadiantImageMessage)]
 #[combine_enum(radiant_text_node::RadiantTextMessage)]
@@ -22,23 +23,6 @@ pub enum RadiantResponse {
     },
 
     NoOp,
-}
-
-impl From<RadiantSceneMessage> for RadiantMessage {
-    fn from(message: RadiantSceneMessage) -> Self {
-        Self::SceneMessage(message)
-    }
-}
-
-impl TryFrom<RadiantMessage> for RadiantSceneMessage {
-    type Error = ();
-
-    fn try_from(message: RadiantMessage) -> Result<Self, Self::Error> {
-        match message {
-            RadiantMessage::SceneMessage(message) => Ok(message),
-            _ => Err(()),
-        }
-    }
 }
 
 impl From<RadiantSceneResponse<RadiantMessage, RadiantNodeType>> for RadiantResponse {
