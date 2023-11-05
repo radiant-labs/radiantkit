@@ -5,11 +5,11 @@ export function RadiantToolbar() {
     const { controller } = useCurrentController();
 
     const select = async () => {
-        controller && controller.activateTool("Selection");
+        controller && controller.activateTool(0);
     }
 
     const rect = async () => {
-        controller && controller.activateTool("Rectangle");
+        controller && controller.activateTool(1);
     }
 
     return (

@@ -483,6 +483,7 @@ name = "basic"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "log",
  "pollster",
  "radiant-runtime",
 ]
@@ -3710,6 +3711,7 @@ dependencies = [
  "egui_wgpu_backend",
  "egui_winit_platform",
  "env_logger",
+ "log",
  "pollster",
  "radiant-runtime",
  "wgpu",

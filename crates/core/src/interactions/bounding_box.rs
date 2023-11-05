@@ -1,5 +1,5 @@
 use crate::{
-    InteractionMessage, RadiantInteraction, RadiantLineNode, RadiantNode, RadiantRectangleNode,
+    RadiantInteraction, RadiantLineNode, RadiantNode, RadiantRectangleNode, RadiantSceneMessage,
     RadiantTessellatable, RadiantTransformable, ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
@@ -187,45 +187,45 @@ impl RadiantInteraction for BoundingBoxInteraction {
 }
 
 impl BoundingBoxInteraction {
-    pub fn handle(&mut self, id: u64, transform: [f32; 2]) -> Option<InteractionMessage> {
+    pub fn handle(&mut self, id: u64, transform: [f32; 2]) -> Option<RadiantSceneMessage> {
         let Some(node_id) = self.active_node_id else { return None; };
         match id {
-            BOUNDING_BOX_TOP_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_TOP_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, transform[1]],
                 scale: [0.0, -transform[1]],
             }),
-            BOUNDING_BOX_RIGHT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [transform[0], 0.0],
             }),
-            BOUNDING_BOX_BOTTOM_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_BOTTOM_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [0.0, transform[1]],
             }),
-            BOUNDING_BOX_LEFT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], 0.0],
                 scale: [-transform[0], 0.0],
             }),
-            BOUNDING_BOX_TOP_RIGHT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_TOP_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, transform[1]],
                 scale: [transform[0], -transform[1]],
             }),
-            BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [transform[0], transform[1]],
             }),
-            BOUNDING_BOX_BOTTOM_LEFT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_BOTTOM_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], 0.0],
                 scale: [-transform[0], transform[1]],
             }),
-            BOUNDING_BOX_TOP_LEFT_ID => Some(InteractionMessage::TransformNode {
+            BOUNDING_BOX_TOP_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], transform[1]],
                 scale: [-transform[0], -transform[1]],

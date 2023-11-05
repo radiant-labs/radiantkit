@@ -1,24 +1,12 @@
-use crate::{BoundingBoxInteraction, RadiantNode, ScreenDescriptor};
+use crate::{BoundingBoxInteraction, RadiantNode, RadiantSceneMessage, ScreenDescriptor};
 use epaint::ClippedPrimitive;
-use macro_magic::export_tokens;
-use serde::{Deserialize, Serialize};
-
-#[export_tokens]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum InteractionMessage {
-    TransformNode {
-        id: u64,
-        position: [f32; 2],
-        scale: [f32; 2],
-    },
-}
 
 pub struct RadiantInteractionManager<M> {
     pub bounding_box_interaction: BoundingBoxInteraction,
     _phantom: std::marker::PhantomData<M>,
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>> RadiantInteractionManager<M> {
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>> RadiantInteractionManager<M> {
     pub fn new() -> Self {
         Self {
             bounding_box_interaction: BoundingBoxInteraction::new(),
@@ -54,7 +42,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>> RadiantInteracti
 
     pub fn handle_interaction(&mut self, message: M) -> Option<M> {
         match message.try_into() {
-            Ok(InteractionMessage::TransformNode { id, position, .. })
+            Ok(RadiantSceneMessage::TransformNode { id, position, .. })
                 if self.is_interaction(id) =>
             {
                 if let Some(m) = self.bounding_box_interaction.handle(id, position) {

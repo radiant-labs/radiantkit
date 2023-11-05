@@ -1,6 +1,6 @@
 use radiant_runtime::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
-    RadiantTextNode, RectangleTool, Runtime,
+    RadiantSceneMessage, RadiantTextNode, RectangleTool, Runtime,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -30,11 +30,11 @@ impl RadiantAppController {
                 ui.heading("Radiant App");
                 if ui.button("Select").clicked() {
                     self.pending_messages
-                        .push(RadiantMessage::SelectTool { id: 0 });
+                        .push(RadiantSceneMessage::SelectTool { id: 0 }.into());
                 }
                 if ui.button("Rect").clicked() {
                     self.pending_messages
-                        .push(RadiantMessage::SelectTool { id: 1 });
+                        .push(RadiantSceneMessage::SelectTool { id: 1 }.into());
                 }
                 ui.add_space(10.0);
             });
@@ -43,13 +43,13 @@ impl RadiantAppController {
 
 async fn run() {
     let env = env_logger::Env::default()
-        .filter_or("MY_LOG_LEVEL", "info")
+        .filter_or("MY_LOG_LEVEL", "error")
         .write_style_or("MY_LOG_STYLE", "always");
 
     env_logger::init_from_env(env);
 
     let handler: Box<dyn Fn(RadiantResponse)> = Box::new(move |response: RadiantResponse| {
-        println!("Response: {:?}", response);
+        log::info!("Response: {:?}", response);
     });
 
     let mut runtime = RadiantRuntime::new().await;
@@ -57,7 +57,7 @@ async fn run() {
         .view
         .scene
         .tool_manager
-        .register_tool(Box::new(RectangleTool::new()));
+        .register_tool(1u32, Box::new(RectangleTool::new()));
     runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
     runtime.add(RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]).into());
@@ -103,7 +103,7 @@ async fn run() {
             if !platform.captures_event(&event) {
                 if let Some(message) = runtime.view.handle_event(&event, control_flow) {
                     if let Some(response) = runtime.handle_message(message) {
-                        println!("Response: {:?}", response);
+                        log::info!("Response: {:?}", response);
                     }
                 }
             }

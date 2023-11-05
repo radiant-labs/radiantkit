@@ -11,33 +11,43 @@ export class RadiantController {
      *
      * @param tool the tool to activate.
      */
-    activateTool(tool) {
+    activateTool(toolId) {
         this._controller.handleMessage({
-            SelectTool: tool
+            SceneMessage: {
+                SelectTool: {
+                    id: toolId,
+                },
+            },
         });
     }
     setTransform(nodeId, position, scale) {
         this._controller.handleMessage({
-            SetTransform: {
-                id: nodeId,
-                position,
-                scale,
+            SceneMessage: {
+                SetTransform: {
+                    id: nodeId,
+                    position,
+                    scale,
+                },
             },
         });
     }
     setFillColor(nodeId, color) {
         this._controller.handleMessage({
-            SetFillColor: {
-                id: nodeId,
-                fill_color: color,
+            SceneMessage: {
+                SetFillColor: {
+                    id: nodeId,
+                    fill_color: color,
+                },
             },
         });
     }
     setStrokeColor(nodeId, color) {
         this._controller.handleMessage({
-            SetStrokeColor: {
-                id: nodeId,
-                stroke_color: color,
+            SceneMessage: {
+                SetStrokeColor: {
+                    id: nodeId,
+                    stroke_color: color,
+                },
             },
         });
     }

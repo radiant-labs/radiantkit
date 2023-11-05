@@ -1,5 +1,6 @@
 pub mod components;
 pub mod interactions;
+pub mod message;
 pub mod nodes;
 pub mod render;
 pub mod scene;
@@ -8,6 +9,7 @@ pub mod tools;
 
 pub use components::*;
 pub use interactions::*;
+pub use message::*;
 pub use nodes::*;
 pub use render::*;
 pub use scene::*;
@@ -33,14 +35,14 @@ impl ScreenDescriptor {
     }
 }
 
-pub trait View<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> {
+pub trait View<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode> {
     fn scene(&self) -> &RadiantScene<M, N>;
     fn scene_mut(&mut self) -> &mut RadiantScene<M, N>;
 }
 
 pub trait Runtime<
     'a,
-    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'a,
+    M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage> + 'a,
     N: RadiantNode + 'a,
     R: 'a,
 >

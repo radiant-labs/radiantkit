@@ -24,7 +24,7 @@ pub trait RadiantTessellatable {
     ) -> Vec<ClippedPrimitive>;
 }
 
-pub trait RadiantNode: RadiantTessellatable + RadiantComponentProvider {
+pub trait RadiantNode: Clone + RadiantTessellatable + RadiantComponentProvider {
     fn get_id(&self) -> u64;
     fn set_id(&mut self, id: u64);
     fn get_bounding_rect(&self) -> [f32; 4];

@@ -1,19 +1,4 @@
-use crate::RadiantTool;
-use macro_magic::export_tokens;
-use serde::{Deserialize, Serialize};
-
-#[export_tokens]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum SelectionToolMessage {
-    SelectNode {
-        id: Option<u64>,
-    },
-    TransformNode {
-        id: u64,
-        position: [f32; 2],
-        scale: [f32; 2],
-    },
-}
+use crate::{RadiantSceneMessage, RadiantTool};
 
 pub struct SelectionTool {
     active_node_id: Option<u64>,
@@ -29,17 +14,17 @@ impl SelectionTool {
     }
 }
 
-impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
-    fn on_mouse_down(&mut self, node_id: u64, _position: [f32; 2]) -> Option<M> {
+impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
+    fn on_mouse_down(&mut self, node_id: u64, _node_count: u64, _position: [f32; 2]) -> Option<M> {
         Some(
             if node_id > 0 {
                 self.active_node_id = Some(node_id - 1);
-                SelectionToolMessage::SelectNode {
+                RadiantSceneMessage::SelectNode {
                     id: Some(node_id - 1),
                 }
             } else {
                 self.active_node_id = None;
-                SelectionToolMessage::SelectNode { id: None }
+                RadiantSceneMessage::SelectNode { id: None }
             }
             .into(),
         )
@@ -47,7 +32,7 @@ impl<M: From<SelectionToolMessage>> RadiantTool<M> for SelectionTool {
 
     fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
         let result = if let Some(id) = self.active_node_id {
-            let message = SelectionToolMessage::TransformNode {
+            let message = RadiantSceneMessage::TransformNode {
                 id: id,
                 position: [
                     position[0] - self.prev_position[0],
