@@ -1,7 +1,8 @@
 use crate::{
-    InteractionMessage, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
-    RadiantRenderManager, RadiantTessellatable, RadiantTextureManager, RadiantTool,
-    RadiantToolManager, ScreenDescriptor,
+    ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
+    RadiantRenderManager, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
+    RadiantTextureManager, RadiantTool, RadiantToolManager, RadiantTransformable, ScreenDescriptor,
+    TransformComponent,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
@@ -17,7 +18,9 @@ pub struct RadiantScene<M, N: RadiantNode> {
     pub texture_manager: RadiantTextureManager,
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantScene<M, N> {
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
+    RadiantScene<M, N>
+{
     pub fn new(
         config: wgpu::SurfaceConfiguration,
         surface: wgpu::Surface,
@@ -41,7 +44,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
 
             fonts_manager,
             render_manager,
-            tool_manager: RadiantToolManager::new(Box::new(default_tool)),
+            tool_manager: RadiantToolManager::new(0u32, Box::new(default_tool)),
             interaction_manager: RadiantInteractionManager::new(),
             texture_manager,
         }
@@ -98,5 +101,105 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
         primitives.append(&mut p2);
 
         primitives
+    }
+}
+
+impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
+    RadiantScene<M, N>
+{
+    pub fn handle_message(
+        &mut self,
+        message: RadiantSceneMessage,
+    ) -> Option<RadiantSceneResponse<M, N>> {
+        match message {
+            RadiantSceneMessage::AddArtboard {} => {
+                self.document.add_artboard();
+            }
+            RadiantSceneMessage::SelectArtboard { id } => {
+                self.document.set_active_artboard(id);
+            }
+            RadiantSceneMessage::SelectNode { id } => {
+                self.document.select(id);
+                if let Some(id) = id {
+                    if !self.interaction_manager.is_interaction(id) {
+                        if let Some(node) = self.document.get_node(id) {
+                            self.interaction_manager
+                                .enable_interactions(node, &self.screen_descriptor);
+                            return Some(RadiantSceneResponse::NodeSelected(node.clone()));
+                        } else {
+                            self.interaction_manager.disable_interactions();
+                        }
+                    }
+                } else {
+                    self.interaction_manager.disable_interactions();
+                }
+            }
+            RadiantSceneMessage::TransformNode {
+                id,
+                position,
+                scale,
+            } => {
+                if self.interaction_manager.is_interaction(id) {
+                    if let Some(message) =
+                        self.interaction_manager.handle_interaction(message.into())
+                    {
+                        return Some(RadiantSceneResponse::Message(message));
+                    }
+                } else if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.transform_xy(&position);
+                        component.transform_scale(&scale);
+
+                        let response = RadiantSceneResponse::TransformUpdated {
+                            id,
+                            position: component.get_xy(),
+                            scale: component.get_scale(),
+                        };
+
+                        node.set_needs_tessellation();
+                        self.interaction_manager
+                            .update_interactions(node, &self.screen_descriptor);
+
+                        return Some(response);
+                    }
+                }
+            }
+            RadiantSceneMessage::SetTransform {
+                id,
+                position,
+                scale,
+            } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<TransformComponent>() {
+                        component.set_xy(&position);
+                        component.set_scale(&scale);
+                        node.set_needs_tessellation();
+
+                        self.interaction_manager
+                            .update_interactions(node, &self.screen_descriptor);
+                    }
+                }
+            }
+            RadiantSceneMessage::SetFillColor { id, fill_color } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_fill_color(fill_color);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantSceneMessage::SetStrokeColor { id, stroke_color } => {
+                if let Some(node) = self.document.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<ColorComponent>() {
+                        component.set_stroke_color(stroke_color);
+                        node.set_needs_tessellation();
+                    }
+                }
+            }
+            RadiantSceneMessage::SelectTool { id } => {
+                self.tool_manager.activate_tool(id);
+            }
+        }
+        None
     }
 }

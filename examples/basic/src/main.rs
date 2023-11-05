@@ -10,7 +10,7 @@ async fn run() {
     env_logger::init_from_env(env);
 
     let handler: Box<dyn Fn(RadiantResponse)> = Box::new(move |response: RadiantResponse| {
-        println!("Response: {:?}", response);
+        log::info!("Response: {:?}", response);
     });
 
     let mut runtime = RadiantRuntime::new().await;

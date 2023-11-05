@@ -1,22 +1,23 @@
 use crate::RadiantTool;
-use std::any::TypeId;
 use std::collections::BTreeMap;
 
+pub type ToolId = u32;
+
 pub struct RadiantToolManager<M> {
-    pub tools: BTreeMap<TypeId, Box<dyn RadiantTool<M>>>,
-    pub active_tool_id: TypeId,
+    pub tools: BTreeMap<ToolId, Box<dyn RadiantTool<M>>>,
+    pub active_tool_id: ToolId,
 }
 
 impl<M> RadiantToolManager<M> {
-    pub fn new<T: RadiantTool<M> + 'static>(tool: Box<T>) -> Self {
+    pub fn new<T: RadiantTool<M> + 'static>(id: ToolId, tool: Box<T>) -> Self {
         Self {
-            tools: BTreeMap::from([(TypeId::of::<T>(), tool as Box<dyn RadiantTool<M>>)]),
-            active_tool_id: TypeId::of::<T>(),
+            tools: BTreeMap::from([(id, tool as Box<dyn RadiantTool<M>>)]),
+            active_tool_id: id,
         }
     }
 
-    pub fn register_tool<T: RadiantTool<M> + 'static>(&mut self, tool: Box<T>) {
-        self.tools.insert(TypeId::of::<T>(), tool);
+    pub fn register_tool<T: RadiantTool<M> + 'static>(&mut self, tool_id: ToolId, tool: Box<T>) {
+        self.tools.insert(tool_id, tool);
     }
 
     pub fn active_tool(&mut self) -> &mut dyn RadiantTool<M> {
@@ -28,7 +29,7 @@ impl<M> RadiantToolManager<M> {
 
     pub fn activate_tool(&mut self, id: u32) {
         if self.tools.len() > id as usize {
-            self.active_tool_id = *self.tools.keys().nth(id as usize).unwrap();
+            self.active_tool_id = id;
         }
     }
 }

@@ -9,3 +9,4 @@ edition = "2021"
 radiant-runtime = { path = "../../crates/runtime" }
 pollster = "0.3"
 env_logger = "0.10"
+log = "0.4"

@@ -22,7 +22,7 @@ impl RadiantAppController {
             .view
             .scene
             .tool_manager
-            .register_tool(Box::new(RectangleTool::new()));
+            .register_tool(1u32, Box::new(RectangleTool::new()));
         runtime
             .view
             .scene
