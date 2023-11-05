@@ -38,7 +38,13 @@ pub trait View<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: Rad
     fn scene_mut(&mut self) -> &mut RadiantScene<M, N>;
 }
 
-pub trait Runtime<'a, M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode, R: 'a> {
+pub trait Runtime<
+    'a,
+    M: From<InteractionMessage> + TryInto<InteractionMessage> + 'a,
+    N: RadiantNode + 'a,
+    R: 'a,
+>
+{
     type View: View<M, N>;
 
     fn view(&self) -> &Self::View;
@@ -46,7 +52,14 @@ pub trait Runtime<'a, M: From<InteractionMessage> + TryInto<InteractionMessage>,
 
     fn handle_message(&mut self, message: M) -> Option<R>;
 
-    fn scene(&'a self) -> &RadiantScene<M, N> { self.view().scene() }
-    fn scene_mut(&'a mut self) -> &mut RadiantScene<M, N> { self.view_mut().scene_mut() }
-    // fn add(&'a mut self, node: N) { self.scene_mut().add(node); }
+    fn scene(&'a self) -> &RadiantScene<M, N> {
+        self.view().scene()
+    }
+    fn scene_mut(&'a mut self) -> &mut RadiantScene<M, N> {
+        self.view_mut().scene_mut()
+    }
+
+    fn add(&'a mut self, node: N) {
+        self.scene_mut().add(node);
+    }
 }

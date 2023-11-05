@@ -1,4 +1,6 @@
-use radiant_core::{InteractionMessage, RadiantNode, RadiantScene, RadiantTool, ScreenDescriptor, Runtime, View};
+use radiant_core::{
+    InteractionMessage, RadiantNode, RadiantScene, RadiantTool, Runtime, ScreenDescriptor, View,
+};
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
 use winit::{event::*, event_loop::ControlFlow};
@@ -293,7 +295,11 @@ pub fn run_native<
             match event {
                 RedrawRequested(..) => {
                     let output_frame = std::mem::replace(
-                        &mut runtime.view_mut().scene_mut().render_manager.current_texture,
+                        &mut runtime
+                            .view_mut()
+                            .scene_mut()
+                            .render_manager
+                            .current_texture,
                         None,
                     );
                     output_frame.unwrap().present();

@@ -66,9 +66,7 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
         .map(|variant| variant.ident.clone())
         .collect::<Vec<_>>();
     let nodes = item.variants.iter().map(|variant| {
-        let fields = variant
-            .fields
-            .iter();
+        let fields = variant.fields.iter();
         quote! {
             #(#fields)*
         }

@@ -1,6 +1,5 @@
 use radiant_runtime::{
-    run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
-    RadiantRuntime,
+    run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, Runtime,
 };
 
 async fn run() {
@@ -15,21 +14,8 @@ async fn run() {
     });
 
     let mut runtime = RadiantRuntime::new().await;
-    runtime
-        .view
-        .scene
-        .add(RadiantRectangleNode::new(
-            1,
-            [100.0, 100.0],
-            [200.0, 200.0],
-        ).into());
-    runtime
-        .view
-        .scene
-        .add(RadiantPathNode::new(
-            2,
-            [400.0, 400.0],
-        ).into());
+    runtime.add(RadiantRectangleNode::new(1, [100.0, 100.0], [200.0, 200.0]).into());
+    runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
 
     run_native(runtime, handler);
 }
