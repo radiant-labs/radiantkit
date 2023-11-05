@@ -1,13 +1,13 @@
+use macro_magic::export_tokens;
 use radiant_core::RadiantTool;
 use serde::{Deserialize, Serialize};
-use macro_magic::export_tokens;
 
 // Todo: This is a stub. Implement the PathTool.
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum PathToolMessage {
-    SelectNode { 
-        id: u64
+    SelectNode {
+        id: u64,
     },
     TransformNode {
         id: u64,

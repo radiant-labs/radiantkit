@@ -52,7 +52,7 @@ async fn run() {
         println!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(handler).await;
+    let mut runtime = RadiantRuntime::new().await;
     runtime
         .app
         .scene
@@ -112,7 +112,9 @@ async fn run() {
         event_loop.run(move |event, _, control_flow| {
             if demo_app.pending_messages.len() > 0 {
                 for message in demo_app.pending_messages.drain(..) {
-                    runtime.handle_message(message);
+                    if let Some(response) = runtime.handle_message(message) {
+                        handler(response);
+                    }
                 }
             }
 

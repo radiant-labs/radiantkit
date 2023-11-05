@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::RadiantTool;
 use macro_magic::export_tokens;
+use serde::{Deserialize, Serialize};
 
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]

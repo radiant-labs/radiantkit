@@ -10,26 +10,30 @@ use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
 
 pub struct RadiantRuntime {
     pub app: RadiantApp<RadiantMessage, RadiantNodeType>,
-    pub handler: Box<dyn Fn(RadiantResponse)>,
 }
 
 impl RadiantRuntime {
-    pub async fn new(handler: Box<dyn Fn(RadiantResponse)>) -> Self {
+    pub async fn new() -> Self {
         Self {
             app: RadiantApp::new(SelectionTool::new()).await,
-            handler,
         }
     }
+}
 
-    pub fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
+impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
+    fn app(&mut self) -> &mut RadiantApp<RadiantMessage, RadiantNodeType> {
+        &mut self.app
+    }
+
+    fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
         match message {
-            RadiantMessage::AddArtboard { }=> {
+            RadiantMessage::AddArtboard {} => {
                 self.app.scene.document.add_artboard();
             }
-            RadiantMessage::SelectArtboard{ id } => {
+            RadiantMessage::SelectArtboard { id } => {
                 self.app.scene.document.set_active_artboard(id);
             }
-            RadiantMessage::SelectNode{ id } => {
+            RadiantMessage::SelectNode { id } => {
                 if !self.app.scene.interaction_manager.is_interaction(id) {
                     self.app.scene.document.select(id);
                     if let Some(node) = self.app.scene.document.get_node(id) {
@@ -159,28 +163,5 @@ impl RadiantRuntime {
             }
         }
         None
-    }
-}
-
-impl RadiantRuntime {
-    pub fn process_message(&mut self, message: RadiantMessage) {
-        let response = self.handle_message(message);
-        self.handle_response(response);
-    }
-
-    fn handle_response(&self, response: Option<RadiantResponse>) {
-        if let Some(response) = response {
-            (self.handler)(response);
-        }
-    }
-}
-
-impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
-    fn app(&mut self) -> &mut RadiantApp<RadiantMessage, RadiantNodeType> {
-        &mut self.app
-    }
-
-    fn handle_runtime_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
-        self.handle_message(message)
     }
 }
