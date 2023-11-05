@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use crate::RadiantRuntime;
-use crate::{RadiantNodeType, RadiantRectangleNode, RadiantResponse, RectangleTool};
+use crate::{RadiantNodeType, RadiantRectangleNode, RectangleTool, Runtime};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = RadiantAppController)]
@@ -17,20 +17,14 @@ impl RadiantAppController {
         console_log::init_with_level(log::Level::Info).expect("Couldn't initialize logger");
         log::info!("Hello from rust!");
 
-        let f2 = f.clone();
-        let handler: Box<dyn Fn(RadiantResponse)> = Box::new(move |response: RadiantResponse| {
-            let this = JsValue::null();
-            let _ = f2.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
-        });
-
-        let mut runtime = RadiantRuntime::new(handler).await;
+        let mut runtime = RadiantRuntime::new().await;
         runtime
-            .app
+            .view
             .scene
             .tool_manager
             .register_tool(Box::new(RectangleTool::new()));
         runtime
-            .app
+            .view
             .scene
             .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
                 1,

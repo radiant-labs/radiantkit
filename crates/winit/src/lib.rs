@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use winit::platform::web::EventLoopExtWebSys;
 
-pub struct RadiantApp<M, N: RadiantNode> {
+pub struct RadiantView<M, N: RadiantNode> {
     pub window: Window,
     pub event_loop: Option<EventLoop<()>>,
 
@@ -24,7 +24,7 @@ pub struct RadiantApp<M, N: RadiantNode> {
     mouse_dragging: bool,
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantApp<M, N> {
+impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantView<M, N> {
     pub async fn new(default_tool: impl RadiantTool<M> + 'static) -> Self {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -237,7 +237,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
     }
 }
 
-impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantApp<M, N> {
+impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantView<M, N> {
     pub fn on_mouse_down(&mut self, position: [f32; 2]) -> Option<M> {
         let mut id = pollster::block_on(self.scene.select(position));
         // Todo: Hack - To be removed
@@ -262,9 +262,12 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
     }
 }
 
-pub trait Runtime<M, N: RadiantNode, R> {
-    fn app(&mut self) -> &mut RadiantApp<M, N>;
+pub trait Runtime<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode, R> {
+    fn view(&mut self) -> &mut RadiantView<M, N>;
     fn handle_message(&mut self, message: M) -> Option<R>;
+
+    fn scene(&mut self) -> &mut RadiantScene<M, N> { &mut self.view().scene }
+    fn add(&mut self, node: N) { self.scene().add(node); }
 }
 
 pub fn run_native<
@@ -275,9 +278,9 @@ pub fn run_native<
     mut runtime: impl Runtime<M, N, R> + 'static,
     handler: Box<dyn Fn(R)>,
 ) {
-    if let Some(event_loop) = std::mem::replace(&mut runtime.app().event_loop, None) {
+    if let Some(event_loop) = std::mem::replace(&mut runtime.view().event_loop, None) {
         event_loop.run(move |event, _, control_flow| {
-            if let Some(message) = runtime.app().handle_event(&event, control_flow) {
+            if let Some(message) = runtime.view().handle_event(&event, control_flow) {
                 if let Some(response) = runtime.handle_message(message) {
                     handler(response);
                 }
@@ -286,7 +289,7 @@ pub fn run_native<
             match event {
                 RedrawRequested(..) => {
                     let output_frame = std::mem::replace(
-                        &mut runtime.app().scene.render_manager.current_texture,
+                        &mut runtime.view().scene.render_manager.current_texture,
                         None,
                     );
                     output_frame.unwrap().present();
@@ -309,7 +312,7 @@ pub fn run_wasm<
     let event_loop;
     {
         let Ok(mut runtime_) = runtime.write() else { return; };
-        event_loop = std::mem::replace(&mut runtime_.app().event_loop, None);
+        event_loop = std::mem::replace(&mut runtime_.view().event_loop, None);
     }
 
     let weak_runtime = Arc::downgrade(&runtime);
@@ -318,7 +321,7 @@ pub fn run_wasm<
         event_loop.spawn(move |event, _, control_flow| {
             if let Some(runtime) = weak_runtime.upgrade() {
                 if let Ok(mut runtime) = runtime.write() {
-                    if let Some(message) = runtime.app().handle_event(&event, control_flow) {
+                    if let Some(message) = runtime.view().handle_event(&event, control_flow) {
                         if let Some(response) = runtime.handle_message(message) {
                             let this = JsValue::null();
                             let _ =

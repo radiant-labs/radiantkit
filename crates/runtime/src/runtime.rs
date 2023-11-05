@@ -4,46 +4,46 @@ use radiant_core::{
 };
 use radiant_image_node::RadiantImageNode;
 use radiant_text_node::RadiantTextNode;
-use radiant_winit::{RadiantApp, Runtime};
+use radiant_winit::{RadiantView, Runtime};
 
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
 
 pub struct RadiantRuntime {
-    pub app: RadiantApp<RadiantMessage, RadiantNodeType>,
+    pub view: RadiantView<RadiantMessage, RadiantNodeType>,
 }
 
 impl RadiantRuntime {
     pub async fn new() -> Self {
         Self {
-            app: RadiantApp::new(SelectionTool::new()).await,
+            view: RadiantView::new(SelectionTool::new()).await,
         }
     }
 }
 
 impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntime {
-    fn app(&mut self) -> &mut RadiantApp<RadiantMessage, RadiantNodeType> {
-        &mut self.app
+    fn view(&mut self) -> &mut RadiantView<RadiantMessage, RadiantNodeType> {
+        &mut self.view
     }
 
     fn handle_message(&mut self, message: RadiantMessage) -> Option<RadiantResponse> {
         match message {
             RadiantMessage::AddArtboard {} => {
-                self.app.scene.document.add_artboard();
+                self.view.scene.document.add_artboard();
             }
             RadiantMessage::SelectArtboard { id } => {
-                self.app.scene.document.set_active_artboard(id);
+                self.view.scene.document.set_active_artboard(id);
             }
             RadiantMessage::SelectNode { id } => {
-                if !self.app.scene.interaction_manager.is_interaction(id) {
-                    self.app.scene.document.select(id);
-                    if let Some(node) = self.app.scene.document.get_node(id) {
-                        self.app
+                if !self.view.scene.interaction_manager.is_interaction(id) {
+                    self.view.scene.document.select(id);
+                    if let Some(node) = self.view.scene.document.get_node(id) {
+                        self.view
                             .scene
                             .interaction_manager
-                            .enable_interactions(node, &self.app.scene.screen_descriptor);
+                            .enable_interactions(node, &self.view.scene.screen_descriptor);
                         return Some(RadiantResponse::NodeSelected(node.clone()));
                     } else {
-                        self.app.scene.interaction_manager.disable_interactions();
+                        self.view.scene.interaction_manager.disable_interactions();
                     }
                 }
             }
@@ -52,7 +52,7 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                 position,
                 scale,
             } => {
-                let id = self.app.scene.document.counter;
+                let id = self.view.scene.document.counter;
                 let node = match node_type.as_str() {
                     "Rectangle" => Some(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
                         id, position, scale,
@@ -60,7 +60,7 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                     _ => None,
                 };
                 if let Some(node) = node {
-                    self.app.scene.add(node);
+                    self.view.scene.add(node);
                     return self.handle_message(RadiantMessage::SelectNode { id });
                 }
             }
@@ -69,16 +69,16 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                 position,
                 scale,
             } => {
-                if self.app.scene.interaction_manager.is_interaction(id) {
+                if self.view.scene.interaction_manager.is_interaction(id) {
                     if let Some(message) = self
-                        .app
+                        .view
                         .scene
                         .interaction_manager
                         .handle_interaction(message)
                     {
                         return self.handle_message(message);
                     }
-                } else if let Some(node) = self.app.scene.document.get_node_mut(id) {
+                } else if let Some(node) = self.view.scene.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
                         component.transform_scale(&scale);
@@ -90,10 +90,10 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                         };
 
                         node.set_needs_tessellation();
-                        self.app
+                        self.view
                             .scene
                             .interaction_manager
-                            .update_interactions(node, &self.app.scene.screen_descriptor);
+                            .update_interactions(node, &self.view.scene.screen_descriptor);
 
                         return Some(response);
                     }
@@ -104,21 +104,21 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                 position,
                 scale,
             } => {
-                if let Some(node) = self.app.scene.document.get_node_mut(id) {
+                if let Some(node) = self.view.scene.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.set_xy(&position);
                         component.set_scale(&scale);
                         node.set_needs_tessellation();
 
-                        self.app
+                        self.view
                             .scene
                             .interaction_manager
-                            .update_interactions(node, &self.app.scene.screen_descriptor);
+                            .update_interactions(node, &self.view.scene.screen_descriptor);
                     }
                 }
             }
             RadiantMessage::SetFillColor { id, fill_color } => {
-                if let Some(node) = self.app.scene.document.get_node_mut(id) {
+                if let Some(node) = self.view.scene.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_fill_color(fill_color);
                         node.set_needs_tessellation();
@@ -126,7 +126,7 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                 }
             }
             RadiantMessage::SetStrokeColor { id, stroke_color } => {
-                if let Some(node) = self.app.scene.document.get_node_mut(id) {
+                if let Some(node) = self.view.scene.document.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_stroke_color(stroke_color);
                         node.set_needs_tessellation();
@@ -134,31 +134,31 @@ impl Runtime<RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRuntim
                 }
             }
             RadiantMessage::SelectTool { id } => {
-                self.app.scene.tool_manager.activate_tool(id);
+                self.view.scene.tool_manager.activate_tool(id);
             }
             RadiantMessage::AddImage { .. } => {
                 let image = epaint::ColorImage::new([400, 100], epaint::Color32::RED);
                 let texture_handle =
-                    self.app
+                    self.view
                         .scene
                         .texture_manager
                         .load_texture("test", image, Default::default());
 
-                let id = self.app.scene.document.counter;
+                let id = self.view.scene.document.counter;
                 let node = RadiantNodeType::Image(RadiantImageNode::new(
                     id,
                     [400.0, 100.0],
                     [100.0, 100.0],
                     texture_handle,
                 ));
-                self.app.scene.add(node);
+                self.view.scene.add(node);
                 return self.handle_message(RadiantMessage::SelectNode { id });
             }
             RadiantMessage::AddText { position, .. } => {
-                let id = self.app.scene.document.counter;
+                let id = self.view.scene.document.counter;
                 let node =
                     RadiantNodeType::Text(RadiantTextNode::new(id, position, [100.0, 100.0]));
-                self.app.scene.add(node);
+                self.view.scene.add(node);
                 return self.handle_message(RadiantMessage::SelectNode { id });
             }
         }
