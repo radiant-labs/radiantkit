@@ -40,17 +40,21 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 self.view.scene.document.set_active_artboard(id);
             }
             RadiantMessage::SelectNode { id } => {
-                if !self.view.scene.interaction_manager.is_interaction(id) {
-                    self.view.scene.document.select(id);
-                    if let Some(node) = self.view.scene.document.get_node(id) {
-                        self.view
-                            .scene
-                            .interaction_manager
-                            .enable_interactions(node, &self.view.scene.screen_descriptor);
-                        return Some(RadiantResponse::NodeSelected(node.clone()));
-                    } else {
-                        self.view.scene.interaction_manager.disable_interactions();
+                self.view.scene.document.select(id);
+                if let Some(id) = id {
+                    if !self.view.scene.interaction_manager.is_interaction(id) {
+                        if let Some(node) = self.view.scene.document.get_node(id) {
+                            self.view
+                                .scene
+                                .interaction_manager
+                                .enable_interactions(node, &self.view.scene.screen_descriptor);
+                            return Some(RadiantResponse::NodeSelected(node.clone()));
+                        } else {
+                            self.view.scene.interaction_manager.disable_interactions();
+                        }
                     }
+                } else {
+                    self.view.scene.interaction_manager.disable_interactions();
                 }
             }
             RadiantMessage::AddNode {
@@ -67,7 +71,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 };
                 if let Some(node) = node {
                     self.view.scene.add(node);
-                    return self.handle_message(RadiantMessage::SelectNode { id });
+                    return self.handle_message(RadiantMessage::SelectNode { id: Some(id) });
                 }
             }
             RadiantMessage::TransformNode {
@@ -158,14 +162,14 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     texture_handle,
                 ));
                 self.view.scene.add(node);
-                return self.handle_message(RadiantMessage::SelectNode { id });
+                return self.handle_message(RadiantMessage::SelectNode { id: Some(id) });
             }
             RadiantMessage::AddText { position, .. } => {
                 let id = self.view.scene.document.counter;
                 let node =
                     RadiantNodeType::Text(RadiantTextNode::new(id, position, [100.0, 100.0]));
                 self.view.scene.add(node);
-                return self.handle_message(RadiantMessage::SelectNode { id });
+                return self.handle_message(RadiantMessage::SelectNode { id: Some(id) });
             }
         }
         None
