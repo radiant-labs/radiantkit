@@ -212,6 +212,47 @@ fn combine_enum_internal(
     Ok(res)
 }
 
+fn derive_message_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
+    let item = syn::parse2::<syn::ItemEnum>(item)?;
+
+    let name = item.ident.clone();
+    let message_names = item
+        .variants
+        .iter()
+        .map(|variant| variant.ident.clone())
+        .collect::<Vec<_>>();
+    let messages = item.variants.iter().map(|variant| {
+        let fields = variant.fields.iter();
+        quote! {
+            #(#fields)*
+        }
+    }).collect::<Vec<_>>();
+
+    let res = quote! {
+        #(
+            impl From<#messages> for #name {
+                fn from(message: #messages) -> Self {
+                    Self::#message_names(message)
+                }
+            }
+        )*
+
+        #(
+            impl TryFrom<#name> for #messages {
+                type Error = ();
+            
+                fn try_from(message: #name) -> Result<Self, Self::Error> {
+                    match message {
+                        #name::#message_names(message) => Ok(message),
+                        _ => Err(()),
+                    }
+                }
+            }
+        )*
+    };
+    Ok(res)
+}
+
 #[proc_macro_derive(RadiantTessellatable)]
 pub fn derive_tessellatable(item: TokenStream) -> TokenStream {
     let res = match derive_tessellatable_internal(item.into()) {
@@ -244,6 +285,15 @@ pub fn derive_component_provider(item: TokenStream) -> TokenStream {
 pub fn combine_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
     let foreign_path = syn::parse::<syn::Path>(__source_path).unwrap();
     let res = match combine_enum_internal(attr.into(), item.into(), foreign_path) {
+        Ok(res) => res,
+        Err(err) => err.to_compile_error(),
+    };
+    res.into()
+}
+
+#[proc_macro_derive(RadiantMessage)]
+pub fn derive_message(item: TokenStream) -> TokenStream {
+    let res = match derive_message_internal(item.into()) {
         Ok(res) => res,
         Err(err) => err.to_compile_error(),
     };
