@@ -241,11 +241,7 @@ impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> 
 
 impl<M: From<InteractionMessage> + TryInto<InteractionMessage>, N: RadiantNode> RadiantView<M, N> {
     pub fn on_mouse_down(&mut self, position: [f32; 2]) -> Option<M> {
-        let mut id = pollster::block_on(self.scene.select(position));
-        // Todo: Hack - To be removed
-        if id > 1000 {
-            id = self.scene.document.counter;
-        }
+        let id = pollster::block_on(self.scene.select(position));
         self.scene
             .tool_manager
             .active_tool()

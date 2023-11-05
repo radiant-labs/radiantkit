@@ -44,8 +44,8 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         self.artboards.get(self.active_artboard_id as usize)
     }
 
-    pub fn select(&mut self, id: u64) {
-        if Some(id) == self.selected_node_id {
+    pub fn select(&mut self, id: Option<u64>) {
+        if id == self.selected_node_id {
             return;
         }
         self.artboards.iter_mut().for_each(|artboard| {
@@ -57,14 +57,16 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                     }
                 }
             }
-            if let Some(node) = artboard.get_node_mut(id) {
-                if let Some(component) = node.get_component_mut::<SelectionComponent>() {
-                    component.set_selected(true);
-                    node.set_needs_tessellation();
+            if let Some(id) = id {
+                if let Some(node) = artboard.get_node_mut(id) {
+                    if let Some(component) = node.get_component_mut::<SelectionComponent>() {
+                        component.set_selected(true);
+                        node.set_needs_tessellation();
+                    }
                 }
             }
         });
-        self.selected_node_id = Some(id);
+        self.selected_node_id = id
     }
 
     pub fn get_node(&self, id: u64) -> Option<&N> {

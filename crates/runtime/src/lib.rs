@@ -15,5 +15,3 @@ pub use radiant_winit::run_native;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-#[cfg(target_arch = "wasm32")]
-pub use radiant_winit::run_wasm;
