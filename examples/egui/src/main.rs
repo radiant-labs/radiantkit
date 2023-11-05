@@ -1,6 +1,6 @@
 use radiant_runtime::{
-    RadiantMessage, RadiantNodeType, RadiantPathNode, RadiantRectangleNode, RadiantResponse,
-    RadiantRuntime, RadiantTextNode, RectangleTool, Runtime,
+    RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
+    RadiantTextNode, RectangleTool, Runtime,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -58,29 +58,9 @@ async fn run() {
         .scene
         .tool_manager
         .register_tool(Box::new(RectangleTool::new()));
-    runtime
-        .view
-        .scene
-        .add(RadiantNodeType::Rectangle(RadiantRectangleNode::new(
-            1,
-            [200.0, 200.0],
-            [200.0, 200.0],
-        )));
-    runtime
-        .view
-        .scene
-        .add(RadiantNodeType::Path(RadiantPathNode::new(
-            2,
-            [400.0, 400.0],
-        )));
-    runtime
-        .view
-        .scene
-        .add(RadiantNodeType::Text(RadiantTextNode::new(
-            3,
-            [400.0, 600.0],
-            [200.0, 200.0],
-        )));
+    runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
+    runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
+    runtime.add(RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]).into());
     // view.scene.handle_message(RadiantMessage::AddText {
     //     text: String::from("Hello World!"),
     //     position: [400.0, 600.0],
