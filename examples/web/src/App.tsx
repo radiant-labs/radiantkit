@@ -34,6 +34,10 @@ const Tools = () => {
         controller && controller.activateTool(1);
     }
 
+    useEffect(() => {
+        controller && controller.addRectangle([100, 100], [100, 100]);
+    }, [controller])
+
     return (
         <Stack direction="row" spacing={2}>
             <Typography variant="h6">Tools: </Typography>
