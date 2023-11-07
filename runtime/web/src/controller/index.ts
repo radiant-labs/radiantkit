@@ -26,6 +26,15 @@ export class RadiantController {
         });
     }
 
+    addRectangle(position: number[], scale: number[]) {
+        this._controller.handleMessage({
+            AddRectangle: {
+                position,
+                scale,
+            },
+        });
+    }
+
     setTransform(nodeId: number, position: number[], scale: number[]) {
         this._controller.handleMessage({
             SceneMessage: {

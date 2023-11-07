@@ -20,6 +20,14 @@ export class RadiantController {
             },
         });
     }
+    addRectangle(position, scale) {
+        this._controller.handleMessage({
+            AddRectangle: {
+                position,
+                scale,
+            },
+        });
+    }
     setTransform(nodeId, position, scale) {
         this._controller.handleMessage({
             SceneMessage: {
