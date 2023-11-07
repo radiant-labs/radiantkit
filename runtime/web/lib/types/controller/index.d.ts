@@ -9,6 +9,7 @@ export declare class RadiantController {
      * @param tool the tool to activate.
      */
     activateTool(toolId: number): void;
+    addRectangle(position: number[], scale: number[]): void;
     setTransform(nodeId: number, position: number[], scale: number[]): void;
     setFillColor(nodeId: number, color: number[]): void;
     setStrokeColor(nodeId: number, color: number[]): void;
