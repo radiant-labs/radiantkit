@@ -4,6 +4,7 @@ use epaint::{
 use std::sync::Arc;
 
 // Taken from egui
+#[derive(Clone)]
 pub struct RadiantTextureManager(pub Arc<RwLock<TextureManager>>);
 
 impl Default for RadiantTextureManager {

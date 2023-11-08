@@ -10,6 +10,7 @@ export declare class RadiantController {
      */
     activateTool(toolId: number): void;
     addRectangle(position: number[], scale: number[]): void;
+    addImage(path: string, name?: string, position?: number[], scale?: number[]): void;
     setTransform(nodeId: number, position: number[], scale: number[]): void;
     setFillColor(nodeId: number, color: number[]): void;
     setStrokeColor(nodeId: number, color: number[]): void;

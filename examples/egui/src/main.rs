@@ -1,6 +1,6 @@
 use radiant_runtime::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
-    RadiantSceneMessage, RadiantTextNode, RectangleTool, Runtime,
+    RadiantSceneMessage, RadiantTextNode, RectangleTool, Runtime, View,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -36,6 +36,12 @@ impl RadiantAppController {
                     self.pending_messages
                         .push(RadiantSceneMessage::SelectTool { id: 1 }.into());
                 }
+                if ui.button("Load Image").clicked() {
+                    self.pending_messages.push(RadiantMessage::AddImage {
+                        name: "".to_string(),
+                        path: "https://i.imgur.com/XbLP6ux.png".to_string(),
+                    });
+                }
                 ui.add_space(10.0);
             });
     }
@@ -55,20 +61,12 @@ async fn run() {
     let mut runtime = RadiantRuntime::new().await;
     runtime
         .view
-        .scene
+        .scene_mut()
         .tool_manager
         .register_tool(1u32, Box::new(RectangleTool::new()));
     runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
     runtime.add(RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]).into());
-    // view.scene.handle_message(RadiantMessage::AddText {
-    //     text: String::from("Hello World!"),
-    //     position: [400.0, 600.0],
-    // });
-    runtime.handle_message(RadiantMessage::AddImage {
-        name: String::from("test"),
-        path: String::from("test.png"),
-    });
 
     let size = runtime.view.window.inner_size();
     let scale_factor = runtime.view.window.scale_factor();
@@ -81,11 +79,15 @@ async fn run() {
         style: Default::default(),
     });
 
-    let mut egui_rpass = RenderPass::new(
-        &runtime.view.scene.render_manager.device,
-        runtime.view.scene.render_manager.config.format,
-        1,
-    );
+    let mut egui_rpass;
+    {
+        let scene = runtime.view.scene_mut();
+        egui_rpass = RenderPass::new(
+            &scene.render_manager.device,
+            scene.render_manager.config.format,
+            1,
+        );
+    }
     let mut demo_app = RadiantAppController::new();
 
     if let Some(event_loop) = std::mem::replace(&mut runtime.view.event_loop, None) {
@@ -110,56 +112,47 @@ async fn run() {
 
             match event {
                 RedrawRequested(..) => {
-                    let output_frame = std::mem::replace(
-                        &mut runtime.view.scene.render_manager.current_texture,
-                        None,
-                    );
-                    let output_frame = output_frame.unwrap();
-
-                    let output_view = runtime
-                        .view
-                        .scene
-                        .render_manager
-                        .current_view
-                        .as_ref()
-                        .unwrap();
-
                     platform.begin_frame();
 
                     demo_app.update(&platform.context());
 
-                    let full_output = platform.end_frame(Some(&runtime.view.window));
+                    let full_output = platform.end_frame(Some(&mut runtime.view.window));
                     let paint_jobs = platform.context().tessellate(full_output.shapes);
+
+                    let scene = &mut runtime.scene_mut();
+
+                    let output_frame =
+                        std::mem::replace(&mut scene.render_manager.current_texture, None);
+                    let output_frame = output_frame.unwrap();
+
+                    let output_view = scene.render_manager.current_view.as_ref().unwrap();
 
                     // Upload all resources for the GPU.
                     let screen_descriptor = ScreenDescriptor {
-                        physical_width: runtime.view.scene.render_manager.config.width,
-                        physical_height: runtime.view.scene.render_manager.config.height,
+                        physical_width: scene.render_manager.config.width,
+                        physical_height: scene.render_manager.config.height,
                         scale_factor: scale_factor as f32,
                     };
                     let tdelta: egui::TexturesDelta = full_output.textures_delta;
                     egui_rpass
                         .add_textures(
-                            &runtime.view.scene.render_manager.device,
-                            &runtime.view.scene.render_manager.queue,
+                            &scene.render_manager.device,
+                            &scene.render_manager.queue,
                             &tdelta,
                         )
                         .expect("add texture ok");
                     egui_rpass.update_buffers(
-                        &runtime.view.scene.render_manager.device,
-                        &runtime.view.scene.render_manager.queue,
+                        &scene.render_manager.device,
+                        &scene.render_manager.queue,
                         &paint_jobs,
                         &screen_descriptor,
                     );
 
-                    let mut encoder = runtime
-                        .view
-                        .scene
-                        .render_manager
-                        .device
-                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    let mut encoder = scene.render_manager.device.create_command_encoder(
+                        &wgpu::CommandEncoderDescriptor {
                             label: Some("encoder"),
-                        });
+                        },
+                    );
                     // Record all render passes.
                     egui_rpass
                         .execute(
@@ -172,9 +165,7 @@ async fn run() {
                         )
                         .unwrap();
                     // Submit the commands.
-                    runtime
-                        .view
-                        .scene
+                    scene
                         .render_manager
                         .queue
                         .submit(iter::once(encoder.finish()));

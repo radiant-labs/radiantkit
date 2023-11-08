@@ -14,8 +14,10 @@ pub struct RadiantRenderManager {
     offscreen_texture_view: Option<wgpu::TextureView>,
     offscreen_buffer: Option<wgpu::Buffer>,
 
-    pub current_texture: Option<wgpu::SurfaceTexture>,
     pub current_view: Option<wgpu::TextureView>,
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub current_texture: Option<wgpu::SurfaceTexture>,
 }
 
 impl RadiantRenderManager {
@@ -53,8 +55,10 @@ impl RadiantRenderManager {
             offscreen_texture_view: None,
             offscreen_buffer: None,
 
-            current_texture: None,
             current_view: None,
+
+            #[cfg(not(target_arch = "wasm32"))]
+            current_texture: None,
         }
     }
 
