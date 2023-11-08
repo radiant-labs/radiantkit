@@ -1,4 +1,4 @@
-import { RadiantCanvas, RadiantProvider, useCurrentController } from 'radiant-sdk';
+import { RadiantCanvas, useCurrentController } from 'radiant-sdk';
 import { Box, Button, Stack } from '@mui/material';
 
 const ImageLoader = () => {
@@ -15,16 +15,14 @@ const ImageLoader = () => {
     )
 }
 
-function App() {
+const ImageExample = () => {
     return (
-        <RadiantProvider>
-            <Stack>
-                <ImageLoader />
-                <Box height={10} />
-                <RadiantCanvas />
-            </Stack>
-        </RadiantProvider>
+        <Stack>
+            <ImageLoader />
+            <Box height={10} />
+            <RadiantCanvas />
+        </Stack>
     )
 }
 
-export default App
+export default ImageExample;
