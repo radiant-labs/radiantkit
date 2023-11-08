@@ -44,6 +44,15 @@ export class RadiantController {
         });
     }
 
+    addText(text: string, position: number[] = [100, 100], scale: number[] =[100, 100]) {
+        this._controller.handleMessage({
+            AddText: {
+                text,
+                position,
+            },
+        });
+    }
+
     setTransform(nodeId: number, position: number[], scale: number[]) {
         this._controller.handleMessage({
             SceneMessage: {
