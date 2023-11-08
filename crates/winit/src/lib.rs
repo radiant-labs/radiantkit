@@ -5,10 +5,9 @@ use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
 use winit::{event::*, event_loop::ControlFlow};
 
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 pub use winit::event::Event::RedrawRequested;
 
-#[cfg(target_arch = "wasm32")]
-use std::sync::{Arc, RwLock};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
@@ -20,7 +19,7 @@ pub struct RadiantView<M, N: RadiantNode> {
 
     pub size: winit::dpi::PhysicalSize<u32>,
 
-    pub scene: RadiantScene<M, N>,
+    pub scene: Arc<RwLock<RadiantScene<M, N>>>,
 
     mouse_position: [f32; 2],
     mouse_dragging: bool,
@@ -29,7 +28,7 @@ pub struct RadiantView<M, N: RadiantNode> {
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
     RadiantView<M, N>
 {
-    pub async fn new(default_tool: impl RadiantTool<M> + 'static) -> Self {
+    pub async fn new(default_tool: impl RadiantTool<M> + 'static + Send + Sync) -> Self {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -131,14 +130,14 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             event_loop: Some(event_loop),
 
             size,
-            scene,
+            scene: Arc::new(RwLock::new(scene)),
             mouse_position: [0.0, 0.0],
             mouse_dragging: false,
         }
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.scene.resize([new_size.width, new_size.height]);
+        self.scene_mut().resize([new_size.width, new_size.height]);
     }
 
     pub fn input(&mut self, _event: &WindowEvent) -> bool {
@@ -225,11 +224,21 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 }
             }
             Event::RedrawRequested(window_id) if window_id == &self.window.id() => {
-                match self.scene.render() {
-                    Ok(_) => {}
-                    Err(wgpu::SurfaceError::Lost) => self.resize(self.size),
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    Err(e) => eprintln!("{:?}", e),
+                let size = self.size;
+                let needs_resize = match self.scene_mut().render() {
+                    Ok(_) => false,
+                    Err(wgpu::SurfaceError::Lost) => true,
+                    Err(wgpu::SurfaceError::OutOfMemory) => {
+                        *control_flow = ControlFlow::Exit;
+                        false
+                    }
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        false
+                    }
+                };
+                if needs_resize {
+                    self.resize(size);
                 }
             }
             Event::MainEventsCleared => {
@@ -245,38 +254,42 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     RadiantView<M, N>
 {
     pub fn on_mouse_down(&mut self, position: [f32; 2]) -> Option<M> {
-        let id = pollster::block_on(self.scene.select(position));
-        self.scene.tool_manager.active_tool().on_mouse_down(
-            id,
-            self.scene.document.counter,
-            position,
-        )
+        let id = pollster::block_on(self.scene_mut().select(position));
+        let node_count = self.scene().document().counter;
+        self.scene_mut()
+            .tool_manager
+            .active_tool()
+            .on_mouse_down(id, node_count, position)
     }
 
     pub fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
-        self.scene
+        self.scene_mut()
             .tool_manager
             .active_tool()
             .on_mouse_move(position)
     }
 
     pub fn on_mouse_up(&mut self, position: [f32; 2]) -> Option<M> {
-        self.scene.tool_manager.active_tool().on_mouse_up(position)
+        self.scene_mut()
+            .tool_manager
+            .active_tool()
+            .on_mouse_up(position)
     }
 }
 
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode> View<M, N>
     for RadiantView<M, N>
 {
-    fn scene(&self) -> &RadiantScene<M, N> {
-        &self.scene
+    fn scene(&self) -> RwLockReadGuard<RadiantScene<M, N>> {
+        self.scene.read().unwrap()
     }
 
-    fn scene_mut(&mut self) -> &mut RadiantScene<M, N> {
-        &mut self.scene
+    fn scene_mut(&mut self) -> RwLockWriteGuard<RadiantScene<M, N>> {
+        self.scene.write().unwrap()
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn run_native<
     M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage> + 'static,
     N: RadiantNode + 'static,

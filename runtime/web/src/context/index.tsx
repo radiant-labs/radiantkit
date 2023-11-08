@@ -17,11 +17,9 @@ function RadiantProvider({ children }: any) {
     const [response, setResponse] = useState<any>({});
 
     const initWasm = async () => {
-        console.log("Initializing wasm");
         try {
             await init();
             let controller = await RadiantController.createController((message: any) => {
-                console.log(message);
                 setResponse(message);
             });
             setController(controller);
