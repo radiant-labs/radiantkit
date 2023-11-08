@@ -1,4 +1,4 @@
-import { RadiantCanvas, useCurrentController } from 'radiant-sdk';
+import { RadiantCanvas, RadiantProvider, useCurrentController } from 'radiant-sdk';
 import { Box, Button, ButtonGroup, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -33,6 +33,10 @@ const Tools = () => {
     const rect = async () => {
         controller && controller.activateTool(1);
     }
+
+    useEffect(() => {
+        controller && controller.addRectangle([100, 100], [100, 100]);
+    }, [controller])
 
     return (
         <Stack direction="row" spacing={2}>
@@ -169,21 +173,17 @@ const Color = () => {
 }
 
 const BasicExample = () => {
-    const { controller } = useCurrentController();
-
-    useEffect(() => {
-        controller && controller.addRectangle([100, 100], [100, 100]);
-    }, [controller])
-
     return (
-        <Stack>
-            <Tools />
-            <Box height={10} />
-            <Transform />
-            <Box height={10} />
-            <Color />
-            <RadiantCanvas />
-        </Stack>
+        <RadiantProvider>
+            <Stack>
+                <Tools />
+                <Box height={10} />
+                <Transform />
+                <Box height={10} />
+                <Color />
+                <RadiantCanvas />
+            </Stack>
+        </RadiantProvider>
     )
 }
 
