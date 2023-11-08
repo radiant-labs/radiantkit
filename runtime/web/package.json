@@ -21,8 +21,7 @@
     "dev": "yarn clean && concurrently \"npm:build:cjs:watch\" \"npm:build:esm:watch\"",
     "token:generate": "ts-node examples/generate-token.ts",
     "test": "jest",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "docs": "rm -rf docs && typedoc --plugin typedoc-plugin-markdown --out docs src/**/*.ts src/**/*.tsx"
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "keywords": [],
   "author": "",
@@ -46,8 +45,6 @@
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.7.0",
     "tsconfig-paths": "^4.1.0",
-    "typedoc": "^0.25.2",
-    "typedoc-plugin-markdown": "^3.16.0",
     "typescript": "^4.8.3"
   },
   "dependencies": {
