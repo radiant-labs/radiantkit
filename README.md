@@ -8,6 +8,7 @@
 
 <h3 align="center">
   <a href="https://www.radiantkit.xyz/">Website</a> &bull;
+  <a href="https://demo.radiantkit.xyz/">Examples</a> &bull;
   <a href="http://docs.radiantkit.xyz/">Docs</a> &bull;
   <a href="https://join.slack.com/t/radiant-canvas/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q">Community</a>
 </h3>
