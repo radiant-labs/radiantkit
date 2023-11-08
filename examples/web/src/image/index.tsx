@@ -12,8 +12,6 @@ const ImageLoader = () => {
 
     const handleUpload = (e: any) => {
         const fileReader = new FileReader();
-        const name = e.target.accept.includes('image') ? 'images' : 'videos';
-
         fileReader.readAsDataURL(e.target.files[0]);
         fileReader.onload = (e) => {
             const path = e.target?.result as string;
