@@ -1,1 +1,0 @@
-# Radiant Landing Page
