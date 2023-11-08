@@ -42,6 +42,14 @@ class RadiantController {
             },
         });
     }
+    addText(text, position = [100, 100], scale = [100, 100]) {
+        this._controller.handleMessage({
+            AddText: {
+                text,
+                position,
+            },
+        });
+    }
     setTransform(nodeId, position, scale) {
         this._controller.handleMessage({
             SceneMessage: {
