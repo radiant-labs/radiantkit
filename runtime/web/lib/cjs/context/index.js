@@ -13,11 +13,9 @@ function RadiantProvider({ children }) {
     const [controller, setController] = (0, react_1.useState)(null);
     const [response, setResponse] = (0, react_1.useState)({});
     const initWasm = () => tslib_1.__awaiter(this, void 0, void 0, function* () {
-        console.log("Initializing wasm");
         try {
             yield (0, radiant_runtime_1.default)();
             let controller = yield controller_1.RadiantController.createController((message) => {
-                console.log(message);
                 setResponse(message);
             });
             setController(controller);

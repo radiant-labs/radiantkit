@@ -35,6 +35,15 @@ export class RadiantController {
         });
     }
 
+    addImage(path: string, name: string = "", position: number[] = [100, 100], scale: number[] =[100, 100]) {
+        this._controller.handleMessage({
+            AddImage: {
+                name,
+                path,
+            },
+        });
+    }
+
     setTransform(nodeId: number, position: number[], scale: number[]) {
         this._controller.handleMessage({
             SceneMessage: {

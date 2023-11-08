@@ -3,6 +3,7 @@
     "workspaces": [
         "runtime/pkg", 
         "runtime/web",
-        "examples/web"
+        "examples/web",
+        "examples/web-image"
     ]
 }

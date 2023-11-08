@@ -7,6 +7,8 @@ pub mod scene;
 pub mod texture;
 pub mod tools;
 
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+
 pub use components::*;
 pub use interactions::*;
 pub use message::*;
@@ -17,6 +19,7 @@ pub use texture::*;
 pub use tools::*;
 
 /// Information about the screen used for rendering.
+#[derive(Clone, Copy)]
 pub struct ScreenDescriptor {
     /// Size of the window in physical pixels.
     pub size_in_pixels: [u32; 2],
@@ -36,8 +39,8 @@ impl ScreenDescriptor {
 }
 
 pub trait View<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode> {
-    fn scene(&self) -> &RadiantScene<M, N>;
-    fn scene_mut(&mut self) -> &mut RadiantScene<M, N>;
+    fn scene(&self) -> RwLockReadGuard<RadiantScene<M, N>>;
+    fn scene_mut(&mut self) -> RwLockWriteGuard<RadiantScene<M, N>>;
 }
 
 pub trait Runtime<
@@ -54,10 +57,10 @@ pub trait Runtime<
 
     fn handle_message(&mut self, message: M) -> Option<R>;
 
-    fn scene(&'a self) -> &RadiantScene<M, N> {
+    fn scene(&'a self) -> RwLockReadGuard<RadiantScene<M, N>> {
         self.view().scene()
     }
-    fn scene_mut(&'a mut self) -> &mut RadiantScene<M, N> {
+    fn scene_mut(&'a mut self) -> RwLockWriteGuard<RadiantScene<M, N>> {
         self.view_mut().scene_mut()
     }
 

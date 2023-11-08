@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+
 use crate::{
     ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
     RadiantRenderManager, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
@@ -7,7 +9,7 @@ use crate::{
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
 pub struct RadiantScene<M, N: RadiantNode> {
-    pub document: RadiantDocumentNode<N>,
+    pub document: Arc<RwLock<RadiantDocumentNode<N>>>,
 
     pub screen_descriptor: ScreenDescriptor,
 
@@ -21,13 +23,21 @@ pub struct RadiantScene<M, N: RadiantNode> {
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
     RadiantScene<M, N>
 {
+    pub fn document(&self) -> RwLockReadGuard<RadiantDocumentNode<N>> {
+        self.document.read().unwrap()
+    }
+
+    pub fn document_mut(&mut self) -> RwLockWriteGuard<RadiantDocumentNode<N>> {
+        self.document.write().unwrap()
+    }
+
     pub fn new(
         config: wgpu::SurfaceConfiguration,
         surface: wgpu::Surface,
         device: wgpu::Device,
         queue: wgpu::Queue,
         screen_descriptor: ScreenDescriptor,
-        default_tool: impl RadiantTool<M> + 'static,
+        default_tool: impl RadiantTool<M> + 'static + Send + Sync,
     ) -> Self {
         let font_definitions = FontDefinitions::default();
         let fonts_manager = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
@@ -38,7 +48,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
         // tool_manager.register_tool(Box::new(PathTool::new()));
 
         Self {
-            document: RadiantDocumentNode::new(),
+            document: Arc::new(RwLock::new(RadiantDocumentNode::new())),
 
             screen_descriptor,
 
@@ -52,7 +62,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
 
     pub fn add(&mut self, mut node: N) {
         node.attach(&self.screen_descriptor);
-        self.document.add(node);
+        self.document_mut().add(node);
     }
 
     pub fn resize(&mut self, new_size: [u32; 2]) {
@@ -89,9 +99,11 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     }
 
     fn get_primitives(&mut self, selection: bool) -> Vec<ClippedPrimitive> {
-        let mut primitives =
-            self.document
-                .tessellate(selection, &self.screen_descriptor, &self.fonts_manager);
+        let mut primitives = self.document.write().unwrap().tessellate(
+            selection,
+            &self.screen_descriptor,
+            &self.fonts_manager,
+        );
 
         let mut p2 = self.interaction_manager.tessellate(
             selection,
@@ -113,16 +125,16 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     ) -> Option<RadiantSceneResponse<M, N>> {
         match message {
             RadiantSceneMessage::AddArtboard {} => {
-                self.document.add_artboard();
+                self.document_mut().add_artboard();
             }
             RadiantSceneMessage::SelectArtboard { id } => {
-                self.document.set_active_artboard(id);
+                self.document_mut().set_active_artboard(id);
             }
             RadiantSceneMessage::SelectNode { id } => {
-                self.document.select(id);
+                self.document_mut().select(id);
                 if let Some(id) = id {
                     if !self.interaction_manager.is_interaction(id) {
-                        if let Some(node) = self.document.get_node(id) {
+                        if let Some(node) = self.document.write().unwrap().get_node(id) {
                             self.interaction_manager
                                 .enable_interactions(node, &self.screen_descriptor);
                             return Some(RadiantSceneResponse::Selected { node: node.clone() });
@@ -145,7 +157,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     {
                         return Some(RadiantSceneResponse::Message { message });
                     }
-                } else if let Some(node) = self.document.get_node_mut(id) {
+                } else if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position);
                         component.transform_scale(&scale);
@@ -169,7 +181,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 position,
                 scale,
             } => {
-                if let Some(node) = self.document.get_node_mut(id) {
+                if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.set_xy(&position);
                         component.set_scale(&scale);
@@ -181,7 +193,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 }
             }
             RadiantSceneMessage::SetFillColor { id, fill_color } => {
-                if let Some(node) = self.document.get_node_mut(id) {
+                if let Some(node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_fill_color(fill_color);
                         node.set_needs_tessellation();
@@ -189,7 +201,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 }
             }
             RadiantSceneMessage::SetStrokeColor { id, stroke_color } => {
-                if let Some(node) = self.document.get_node_mut(id) {
+                if let Some(node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_stroke_color(stroke_color);
                         node.set_needs_tessellation();

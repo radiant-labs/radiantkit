@@ -28,6 +28,14 @@ export class RadiantController {
             },
         });
     }
+    addImage(path, name = "", position = [100, 100], scale = [100, 100]) {
+        this._controller.handleMessage({
+            AddImage: {
+                name,
+                path,
+            },
+        });
+    }
     setTransform(nodeId, position, scale) {
         this._controller.handleMessage({
             SceneMessage: {
