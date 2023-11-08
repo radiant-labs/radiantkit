@@ -1,5 +1,5 @@
 <h1 align="center">
-  Radiant
+  RadiantKit
 </h1>
 
 <p align="center">
@@ -7,14 +7,14 @@
 </p>
 
 <h3 align="center">
-  <a href="https://radiant-labs.github.io/radiant/">Website</a> &bull;
-  <a href="https://radiant-labs.gitbook.io/radiant/">Docs</a> &bull;
+  <a href="https://www.radiantkit.xyz/">Website</a> &bull;
+  <a href="http://docs.radiantkit.xyz/">Docs</a> &bull;
   <a href="https://join.slack.com/t/radiant-canvas/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q">Community</a>
 </h3>
 
-# Radiant
+# RadiantKit
 
-Radiant is an in-development framework to build graphics applications (like Figma, Canva, Miro, etc) that's free and open source. 
+RadiantKit is an in-development framework to build graphics applications (like Figma, Canva, Miro, etc) that's free and open source. 
 
 It introduces a node-component-system for efficient rendering, while ensuring complete extensibility. It can support both native and web (via WebAssembly) platforms.
 
@@ -30,7 +30,7 @@ Install rust and follow these steps:
 1. `cd examples/egui`
 2. `cargo run`
 
-## Web
+## Web Examples
 
 Install yarn and follow these steps:
 1. `cd examples/web`
