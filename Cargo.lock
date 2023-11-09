@@ -485,7 +485,7 @@ dependencies = [
  "env_logger",
  "log",
  "pollster",
- "radiant-runtime",
+ "radiantkit",
 ]
 
 [[package]]
@@ -3821,7 +3821,7 @@ dependencies = [
  "env_logger",
  "log",
  "pollster",
- "radiant-runtime",
+ "radiantkit",
  "wgpu",
  "winit",
 ]
@@ -3872,35 +3872,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-runtime"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "console_error_panic_hook",
- "console_log",
- "env_logger",
- "epaint",
- "futures-intrusive",
- "js-sys",
- "log",
- "macro_magic",
- "pollster",
- "radiant-core",
- "radiant-image-node",
- "radiant-macros",
- "radiant-path-node",
- "radiant-text-node",
- "radiant-winit",
- "serde",
- "serde-wasm-bindgen",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "wgpu",
-]
-
-[[package]]
 name = "radiant-tauri-app"
 version = "0.1.0"
 dependencies = [
@@ -3947,6 +3918,35 @@ dependencies = [
  "web-sys",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "radiantkit"
+version = "0.0.1"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger",
+ "epaint",
+ "futures-intrusive",
+ "js-sys",
+ "log",
+ "macro_magic",
+ "pollster",
+ "radiant-core",
+ "radiant-image-node",
+ "radiant-macros",
+ "radiant-path-node",
+ "radiant-text-node",
+ "radiant-winit",
+ "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu",
 ]
 
 [[package]]
