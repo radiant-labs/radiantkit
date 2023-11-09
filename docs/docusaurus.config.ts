@@ -38,18 +38,22 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/radiant-labs/radiantkit/docs/docs/',
+            'https://github.com/radiant-labs/radiantkit/docs/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/radiant-labs/radiantkit/docs/blog/',
+            'https://github.com/radiant-labs/radiantkit/docs/',
         },
         theme: {
           customCss: './src/css/custom.css',
         },
+        googleAnalytics: {
+          trackingID: 'G-BDC4T0F9SW',
+          anonymizeIP: true,
+        }
       } satisfies Preset.Options,
     ],
   ],
@@ -119,10 +123,6 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
-    googleAnalytics: {
-      trackingID: 'G-BDC4T0F9SW',
-      anonymizeIP: true,
-    }
   } satisfies Preset.ThemeConfig,
 };
 
