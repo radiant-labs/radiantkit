@@ -2,7 +2,7 @@ use epaint::{
     text::{LayoutJob, TextFormat},
     ClippedPrimitive, ClippedShape, Color32, FontFamily, FontId, Fonts, Rect, TessellationOptions,
 };
-use radiant_core::{
+use radiantkit_core::{
     ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };

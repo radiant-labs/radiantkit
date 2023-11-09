@@ -1,10 +1,10 @@
-use radiant_core::{
+use radiantkit_core::{
     RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable, Runtime,
     SelectionTool, View,
 };
-use radiant_image_node::{image_loader, RadiantImageNode};
-use radiant_text_node::RadiantTextNode;
-use radiant_winit::RadiantView;
+use radiantkit_image::{image_loader, RadiantImageNode};
+use radiantkit_text::RadiantTextNode;
+use radiantkit_winit::RadiantView;
 
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
 

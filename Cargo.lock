@@ -3795,21 +3795,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-core"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "epaint",
- "futures-intrusive",
- "log",
- "macro_magic",
- "pollster",
- "serde",
- "wgpu",
-]
-
-[[package]]
 name = "radiant-egui-app"
 version = "0.1.0"
 dependencies = [
@@ -3827,51 +3812,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "radiant-image-node"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "ehttp",
- "epaint",
- "futures-intrusive",
- "image 0.24.7",
- "log",
- "macro_magic",
- "pollster",
- "radiant-core",
- "serde",
- "wgpu",
-]
-
-[[package]]
-name = "radiant-macros"
-version = "0.1.0"
-dependencies = [
- "macro_magic",
- "proc-macro2",
- "proc-utils",
- "quote",
- "syn 2.0.38",
-]
-
-[[package]]
-name = "radiant-path-node"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "epaint",
- "futures-intrusive",
- "log",
- "macro_magic",
- "pollster",
- "radiant-core",
- "serde",
- "wgpu",
-]
-
-[[package]]
 name = "radiant-tauri-app"
 version = "0.1.0"
 dependencies = [
@@ -3879,45 +3819,6 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
-]
-
-[[package]]
-name = "radiant-text-node"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "epaint",
- "futures-intrusive",
- "log",
- "macro_magic",
- "pollster",
- "radiant-core",
- "serde",
- "wgpu",
-]
-
-[[package]]
-name = "radiant-winit"
-version = "0.1.0"
-dependencies = [
- "cfg-if",
- "console_error_panic_hook",
- "console_log",
- "env_logger",
- "epaint",
- "futures-intrusive",
- "image 0.23.14",
- "js-sys",
- "log",
- "pollster",
- "radiant-core",
- "serde",
- "serde-wasm-bindgen",
- "wasm-bindgen",
- "web-sys",
- "wgpu",
- "winit",
 ]
 
 [[package]]
@@ -3935,18 +3836,117 @@ dependencies = [
  "log",
  "macro_magic",
  "pollster",
- "radiant-core",
- "radiant-image-node",
- "radiant-macros",
- "radiant-path-node",
- "radiant-text-node",
- "radiant-winit",
+ "radiantkit-core",
+ "radiantkit-image",
+ "radiantkit-macros",
+ "radiantkit-path",
+ "radiantkit-text",
+ "radiantkit-winit",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu",
+]
+
+[[package]]
+name = "radiantkit-core"
+version = "0.0.1"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "epaint",
+ "futures-intrusive",
+ "log",
+ "macro_magic",
+ "pollster",
+ "serde",
+ "wgpu",
+]
+
+[[package]]
+name = "radiantkit-image"
+version = "0.0.1"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "ehttp",
+ "epaint",
+ "futures-intrusive",
+ "image 0.24.7",
+ "log",
+ "macro_magic",
+ "pollster",
+ "radiantkit-core",
+ "serde",
+ "wgpu",
+]
+
+[[package]]
+name = "radiantkit-macros"
+version = "0.0.1"
+dependencies = [
+ "macro_magic",
+ "proc-macro2",
+ "proc-utils",
+ "quote",
+ "syn 2.0.38",
+]
+
+[[package]]
+name = "radiantkit-path"
+version = "0.0.1"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "epaint",
+ "futures-intrusive",
+ "log",
+ "macro_magic",
+ "pollster",
+ "radiantkit-core",
+ "serde",
+ "wgpu",
+]
+
+[[package]]
+name = "radiantkit-text"
+version = "0.0.1"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "epaint",
+ "futures-intrusive",
+ "log",
+ "macro_magic",
+ "pollster",
+ "radiantkit-core",
+ "serde",
+ "wgpu",
+]
+
+[[package]]
+name = "radiantkit-winit"
+version = "0.0.1"
+dependencies = [
+ "cfg-if",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger",
+ "epaint",
+ "futures-intrusive",
+ "image 0.23.14",
+ "js-sys",
+ "log",
+ "pollster",
+ "radiantkit-core",
+ "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
+ "web-sys",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-use radiant_core::RadiantDocumentNode;
+use radiantkit_core::RadiantDocumentNode;
 use radiant_runtime::RadiantNodeType;
 
 #[test]

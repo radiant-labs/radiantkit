@@ -1,5 +1,5 @@
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
-use radiant_core::{
+use radiantkit_core::{
     RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };

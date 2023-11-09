@@ -1,7 +1,7 @@
 use epaint::{
     pos2, ClippedPrimitive, ClippedShape, Color32, Rect, TessellationOptions, TextureHandle,
 };
-use radiant_core::{
+use radiantkit_core::{
     ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
 };

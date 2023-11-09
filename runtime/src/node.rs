@@ -1,13 +1,13 @@
 use epaint::ClippedPrimitive;
-use radiant_core::{
+use radiantkit_core::{
     RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantRectangleNode,
     RadiantTessellatable, ScreenDescriptor,
 };
-use radiant_core::{RadiantDocumentNode, RadiantGroupNode};
-use radiant_image_node::RadiantImageNode;
-use radiant_macros::{RadiantComponentProvider, RadiantNode, RadiantTessellatable};
-use radiant_path_node::RadiantPathNode;
-use radiant_text_node::RadiantTextNode;
+use radiantkit_core::{RadiantDocumentNode, RadiantGroupNode};
+use radiantkit_image::RadiantImageNode;
+use radiantkit_macros::{RadiantComponentProvider, RadiantNode, RadiantTessellatable};
+use radiantkit_path::RadiantPathNode;
+use radiantkit_text::RadiantTextNode;
 use serde::{Deserialize, Serialize};
 
 #[derive(
