@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.useCurrentController = exports.RadiantProvider = void 0;
 const tslib_1 = require("tslib");
 const react_1 = tslib_1.__importStar(require("react"));
-const radiant_runtime_1 = tslib_1.__importDefault(require("radiant-runtime"));
+const radiantkit_1 = tslib_1.__importDefault(require("radiantkit"));
 const controller_1 = require("../controller");
 const RadiantContext = (0, react_1.createContext)({
     controller: null,
@@ -14,7 +14,7 @@ function RadiantProvider({ children }) {
     const [response, setResponse] = (0, react_1.useState)({});
     const initWasm = () => tslib_1.__awaiter(this, void 0, void 0, function* () {
         try {
-            yield (0, radiant_runtime_1.default)();
+            yield (0, radiantkit_1.default)();
             let controller = yield controller_1.RadiantController.createController((message) => {
                 setResponse(message);
             });

@@ -1,4 +1,4 @@
-import { RadiantAppController } from "radiant-runtime";
+import { RadiantAppController } from "radiantkit";
 export class RadiantController {
     constructor(controller) {
         this._controller = controller;

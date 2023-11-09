@@ -1,4 +1,4 @@
-use radiant_runtime::{
+use radiantkit::{
     run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, Runtime,
 };
 

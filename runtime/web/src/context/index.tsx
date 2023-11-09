@@ -1,5 +1,5 @@
 import React, { useState, createContext, useEffect, useRef, useContext } from "react";
-import init from "radiant-runtime";
+import init from "radiantkit";
 import { RadiantController } from "controller";
 
 export interface RadiantState {

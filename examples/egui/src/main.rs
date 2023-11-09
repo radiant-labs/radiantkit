@@ -1,4 +1,4 @@
-use radiant_runtime::{
+use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
     RadiantSceneMessage, RadiantTextNode, RectangleTool, Runtime, View,
 };
