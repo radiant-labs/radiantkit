@@ -2,6 +2,8 @@
 name = "radiantkit"
 version = "0.0.1"
 edition = "2021"
+description = "Framework to build graphic applications"
+repository = "https://github.com/radiant-labs/radiantkit"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,12 +20,12 @@ serde = { version = "1.0", features = ["derive"] }
 epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
 pollster = "0.3"
 futures-intrusive = "0.5"
-radiant-core  = { path = "../crates/core" }
-radiant-macros  = { path = "../crates/macros" }
-radiant-image-node = { path = "../crates/image" }
-radiant-text-node = { path = "../crates/text" }
-radiant-path-node = { path = "../crates/path" }
-radiant-winit = { path = "../crates/winit" }
+radiantkit-core  = { version = "0.0.1", path = "../crates/core" }
+radiantkit-macros  = { version = "0.0.1", path = "../crates/macros" }
+radiantkit-image = { version = "0.0.1", path = "../crates/image" }
+radiantkit-text = { version = "0.0.1", path = "../crates/text" }
+radiantkit-path = { version = "0.0.1", path = "../crates/path" }
+radiantkit-winit = { version = "0.0.1", path = "../crates/winit" }
 macro_magic = "0.5.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
