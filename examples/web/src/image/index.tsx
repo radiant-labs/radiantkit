@@ -1,4 +1,4 @@
-import { RadiantCanvas, RadiantProvider, useCurrentController } from 'radiant-sdk';
+import { RadiantCanvas, RadiantProvider, useCurrentController } from '@radiantkit/react';
 import { Box, Button, Stack, TextField } from '@mui/material';
 import { useState } from 'react';
 
