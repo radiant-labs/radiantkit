@@ -2,6 +2,10 @@
 name = "radiantkit-image"
 version = "0.0.1"
 edition = "2021"
+description = "Framework to build graphic applications"
+repository = "https://github.com/radiant-labs/radiantkit"
+homepage = "https://www.radiantkit.xyz/"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
