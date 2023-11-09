@@ -1,6 +1,6 @@
 {
-  "name": "radiant-sdk",
-  "version": "0.1.0",
+  "name": "@radiantkit/react",
+  "version": "0.0.1",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

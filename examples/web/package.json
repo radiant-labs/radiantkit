@@ -15,7 +15,7 @@
     "@types/node": "^16.18.44",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
-    "radiant-sdk": "0.1.0",
+    "@radiantkit/react": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.18.0",
