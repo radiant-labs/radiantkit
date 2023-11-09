@@ -27,7 +27,7 @@
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
         "noErrorTruncation": true,
-        "importsNotUsedAsValues": "error",
+        // "importsNotUsedAsValues": "error",
         // sources
         "sourceMap": true,
         "declaration": true,
