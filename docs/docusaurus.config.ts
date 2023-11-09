@@ -103,16 +103,8 @@ const config: Config = {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              label: 'Slack',
+              href: 'https://join.slack.com/t/radiantkit/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q',
             },
           ],
         },
