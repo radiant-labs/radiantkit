@@ -1,6 +1,6 @@
 use crate::RadiantRuntime;
 use crate::{RectangleTool, Runtime};
-use radiant_core::View;
+use radiantkit_core::View;
 use std::sync::{Arc, RwLock};
 use wasm_bindgen::prelude::*;
 
@@ -25,7 +25,7 @@ impl RadiantAppController {
 
         let runtime = Arc::new(RwLock::new(runtime));
 
-        radiant_winit::run_wasm(runtime.clone(), f.clone());
+        radiantkit_winit::run_wasm(runtime.clone(), f.clone());
 
         Self { runtime }
     }

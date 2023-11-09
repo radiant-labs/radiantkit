@@ -1,4 +1,4 @@
-use radiant_core::{
+use radiantkit_core::{
     RadiantNode, RadiantScene, RadiantSceneMessage, RadiantTool, Runtime, ScreenDescriptor, View,
 };
 use winit::event_loop::EventLoop;
