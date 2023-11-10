@@ -53,7 +53,11 @@ const config: Config = {
         googleAnalytics: {
           trackingID: 'G-BDC4T0F9SW',
           anonymizeIP: true,
-        }
+        },
+        gtag: {
+          trackingID: 'G-BDC4T0F9SW',
+          anonymizeIP: true,
+        },
       } satisfies Preset.Options,
     ],
   ],
