@@ -1,8 +1,8 @@
-import { RadiantAppController } from "radiantkit";
-export declare class RadiantController {
-    _controller: RadiantAppController;
-    constructor(controller: RadiantAppController);
-    static createController(f: Function): Promise<RadiantController>;
+import { RadiantKitAppController } from "@radiantkit/radiantkit";
+export declare class RadiantKitController {
+    _controller: RadiantKitAppController;
+    constructor(controller: RadiantKitAppController);
+    static createController(f: Function): Promise<RadiantKitController>;
     /**
      * Activates the provided tool.
      *

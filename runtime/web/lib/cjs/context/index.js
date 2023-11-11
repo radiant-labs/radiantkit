@@ -1,21 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useCurrentController = exports.RadiantProvider = void 0;
+exports.useCurrentController = exports.RadiantKitProvider = void 0;
 const tslib_1 = require("tslib");
 const react_1 = tslib_1.__importStar(require("react"));
-const radiantkit_1 = tslib_1.__importDefault(require("radiantkit"));
+const radiantkit_1 = tslib_1.__importDefault(require("@radiantkit/radiantkit"));
 const controller_1 = require("../controller");
-const RadiantContext = (0, react_1.createContext)({
+const RadiantKitContext = (0, react_1.createContext)({
     controller: null,
     response: {},
 });
-function RadiantProvider({ children }) {
+function RadiantKitProvider({ children }) {
     const [controller, setController] = (0, react_1.useState)(null);
     const [response, setResponse] = (0, react_1.useState)({});
     const initWasm = () => tslib_1.__awaiter(this, void 0, void 0, function* () {
         try {
             yield (0, radiantkit_1.default)();
-            let controller = yield controller_1.RadiantController.createController((message) => {
+            let controller = yield controller_1.RadiantKitController.createController((message) => {
                 setResponse(message);
             });
             setController(controller);
@@ -35,14 +35,14 @@ function RadiantProvider({ children }) {
         effectCalled.current = true;
         initWasm();
     }, []);
-    return (react_1.default.createElement(RadiantContext.Provider, { value: {
+    return (react_1.default.createElement(RadiantKitContext.Provider, { value: {
             controller,
             response,
         } }, children));
 }
-exports.RadiantProvider = RadiantProvider;
+exports.RadiantKitProvider = RadiantKitProvider;
 const useCurrentController = () => {
-    return (0, react_1.useContext)(RadiantContext);
+    return (0, react_1.useContext)(RadiantKitContext);
 };
 exports.useCurrentController = useCurrentController;
 //# sourceMappingURL=index.js.map

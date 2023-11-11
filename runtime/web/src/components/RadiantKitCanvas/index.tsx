@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-export const RadiantCanvas = () => {
+export const RadiantKitCanvas = () => {
     return (
         <div
             id="canvas-container"

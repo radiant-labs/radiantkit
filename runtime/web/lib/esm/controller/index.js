@@ -1,10 +1,10 @@
-import { RadiantAppController } from "radiantkit";
-export class RadiantController {
+import { RadiantKitAppController } from "@radiantkit/radiantkit";
+export class RadiantKitController {
     constructor(controller) {
         this._controller = controller;
     }
     static async createController(f) {
-        return new RadiantController(await new RadiantAppController(f));
+        return new RadiantKitController(await new RadiantKitAppController(f));
     }
     /**
      * Activates the provided tool.
