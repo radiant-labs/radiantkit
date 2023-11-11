@@ -1,15 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RadiantController = void 0;
+exports.RadiantKitController = void 0;
 const tslib_1 = require("tslib");
-const radiantkit_1 = require("radiantkit");
-class RadiantController {
+const radiantkit_1 = require("@radiantkit/radiantkit");
+class RadiantKitController {
     constructor(controller) {
         this._controller = controller;
     }
     static createController(f) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return new RadiantController(yield new radiantkit_1.RadiantAppController(f));
+            return new RadiantKitController(yield new radiantkit_1.RadiantKitAppController(f));
         });
     }
     /**
@@ -82,5 +82,5 @@ class RadiantController {
         });
     }
 }
-exports.RadiantController = RadiantController;
+exports.RadiantKitController = RadiantKitController;
 //# sourceMappingURL=index.js.map

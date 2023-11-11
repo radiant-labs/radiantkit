@@ -1,25 +1,25 @@
 import React, { useState, createContext, useEffect, useRef, useContext } from "react";
-import init from "radiantkit";
-import { RadiantController } from "controller";
+import init from "@radiantkit/radiantkit";
+import { RadiantKitController } from "controller";
 
-export interface RadiantState {
-    controller: RadiantController | null;
+export interface RadiantKitState {
+    controller: RadiantKitController | null;
     response: any;
 }
 
-const RadiantContext = createContext<RadiantState>({
+const RadiantKitContext = createContext<RadiantKitState>({
     controller: null,
     response: {},
 });
 
-function RadiantProvider({ children }: any) {
-    const [controller, setController] = useState<RadiantController | null>(null);
+function RadiantKitProvider({ children }: any) {
+    const [controller, setController] = useState<RadiantKitController | null>(null);
     const [response, setResponse] = useState<any>({});
 
     const initWasm = async () => {
         try {
             await init();
-            let controller = await RadiantController.createController((message: any) => {
+            let controller = await RadiantKitController.createController((message: any) => {
                 setResponse(message);
             });
             setController(controller);
@@ -41,17 +41,17 @@ function RadiantProvider({ children }: any) {
     }, []);
 
     return (
-        <RadiantContext.Provider value={{
+        <RadiantKitContext.Provider value={{
             controller,
             response,
         }}>
             {children}
-        </RadiantContext.Provider>
+        </RadiantKitContext.Provider>
     )
 }
 
 const useCurrentController = () => {
-    return useContext(RadiantContext);
+    return useContext(RadiantKitContext);
 }
 
-export { RadiantProvider, useCurrentController };
+export { RadiantKitProvider, useCurrentController };

@@ -1,4 +1,4 @@
-import { RadiantCanvas, RadiantProvider, useCurrentController } from '@radiantkit/react';
+import { RadiantKitCanvas, RadiantKitProvider, useCurrentController } from '@radiantkit/react';
 import { Box, Button, Stack, TextField } from '@mui/material';
 import { useState } from 'react';
 
@@ -49,13 +49,13 @@ const ImageLoader = () => {
 
 const ImageExample = () => {
     return (
-        <RadiantProvider>
+        <RadiantKitProvider>
             <Stack>
                 <ImageLoader />
                 <Box height={10} />
-                <RadiantCanvas />
+                <RadiantKitCanvas />
         </Stack>
-        </RadiantProvider>
+        </RadiantKitProvider>
     )
 }
 

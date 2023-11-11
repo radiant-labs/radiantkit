@@ -1,1 +1,1 @@
-export * from "./RadiantCanvas";
+export * from "./RadiantKitCanvas";

@@ -1,4 +1,4 @@
-import { RadiantCanvas, RadiantProvider, useCurrentController } from '@radiantkit/react';
+import { RadiantKitCanvas, RadiantKitProvider, useCurrentController } from '@radiantkit/react';
 import { Box, Button, ButtonGroup, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -174,16 +174,16 @@ const Color = () => {
 
 const BasicExample = () => {
     return (
-        <RadiantProvider>
+        <RadiantKitProvider>
             <Stack>
                 <Tools />
                 <Box height={10} />
                 <Transform />
                 <Box height={10} />
                 <Color />
-                <RadiantCanvas />
+                <RadiantKitCanvas />
             </Stack>
-        </RadiantProvider>
+        </RadiantKitProvider>
     )
 }
 
