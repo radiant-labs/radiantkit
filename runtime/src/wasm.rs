@@ -4,13 +4,13 @@ use radiantkit_core::View;
 use std::sync::{Arc, RwLock};
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(js_name = RadiantAppController)]
-pub struct RadiantAppController {
+#[wasm_bindgen(js_name = RadiantKitAppController)]
+pub struct RadiantKitAppController {
     runtime: Arc<RwLock<RadiantRuntime>>,
 }
 
-#[wasm_bindgen(js_class = RadiantAppController)]
-impl RadiantAppController {
+#[wasm_bindgen(js_class = RadiantKitAppController)]
+impl RadiantKitAppController {
     #[wasm_bindgen(constructor)]
     pub async fn new(f: &js_sys::Function) -> Self {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));

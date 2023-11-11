@@ -1,10 +1,10 @@
 import React from "react";
-import { RadiantController } from "../controller";
-export interface RadiantState {
-    controller: RadiantController | null;
+import { RadiantKitController } from "../controller";
+export interface RadiantKitState {
+    controller: RadiantKitController | null;
     response: any;
 }
-declare function RadiantProvider({ children }: any): React.JSX.Element;
-declare const useCurrentController: () => RadiantState;
-export { RadiantProvider, useCurrentController };
+declare function RadiantKitProvider({ children }: any): React.JSX.Element;
+declare const useCurrentController: () => RadiantKitState;
+export { RadiantKitProvider, useCurrentController };
 //# sourceMappingURL=index.d.ts.map

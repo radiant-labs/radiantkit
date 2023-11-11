@@ -1,14 +1,14 @@
-import { RadiantAppController } from "radiantkit";
+import { RadiantKitAppController } from "@radiantkit/radiantkit";
 
-export class RadiantController {
-    _controller: RadiantAppController;
+export class RadiantKitController {
+    _controller: RadiantKitAppController;
 
-    constructor(controller: RadiantAppController) {
+    constructor(controller: RadiantKitAppController) {
         this._controller = controller;
     }
 
-    static async createController(f: Function): Promise<RadiantController> {
-        return new RadiantController(await new RadiantAppController(f));   
+    static async createController(f: Function): Promise<RadiantKitController> {
+        return new RadiantKitController(await new RadiantKitAppController(f));   
     }
 
     /**

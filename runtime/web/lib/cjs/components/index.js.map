@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/components/index.tsx"],"names":[],"mappings":";;;AAAA,0DAAgC","sourcesContent":["export * from \"./RadiantCanvas\";\n"]}
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/components/index.tsx"],"names":[],"mappings":";;;AAAA,6DAAmC","sourcesContent":["export * from \"./RadiantKitCanvas\";\n"]}

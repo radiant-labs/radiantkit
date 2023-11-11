@@ -9,11 +9,11 @@ use egui::{FontDefinitions, Id};
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 use egui_winit_platform::{Platform, PlatformDescriptor};
 
-struct RadiantAppController {
+struct RadiantKitAppController {
     pending_messages: Vec<RadiantMessage>,
 }
 
-impl RadiantAppController {
+impl RadiantKitAppController {
     fn new() -> Self {
         Self {
             pending_messages: Vec::new(),
@@ -21,7 +21,7 @@ impl RadiantAppController {
     }
 }
 
-impl RadiantAppController {
+impl RadiantKitAppController {
     fn update(&mut self, ctx: &egui::Context) {
         let frame = egui::Frame::none().fill(egui::Color32::TRANSPARENT);
         egui::TopBottomPanel::top(Id::new("top"))
@@ -88,7 +88,7 @@ async fn run() {
             1,
         );
     }
-    let mut demo_app = RadiantAppController::new();
+    let mut demo_app = RadiantKitAppController::new();
 
     if let Some(event_loop) = std::mem::replace(&mut runtime.view.event_loop, None) {
         event_loop.run(move |event, _, control_flow| {
