@@ -23,7 +23,7 @@ cd my-radiantkit-project
 Next, let's install **@radiantkit/react** package
 
 ```bash
-npm install @radiantkit/reac
+npm install @radiantkit/react
 ```
 
 You should now be able to start your project with npm run start, and open http://localhost:3000 in your browser.
