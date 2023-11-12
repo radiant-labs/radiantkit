@@ -176,12 +176,13 @@ const BasicExample = () => {
     return (
         <RadiantKitProvider>
             <Stack>
+                <RadiantKitCanvas />
+                <Box height={10} />
                 <Tools />
                 <Box height={10} />
                 <Transform />
                 <Box height={10} />
                 <Color />
-                <RadiantKitCanvas />
             </Stack>
         </RadiantKitProvider>
     )
