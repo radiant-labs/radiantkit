@@ -1,10 +1,12 @@
-<h1 align="center">
-  RadiantKit
-</h1>
-
 <p align="center">
-    <b>Build Graphics Apps 10x Faster!</b> <br />
+<a href="https://www.radiantkit.xyz?utm_source=github&utm_medium=organic&utm_campaign=readme">
+  <img src="logo.png" alt="RadiantKit Logo">
+</a>
 </p>
+
+<h2 align="center">
+    <b>Build Graphics Apps 10x Faster!</b> <br />
+</h2>
 
 <h3 align="center">
   <a href="https://www.radiantkit.xyz/">Website</a> &bull;
