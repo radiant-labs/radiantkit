@@ -51,9 +51,9 @@ const ImageExample = () => {
     return (
         <RadiantKitProvider>
             <Stack>
-                <ImageLoader />
-                <Box height={10} />
                 <RadiantKitCanvas />
+                <Box height={10} />
+                <ImageLoader />
         </Stack>
         </RadiantKitProvider>
     )

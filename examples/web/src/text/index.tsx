@@ -29,9 +29,9 @@ const TextExample = () => {
     return (
         <RadiantKitProvider>
             <Stack>
-                <Text />
-                <Box height={10} />
                 <RadiantKitCanvas />
+                <Box height={10} />
+                <Text />
         </Stack>
         </RadiantKitProvider>
     )
