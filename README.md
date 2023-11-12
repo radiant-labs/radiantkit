@@ -1,6 +1,6 @@
 <p align="center">
 <a href="https://www.radiantkit.xyz?utm_source=github&utm_medium=organic&utm_campaign=readme">
-  <img src="logo.png" alt="RadiantKit Logo">
+  <img src="banner.png" alt="RadiantKit Banner">
 </a>
 </p>
 
