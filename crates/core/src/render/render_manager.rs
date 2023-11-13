@@ -15,8 +15,6 @@ pub struct RadiantRenderManager {
     offscreen_buffer: Option<wgpu::Buffer>,
 
     pub current_view: Option<wgpu::TextureView>,
-
-    #[cfg(not(target_arch = "wasm32"))]
     pub current_texture: Option<wgpu::SurfaceTexture>,
 }
 
@@ -56,8 +54,6 @@ impl RadiantRenderManager {
             offscreen_buffer: None,
 
             current_view: None,
-
-            #[cfg(not(target_arch = "wasm32"))]
             current_texture: None,
         }
     }
@@ -125,7 +121,33 @@ impl RadiantRenderManager {
         screen_descriptor: &ScreenDescriptor,
         selection: bool,
     ) -> Result<(), wgpu::SurfaceError> {
-        let mut current_texture = None;
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
+
+        self.render_internal(primitives, screen_descriptor, selection, &mut encoder)?;
+
+        // submit will accept anything that implements IntoIter
+        self.queue.submit(std::iter::once(encoder.finish()));
+
+        #[cfg(target_arch = "wasm32")]
+        if !selection {
+            let current_texture = std::mem::replace(&mut self.current_texture, None);
+            current_texture.unwrap().present();
+        }
+
+        Ok(())
+    }
+
+    fn render_internal(
+        &mut self,
+        primitives: Vec<ClippedPrimitive>,
+        screen_descriptor: &ScreenDescriptor,
+        selection: bool,
+        encoder: &mut wgpu::CommandEncoder,
+    ) -> Result<(), wgpu::SurfaceError> {
         let view;
         if selection {
             self.offscreen_renderer.update_buffers(
@@ -147,14 +169,8 @@ impl RadiantRenderManager {
             self.current_view = Some(v);
             view = self.current_view.as_ref().unwrap();
 
-            current_texture = Some(output);
+            self.current_texture = Some(output);
         }
-
-        let mut encoder = self
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Render Encoder"),
-            });
 
         {
             let background_color = if selection {
@@ -194,19 +210,6 @@ impl RadiantRenderManager {
             }
         }
 
-        // submit will accept anything that implements IntoIter
-        self.queue.submit(std::iter::once(encoder.finish()));
-
-        #[cfg(target_arch = "wasm32")]
-        if !selection {
-            current_texture.unwrap().present();
-        }
-
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            self.current_texture = current_texture;
-        }
-
         Ok(())
     }
 
@@ -225,7 +228,7 @@ impl RadiantRenderManager {
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        self.render(primitives, screen_descriptor, selection)?;
+        self.render_internal(primitives, screen_descriptor, selection, &mut encoder)?;
 
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
@@ -278,7 +281,7 @@ impl RadiantRenderManager {
             id += (*data.get(index + 1).unwrap() as u64) << 8;
             id += (*data.get(index + 2).unwrap() as u64) << 16;
 
-            log::info!("id: {}", id);
+            // log::error!("id: {}", id);
 
             // use image::{ImageBuffer, Rgba};
             // let buffer =
@@ -286,8 +289,10 @@ impl RadiantRenderManager {
 
             // #[cfg(not(target_arch = "wasm32"))]
             // buffer.save("image.png").unwrap();
+
+            drop(data);
+            buffer.unmap();
         }
-        self.offscreen_buffer.as_ref().unwrap().unmap();
 
         Ok(id)
     }
