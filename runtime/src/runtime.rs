@@ -73,9 +73,9 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     }
                 });
             }
-            RadiantMessage::AddText { position, .. } => {
+            RadiantMessage::AddText { text, position } => {
                 let id = self.view.scene().document().counter;
-                let node = RadiantTextNode::new(id, position, [100.0, 100.0]);
+                let node = RadiantTextNode::new(id, text, position, [100.0, 100.0]);
                 self.view.scene_mut().add(node.into());
                 return self
                     .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
