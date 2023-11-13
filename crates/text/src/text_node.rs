@@ -75,8 +75,8 @@ impl RadiantTextNode {
 
         let mut job = LayoutJob::default();
         job.append(
-            &self.text, 
-            0.0, 
+            &self.text,
+            0.0,
             TextFormat {
                 font_id: FontId::new(14.0, FontFamily::Proportional),
                 color: Color32::WHITE,
