@@ -195,7 +195,10 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                             location, phase, ..
                         }) => {
                             let window_origin = self.window.outer_position().unwrap_or_default();
-                            let current_position = [location.x as f32 - window_origin.x as f32, location.y as f32 - window_origin.y as f32];
+                            let current_position = [
+                                location.x as f32 - window_origin.x as f32,
+                                location.y as f32 - window_origin.y as f32,
+                            ];
                             self.mouse_position = current_position;
                             match phase {
                                 TouchPhase::Started => {

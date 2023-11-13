@@ -66,7 +66,8 @@ async fn run() {
         .register_tool(1u32, Box::new(RectangleTool::new()));
     runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
-    runtime.add(RadiantTextNode::new(3, [400.0, 600.0], [200.0, 200.0]).into());
+    runtime
+        .add(RadiantTextNode::new(3, String::from("Hello"), [400.0, 600.0], [200.0, 200.0]).into());
 
     let size = runtime.view.window.inner_size();
     let scale_factor = runtime.view.window.scale_factor();
