@@ -15,6 +15,7 @@ use std::{
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RadiantTextNode {
     pub id: u64,
+    pub text: String,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     pub color: ColorComponent,
@@ -41,7 +42,7 @@ impl Debug for RadiantTextNode {
 }
 
 impl RadiantTextNode {
-    pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
+    pub fn new(id: u64, text: String, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_xy(&position);
         transform.set_scale(&scale);
@@ -51,6 +52,7 @@ impl RadiantTextNode {
 
         Self {
             id,
+            text,
             transform,
             selection,
             color,
@@ -73,23 +75,32 @@ impl RadiantTextNode {
 
         let mut job = LayoutJob::default();
         job.append(
-            "Hello ",
-            0.0,
+            &self.text, 
+            0.0, 
             TextFormat {
                 font_id: FontId::new(14.0, FontFamily::Proportional),
                 color: Color32::WHITE,
                 ..Default::default()
             },
         );
-        job.append(
-            "World!",
-            0.0,
-            TextFormat {
-                font_id: FontId::new(14.0, FontFamily::Monospace),
-                color: Color32::BLACK,
-                ..Default::default()
-            },
-        );
+        // job.append(
+        //     "Hello ",
+        //     0.0,
+        //     TextFormat {
+        //         font_id: FontId::new(14.0, FontFamily::Proportional),
+        //         color: Color32::WHITE,
+        //         ..Default::default()
+        //     },
+        // );
+        // job.append(
+        //     "World!",
+        //     0.0,
+        //     TextFormat {
+        //         font_id: FontId::new(14.0, FontFamily::Monospace),
+        //         color: Color32::BLACK,
+        //         ..Default::default()
+        //     },
+        // );
 
         let galley = fonts.layout_job(job);
 
