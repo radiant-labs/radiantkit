@@ -15,7 +15,8 @@ impl SelectionTool {
 }
 
 impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
-    fn on_mouse_down(&mut self, node_id: u64, _node_count: u64, _position: [f32; 2]) -> Option<M> {
+    fn on_mouse_down(&mut self, node_id: u64, _node_count: u64, position: [f32; 2]) -> Option<M> {
+        self.prev_position = position;
         Some(
             if node_id > 0 {
                 self.active_node_id = Some(node_id - 1);
