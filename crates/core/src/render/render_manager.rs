@@ -273,8 +273,8 @@ impl RadiantRenderManager {
 
             let data = buffer_slice.get_mapped_range();
 
-            let posx: u32 = mouse_position[0].round() as u32;
-            let posy: u32 = mouse_position[1].round() as u32;
+            let posx: u32 = (mouse_position[0] * screen_descriptor.pixels_per_point) as u32;
+            let posy: u32 = (mouse_position[1] * screen_descriptor.pixels_per_point) as u32;
             let index = (posy * texture_width * 4 + posx * 4) as usize;
 
             id = *data.get(index).unwrap() as u64;

@@ -185,7 +185,8 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                             }
                         }
                         WindowEvent::CursorMoved { position, .. } => {
-                            let current_position = [position.x as f32, position.y as f32];
+                            let ScreenDescriptor { pixels_per_point,  .. } = self.scene().screen_descriptor;
+                            let current_position = [position.x as f32 / pixels_per_point, position.y as f32 / pixels_per_point];
                             self.mouse_position = current_position;
                             return self.on_mouse_move(self.mouse_position);
                             //     self.window.request_redraw();
@@ -194,10 +195,11 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                         WindowEvent::Touch(Touch {
                             location, phase, ..
                         }) => {
+                            let ScreenDescriptor { pixels_per_point,  .. } = self.scene().screen_descriptor;
                             let window_origin = self.window.outer_position().unwrap_or_default();
                             let current_position = [
-                                location.x as f32 - window_origin.x as f32,
-                                location.y as f32 - window_origin.y as f32,
+                                (location.x as f32 - window_origin.x as f32) / pixels_per_point,
+                                (location.y as f32 - window_origin.y as f32) / pixels_per_point,
                             ];
                             self.mouse_position = current_position;
                             match phase {

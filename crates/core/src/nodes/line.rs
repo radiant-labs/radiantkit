@@ -56,12 +56,12 @@ impl RadiantLineNode {
 
         let points = [
             epaint::Pos2::new(
-                self.start[0] / pixels_per_point,
-                self.start[1] / pixels_per_point,
+                self.start[0],
+                self.start[1],
             ),
             epaint::Pos2::new(
-                self.end[0] / pixels_per_point,
-                self.end[1] / pixels_per_point,
+                self.end[0],
+                self.end[1],
             ),
         ];
 

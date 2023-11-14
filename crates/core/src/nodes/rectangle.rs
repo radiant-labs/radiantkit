@@ -58,12 +58,12 @@ impl RadiantRectangleNode {
 
         let rect = epaint::Rect::from_two_pos(
             epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point,
+                position[0],
+                position[1],
             ),
             epaint::Pos2::new(
-                (position[0] + scale[0]) / pixels_per_point,
-                (position[1] + scale[1]) / pixels_per_point,
+                position[0] + scale[0],
+                position[1] + scale[1],
             ),
         );
 
