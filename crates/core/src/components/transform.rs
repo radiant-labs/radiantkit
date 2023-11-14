@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{RadiantComponent, RadiantTransformable};
 
+const MIN_SIZE: f32 = 8.0;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TransformComponent {
     position: [f32; 3],
@@ -13,7 +15,7 @@ impl TransformComponent {
     pub fn new() -> Self {
         Self {
             position: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
+            scale: [MIN_SIZE, MIN_SIZE, 0.0],
             rotation: 0.0,
         }
     }
@@ -29,7 +31,7 @@ impl RadiantTransformable for TransformComponent {
     }
 
     fn transform_scale(&mut self, scale: &[f32; 2]) {
-        self.scale = [self.scale[0] + scale[0], self.scale[1] + scale[1], 0.0]
+        self.scale = [(self.scale[0] + scale[0]).max(MIN_SIZE), (self.scale[1] + scale[1]).max(MIN_SIZE), 0.0];
     }
 
     fn set_xy(&mut self, position: &[f32; 2]) {
@@ -37,7 +39,7 @@ impl RadiantTransformable for TransformComponent {
     }
 
     fn set_scale(&mut self, scale: &[f32; 2]) {
-        self.scale = [scale[0], scale[1], 0.0];
+        self.scale = [scale[0].max(MIN_SIZE), scale[1].max(MIN_SIZE), 0.0];
     }
 
     fn set_rotation(&mut self, rotation: f32) {
