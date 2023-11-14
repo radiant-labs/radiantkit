@@ -134,7 +134,8 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 self.document_mut().select(id);
                 if let Some(id) = id {
                     if !self.interaction_manager.is_interaction(id) {
-                        if let Some(node) = self.document.write().unwrap().get_node(id) {
+                        if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                            node.tessellate(false, &self.screen_descriptor, &self.fonts_manager);
                             self.interaction_manager
                                 .enable_interactions(node, &self.screen_descriptor);
                             return Some(RadiantSceneResponse::Selected { node: node.clone() });
