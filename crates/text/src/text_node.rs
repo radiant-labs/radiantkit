@@ -71,14 +71,14 @@ impl RadiantTextNode {
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
         let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        // let scale = self.transform.get_scale();
 
         let mut job = LayoutJob::default();
         job.append(
             &self.text,
             0.0,
             TextFormat {
-                font_id: FontId::new(14.0, FontFamily::Proportional),
+                font_id: FontId::new(24.0, FontFamily::Proportional),
                 color: Color32::WHITE,
                 ..Default::default()
             },
@@ -106,8 +106,8 @@ impl RadiantTextNode {
 
         let shape = epaint::TextShape::new(
             epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point,
+                position[0],
+                position[1],
             ),
             galley,
         );
@@ -118,16 +118,13 @@ impl RadiantTextNode {
             (atlas.size(), atlas.prepared_discs())
         };
 
-        let rect = epaint::Rect::from_two_pos(
-            epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point,
-            ),
-            epaint::Pos2::new(
-                (position[0] + scale[0]) / pixels_per_point,
-                (position[1] + scale[1]) / pixels_per_point,
-            ),
-        );
+        let rect: Rect = shape.visual_bounding_rect();
+        self.bounding_rect = [
+            rect.left_top().x,
+            rect.left_top().y,
+            rect.right_bottom().x,
+            rect.right_bottom().y,
+        ];
 
         let rounding = epaint::Rounding::default();
 
@@ -169,21 +166,6 @@ impl RadiantTessellatable for RadiantTextNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
-
-        let rect = epaint::Rect::from_two_pos(
-            epaint::Pos2::new(position[0], position[1]),
-            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
-        );
-
-        self.bounding_rect = [
-            rect.left_top().x,
-            rect.left_top().y,
-            rect.right_bottom().x,
-            rect.right_bottom().y,
-        ];
-
         self.needs_tessellation = true;
     }
 
