@@ -7,13 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build
+        working-directory: ./runtime
+        run: wasm-pack build --target web --release --scope radiantkit
+      - name: Publish radiantkit
+        working-directory: ./runtime/pkg
+        run: wasm-pack publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
-      - run: yarn publish --access public
+      - name: Publish radiantkit-react
+        run: yarn publish --access public
         working-directory: ./runtime/web
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
