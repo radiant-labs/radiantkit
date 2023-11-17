@@ -3,7 +3,7 @@ use epaint::{
 };
 use radiantkit_core::{
     ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent, Vec3,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -49,8 +49,8 @@ impl RadiantImageNode {
         texture_handle: TextureHandle,
     ) -> Self {
         let mut transform = TransformComponent::new();
-        transform.set_xy(&position);
-        transform.set_scale(&scale);
+        transform.set_position(&position.into());
+        transform.set_scale(&scale.into());
 
         let selection = SelectionComponent::new();
         let mut tint = ColorComponent::new();
@@ -76,18 +76,12 @@ impl RadiantImageNode {
         self.needs_tessellation = false;
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let rect = epaint::Rect::from_two_pos(
-            epaint::Pos2::new(
-                position[0],
-                position[1],
-            ),
-            epaint::Pos2::new(
-                position[0] + scale[0],
-                position[1] + scale[1],
-            ),
+            position.into(),
+            Vec3::new_with_added(&position, &scale).into(),
         );
         let rounding = epaint::Rounding::default();
 
@@ -134,12 +128,12 @@ impl RadiantTessellatable for RadiantImageNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let rect = epaint::Rect::from_min_max(
-            epaint::Pos2::new(position[0], position[1]),
-            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
+            position.into(),
+            Vec3::new_with_added(&position, &scale).into(),
         );
         self.bounding_rect = [
             rect.left_top().x,

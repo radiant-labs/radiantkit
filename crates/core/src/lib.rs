@@ -6,6 +6,7 @@ pub mod render;
 pub mod scene;
 pub mod texture;
 pub mod tools;
+pub mod utils;
 
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
@@ -17,6 +18,7 @@ pub use render::*;
 pub use scene::*;
 pub use texture::*;
 pub use tools::*;
+pub use utils::*;
 
 /// Information about the screen used for rendering.
 #[derive(Clone, Copy)]

@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::{
     ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
     RadiantRenderManager, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
-    RadiantTextureManager, RadiantTool, RadiantToolManager, RadiantTransformable, ScreenDescriptor,
+    RadiantTextureManager, RadiantTool, RadiantToolManager, ScreenDescriptor,
     TransformComponent,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
@@ -160,13 +160,13 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     }
                 } else if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
-                        component.transform_xy(&position);
-                        component.transform_scale(&scale);
+                        component.transform_xy(&position.into());
+                        component.transform_scale(&scale.into());
 
                         let response = RadiantSceneResponse::TransformUpdated {
                             id,
-                            position: component.get_xy(),
-                            scale: component.get_scale(),
+                            position: component.position().into(),
+                            scale: component.scale().into(),
                         };
 
                         node.set_needs_tessellation();
@@ -184,8 +184,8 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             } => {
                 if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
-                        component.set_xy(&position);
-                        component.set_scale(&scale);
+                        component.set_position(&position.into());
+                        component.set_scale(&scale.into());
                         node.set_needs_tessellation();
 
                         self.interaction_manager

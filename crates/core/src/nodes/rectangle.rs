@@ -1,14 +1,16 @@
 use crate::{
     ColorComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent, Vec3,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
+use radiantkit_macros::radiant_wasm_bindgen;
 use serde::{Deserialize, Serialize};
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
 };
 
+#[radiant_wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantRectangleNode {
     pub id: u64,
@@ -16,20 +18,24 @@ pub struct RadiantRectangleNode {
     pub selection: SelectionComponent,
     pub color: ColorComponent,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
 impl RadiantRectangleNode {
     pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
-        transform.set_xy(&position);
-        transform.set_scale(&scale);
+        transform.set_position(&position.into());
+        transform.set_scale(&scale.into());
 
         let selection = SelectionComponent::new();
         let color = ColorComponent::new();
@@ -53,18 +59,12 @@ impl RadiantRectangleNode {
         self.needs_tessellation = false;
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let rect = epaint::Rect::from_two_pos(
-            epaint::Pos2::new(
-                position[0],
-                position[1],
-            ),
-            epaint::Pos2::new(
-                position[0] + scale[0],
-                position[1] + scale[1],
-            ),
+            position.into(),
+            Vec3::new_with_added(&position, &scale).into(),
         );
 
         let rounding = epaint::Rounding::default();
@@ -114,12 +114,12 @@ impl RadiantTessellatable for RadiantRectangleNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let rect = epaint::Rect::from_two_pos(
-            epaint::Pos2::new(position[0], position[1]),
-            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1]),
+            position.into(),
+            Vec3::new_with_added(&position, &scale).into(),
         );
 
         self.bounding_rect = [

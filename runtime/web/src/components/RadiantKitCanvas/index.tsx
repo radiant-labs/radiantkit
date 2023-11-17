@@ -1,18 +1,9 @@
-import React, { forwardRef } from "react";
+import React from "react";
 
 export const RadiantKitCanvas = () => {
     return (
         <div
             id="canvas-container"
-            // style={{
-            //     position: 'absolute',
-            //     zIndex: 0,
-            //     display: 'flex',
-            //     alignItems: 'center',
-            //     height: '100%',
-            //     justifyContent: 'center',
-            //     width: '100%',
-            // }}
         />
     );
 };

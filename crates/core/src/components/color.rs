@@ -1,9 +1,11 @@
+use radiantkit_macros::radiant_wasm_bindgen;
 use serde::{Deserialize, Serialize};
 
 use crate::RadiantComponent;
 use epaint::Color32;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[radiant_wasm_bindgen]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct ColorComponent {
     fill_color: Color32,
     stroke_color: Color32,

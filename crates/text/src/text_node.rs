@@ -4,7 +4,7 @@ use epaint::{
 };
 use radiantkit_core::{
     ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -44,8 +44,8 @@ impl Debug for RadiantTextNode {
 impl RadiantTextNode {
     pub fn new(id: u64, text: String, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
-        transform.set_xy(&position);
-        transform.set_scale(&scale);
+        transform.set_position(&position.into());
+        transform.set_scale(&scale.into());
 
         let selection = SelectionComponent::new();
         let color = ColorComponent::new();
@@ -70,8 +70,8 @@ impl RadiantTextNode {
         self.needs_tessellation = false;
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
-        let position = self.transform.get_xy();
-        // let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        // let scale = self.transform.scale();
 
         let mut job = LayoutJob::default();
         job.append(
@@ -105,10 +105,7 @@ impl RadiantTextNode {
         let galley = fonts.layout_job(job);
 
         let shape = epaint::TextShape::new(
-            epaint::Pos2::new(
-                position[0],
-                position[1],
-            ),
+            position.into(),
             galley,
         );
 

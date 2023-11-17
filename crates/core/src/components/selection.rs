@@ -1,8 +1,10 @@
+use radiantkit_macros::radiant_wasm_bindgen;
 use serde::{Deserialize, Serialize};
 
 use crate::{RadiantComponent, RadiantSelectable};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[radiant_wasm_bindgen]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct SelectionComponent {
     selected: bool,
 }
