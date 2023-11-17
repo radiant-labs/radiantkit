@@ -3882,7 +3882,10 @@ dependencies = [
  "macro_magic",
  "pollster",
  "radiantkit-core",
+ "radiantkit-macros",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
  "wgpu",
 ]
 
@@ -3909,7 +3912,10 @@ dependencies = [
  "macro_magic",
  "pollster",
  "radiantkit-core",
+ "radiantkit-macros",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
  "wgpu",
 ]
 
@@ -3925,7 +3931,10 @@ dependencies = [
  "macro_magic",
  "pollster",
  "radiantkit-core",
+ "radiantkit-macros",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
  "wgpu",
 ]
 

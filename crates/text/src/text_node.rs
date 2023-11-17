@@ -12,20 +12,27 @@ use std::{
     fmt::Debug,
 };
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RadiantTextNode {
     pub id: u64,
+    #[wasm_bindgen(skip)]
     pub text: String,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     pub color: ColorComponent,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
