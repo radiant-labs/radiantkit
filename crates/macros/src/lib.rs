@@ -425,15 +425,10 @@ pub fn combine_response(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn radiant_wasm_bindgen(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let mut item = syn::parse2::<syn::Item>(item.into()).unwrap();
+    let item = syn::parse2::<syn::Item>(item.into()).unwrap();
+    let mut item = item;
 
-    #[cfg(target_arch = "wasm32")]
-    let res = quote! {
-        #[wasm_bindgen::prelude::wasm_bindgen]
-        #item
-    };
-
-    #[cfg(not(arget_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     {
         match &mut item {
             syn::Item::Struct(syn::ItemStruct { fields, .. }) => {
@@ -456,7 +451,7 @@ pub fn radiant_wasm_bindgen(_attr: TokenStream, item: TokenStream) -> TokenStrea
         }
     }
 
-    #[cfg(not(arget_arch = "wasm32"))]
+    #[cfg(not(target_arch = "wasm32"))]
     let res = quote! {
         #item
     };
