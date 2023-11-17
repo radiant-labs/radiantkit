@@ -26,7 +26,7 @@ export class RadiantKitController {
         });
     }
 
-    addRectangle(position: number[], scale: number[]) {
+    addRectangle(position: number[] = [100, 100], scale: number[] = [100, 100]) {
         this._controller.handleMessage({
             AddRectangle: {
                 position,

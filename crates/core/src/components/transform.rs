@@ -1,60 +1,59 @@
+use radiantkit_macros::radiant_wasm_bindgen;
 use serde::{Deserialize, Serialize};
 
-use crate::{RadiantComponent, RadiantTransformable};
+use crate::{RadiantComponent, Vec3};
 
 const MIN_SIZE: f32 = 8.0;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[radiant_wasm_bindgen]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct TransformComponent {
-    position: [f32; 3],
-    scale: [f32; 3],
+    position: Vec3,
+    scale: Vec3,
     rotation: f32,
 }
 
 impl TransformComponent {
     pub fn new() -> Self {
         Self {
-            position: [0.0, 0.0, 0.0],
-            scale: [MIN_SIZE, MIN_SIZE, 0.0],
+            position: Vec3::new(),
+            scale: Vec3::new_with_min(MIN_SIZE),
             rotation: 0.0,
         }
     }
 }
 
-impl RadiantTransformable for TransformComponent {
-    fn transform_xy(&mut self, position: &[f32; 2]) {
-        self.position = [
-            self.position[0] + position[0],
-            self.position[1] + position[1],
-            0.0,
-        ]
+#[radiant_wasm_bindgen]
+impl TransformComponent {
+    pub fn transform_xy(&mut self, position: &Vec3) {
+        self.position.add(position);
     }
 
-    fn transform_scale(&mut self, scale: &[f32; 2]) {
-        self.scale = [(self.scale[0] + scale[0]).max(MIN_SIZE), (self.scale[1] + scale[1]).max(MIN_SIZE), 0.0];
+    pub fn transform_scale(&mut self, scale: &Vec3) {
+        self.scale.add_with_min(scale, MIN_SIZE)
     }
 
-    fn set_xy(&mut self, position: &[f32; 2]) {
-        self.position = [position[0], position[1], 0.0];
+    pub fn set_position(&mut self, position: &Vec3) {
+        self.position = position.clone();
     }
 
-    fn set_scale(&mut self, scale: &[f32; 2]) {
-        self.scale = [scale[0].max(MIN_SIZE), scale[1].max(MIN_SIZE), 0.0];
+    pub fn set_scale(&mut self, scale: &Vec3) {
+        self.scale.set_with_min(scale, MIN_SIZE);
     }
 
-    fn set_rotation(&mut self, rotation: f32) {
+    pub fn set_rotation(&mut self, rotation: f32) {
         self.rotation = rotation;
     }
 
-    fn get_xy(&self) -> [f32; 2] {
-        [self.position[0], self.position[1]]
+    pub fn position(&self) -> Vec3 {
+        self.position
     }
 
-    fn get_scale(&self) -> [f32; 2] {
-        [self.scale[0], self.scale[1]]
+    pub fn scale(&self) -> Vec3 {
+        self.scale
     }
 
-    fn get_rotation(&self) -> f32 {
+    pub fn get_rotation(&self) -> f32 {
         self.rotation
     }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantTessellatable, RadiantTransformable,
+    RadiantComponentProvider, RadiantNode, RadiantTessellatable,
     ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
@@ -29,7 +29,7 @@ pub struct RadiantLineNode {
 impl RadiantLineNode {
     pub fn new(id: u64, start: [f32; 2], end: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
-        transform.set_xy(&start);
+        transform.set_position(&start.into());
 
         let selection = SelectionComponent::new();
 

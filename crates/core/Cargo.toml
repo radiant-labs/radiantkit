@@ -19,3 +19,8 @@ epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
 pollster = "0.3"
 futures-intrusive = "0.5"
 macro_magic = "0.5.0"
+radiantkit-macros = { version = "0.0.1", path = "../macros" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+serde-wasm-bindgen = "0.4"
+wasm-bindgen = "0.2"
