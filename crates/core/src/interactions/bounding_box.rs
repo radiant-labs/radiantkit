@@ -74,17 +74,17 @@ impl BoundingBoxInteraction {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
-            self.nodes[0].start = [rect[0], rect[1]];
-            self.nodes[0].end = [rect[2], rect[1]];
+            self.nodes[0].start = [rect[0], rect[1]].into();
+            self.nodes[0].end = [rect[2], rect[1]].into();
 
-            self.nodes[1].start = [rect[2], rect[1]];
-            self.nodes[1].end = [rect[2], rect[3]];
+            self.nodes[1].start = [rect[2], rect[1]].into();
+            self.nodes[1].end = [rect[2], rect[3]].into();
 
-            self.nodes[2].start = [rect[2], rect[3]];
-            self.nodes[2].end = [rect[0], rect[3]];
+            self.nodes[2].start = [rect[2], rect[3]].into();
+            self.nodes[2].end = [rect[0], rect[3]].into();
 
-            self.nodes[3].start = [rect[0], rect[3]];
-            self.nodes[3].end = [rect[0], rect[1]];
+            self.nodes[3].start = [rect[0], rect[3]].into();
+            self.nodes[3].end = [rect[0], rect[1]].into();
 
             self.corner_nodes[0]
                 .transform

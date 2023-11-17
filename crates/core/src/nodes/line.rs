@@ -1,6 +1,6 @@
 use crate::{
     RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent, Vec3,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -9,20 +9,26 @@ use std::{
     fmt::Debug,
 };
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantLineNode {
     pub id: u64,
-    pub start: [f32; 2],
-    pub end: [f32; 2],
+    pub start: Vec3,
+    pub end: Vec3,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
@@ -35,8 +41,8 @@ impl RadiantLineNode {
 
         Self {
             id,
-            start,
-            end,
+            start: start.into(),
+            end: end.into(),
             transform,
             selection,
             primitives: Vec::new(),
@@ -55,14 +61,8 @@ impl RadiantLineNode {
         let pixels_per_point = screen_descriptor.pixels_per_point;
 
         let points = [
-            epaint::Pos2::new(
-                self.start[0],
-                self.start[1],
-            ),
-            epaint::Pos2::new(
-                self.end[0],
-                self.end[1],
-            ),
+            self.start.into(),
+            self.end.into(),
         ];
 
         let color = epaint::Color32::BLUE;

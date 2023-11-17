@@ -9,18 +9,24 @@ use std::{
     fmt::Debug,
 };
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantPathNode {
     pub id: u64,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
+    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
