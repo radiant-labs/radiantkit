@@ -1,6 +1,6 @@
 use crate::{
     RadiantInteraction, RadiantLineNode, RadiantNode, RadiantRectangleNode, RadiantSceneMessage,
-    RadiantTessellatable, RadiantTransformable, ScreenDescriptor, TransformComponent,
+    RadiantTessellatable, ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
 
@@ -88,16 +88,16 @@ impl BoundingBoxInteraction {
 
             self.corner_nodes[0]
                 .transform
-                .set_xy(&[rect[2] - 8.0, rect[1] - 8.0]);
+                .set_position(&[rect[2] - 8.0, rect[1] - 8.0].into());
             self.corner_nodes[1]
                 .transform
-                .set_xy(&[rect[2] - 8.0, rect[3] - 8.0]);
+                .set_position(&[rect[2] - 8.0, rect[3] - 8.0].into());
             self.corner_nodes[2]
                 .transform
-                .set_xy(&[rect[0] - 8.0, rect[3] - 8.0]);
+                .set_position(&[rect[0] - 8.0, rect[3] - 8.0].into());
             self.corner_nodes[3]
                 .transform
-                .set_xy(&[rect[0] - 8.0, rect[1] - 8.0]);
+                .set_position(&[rect[0] - 8.0, rect[1] - 8.0].into());
 
             for node in &mut self.nodes {
                 node.set_needs_tessellation();

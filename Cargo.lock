@@ -3861,7 +3861,10 @@ dependencies = [
  "log",
  "macro_magic",
  "pollster",
+ "radiantkit-macros",
  "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
  "wgpu",
 ]
 

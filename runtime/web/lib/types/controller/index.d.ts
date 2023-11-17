@@ -9,7 +9,7 @@ export declare class RadiantKitController {
      * @param tool the tool to activate.
      */
     activateTool(toolId: number): void;
-    addRectangle(position: number[], scale: number[]): void;
+    addRectangle(position?: number[], scale?: number[]): void;
     addImage(path: string, name?: string, position?: number[], scale?: number[]): void;
     addText(text: string, position?: number[], scale?: number[]): void;
     setTransform(nodeId: number, position: number[], scale: number[]): void;

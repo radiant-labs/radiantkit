@@ -1,7 +1,7 @@
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use radiantkit_core::{
     RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    RadiantTransformable, ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -27,7 +27,7 @@ pub struct RadiantPathNode {
 impl RadiantPathNode {
     pub fn new(id: u64, position: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
-        transform.set_xy(&position);
+        transform.set_position(&position.into());
 
         let selection = SelectionComponent::new();
 
@@ -48,25 +48,22 @@ impl RadiantPathNode {
         }
         self.needs_tessellation = false;
 
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let points = vec![
+            position.into(),
             epaint::Pos2::new(
-                position[0] / pixels_per_point,
-                position[1] / pixels_per_point,
+                position.x + scale.x + 200.0,
+                position.y + scale.y + 200.0,
             ),
             epaint::Pos2::new(
-                (position[0] + scale[0] + 200.0) / pixels_per_point,
-                (position[1] + scale[1] + 200.0) / pixels_per_point,
+                position.x + scale.x,
+                position.y + scale.y + 400.0,
             ),
             epaint::Pos2::new(
-                (position[0] + scale[0]) / pixels_per_point,
-                (position[1] + scale[1] + 400.0) / pixels_per_point,
-            ),
-            epaint::Pos2::new(
-                (position[0] - 200.0) / pixels_per_point,
-                (position[1] + 200.0) / pixels_per_point,
+                position.x - 200.0,
+                position.y + 200.0,
             ),
         ];
 
@@ -117,17 +114,17 @@ impl RadiantTessellatable for RadiantPathNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        let position = self.transform.get_xy();
-        let scale = self.transform.get_scale();
+        let position = self.transform.position();
+        let scale = self.transform.scale();
 
         let points = vec![
-            epaint::Pos2::new(position[0], position[1]),
+            position.into(),
             epaint::Pos2::new(
-                (position[0] + scale[0]) + 200.0,
-                (position[1] + scale[1]) + 200.0,
+                position.x + scale.x + 200.0,
+                position.y + scale.y + 200.0,
             ),
-            epaint::Pos2::new(position[0] + scale[0], position[1] + scale[1] + 400.0),
-            epaint::Pos2::new(position[0] - 200.0, position[1] + 200.0),
+            epaint::Pos2::new(position.x + scale.x, position.y + scale.y + 400.0),
+            epaint::Pos2::new(position.x - 200.0, position.y + 200.0),
         ];
 
         let color = epaint::Color32::LIGHT_RED;
