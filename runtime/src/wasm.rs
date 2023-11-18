@@ -1,6 +1,4 @@
-use crate::RadiantRuntime;
-use crate::{RectangleTool, Runtime};
-use radiantkit_core::View;
+use crate::{Runtime, RadiantRuntime};
 use std::sync::{Arc, RwLock};
 use wasm_bindgen::prelude::*;
 
@@ -16,13 +14,7 @@ impl RadiantKitAppController {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Error).expect("Couldn't initialize logger");
 
-        let mut runtime = RadiantRuntime::new().await;
-        runtime
-            .view
-            .scene_mut()
-            .tool_manager
-            .register_tool(1u32, Box::new(RectangleTool::new()));
-
+        let runtime = RadiantRuntime::new().await;
         let runtime = Arc::new(RwLock::new(runtime));
 
         radiantkit_winit::run_wasm(runtime.clone(), f.clone());

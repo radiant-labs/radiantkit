@@ -31,6 +31,29 @@ pub struct RadiantRectangleNode {
     pub bounding_rect: [f32; 4],
 }
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
+impl RadiantRectangleNode {
+    pub fn new_wasm(id: u64, position: Vec3, scale: Vec3) -> Self {
+        let mut transform = TransformComponent::new();
+        transform.set_position(&position);
+        transform.set_scale(&scale);
+
+        let selection = SelectionComponent::new();
+        let color = ColorComponent::new();
+
+        Self {
+            id,
+            transform,
+            selection,
+            color,
+            primitives: Vec::new(),
+            selection_primitives: Vec::new(),
+            needs_tessellation: true,
+            bounding_rect: [0.0, 0.0, 0.0, 0.0],
+        }
+    }
+}
+
 impl RadiantRectangleNode {
     pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();

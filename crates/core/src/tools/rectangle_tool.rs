@@ -1,6 +1,5 @@
 use crate::{RadiantSceneMessage, RadiantTool};
 use macro_magic::export_tokens;
-use radiantkit_macros::radiant_wasm_bindgen;
 use serde::{Deserialize, Serialize};
 
 #[export_tokens]
@@ -9,7 +8,6 @@ pub enum RadiantRectangleMessage {
     AddRectangle { position: [f32; 2], scale: [f32; 2] },
 }
 
-#[radiant_wasm_bindgen]
 pub struct RectangleTool {
     active_node_id: Option<u64>,
     start_position: [f32; 2],

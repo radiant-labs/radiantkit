@@ -3,8 +3,8 @@ use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::{
     ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
     RadiantRenderManager, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
-    RadiantTextureManager, RadiantTool, RadiantToolManager, ScreenDescriptor,
-    TransformComponent,
+    RadiantTextureManager, RadiantToolManager, ScreenDescriptor,
+    TransformComponent, SelectionTool,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
@@ -37,15 +37,11 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
         device: wgpu::Device,
         queue: wgpu::Queue,
         screen_descriptor: ScreenDescriptor,
-        default_tool: impl RadiantTool<M> + 'static + Send + Sync,
     ) -> Self {
         let font_definitions = FontDefinitions::default();
         let fonts_manager = Fonts::new(screen_descriptor.pixels_per_point, 1600, font_definitions);
         let texture_manager = RadiantTextureManager::default();
         let render_manager = RadiantRenderManager::new(config, surface, device, queue, None);
-
-        // let mut tool_manager = RadiantToolManager::new(Box::new(SelectionTool::new()));
-        // tool_manager.register_tool(Box::new(PathTool::new()));
 
         Self {
             document: Arc::new(RwLock::new(RadiantDocumentNode::new())),
@@ -54,7 +50,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
 
             fonts_manager,
             render_manager,
-            tool_manager: RadiantToolManager::new(0u32, Box::new(default_tool)),
+            tool_manager: RadiantToolManager::new(0u32, Box::new(SelectionTool::new())),
             interaction_manager: RadiantInteractionManager::new(),
             texture_manager,
         }

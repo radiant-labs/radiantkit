@@ -9,6 +9,7 @@ pub struct Vec3 {
     pub z: f32,
 }
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 impl Vec3 {
     pub fn new() -> Self {
         Self { x: 0.0, y: 0.0, z: 0.0 }

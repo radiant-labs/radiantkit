@@ -1,6 +1,6 @@
 use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
-    RadiantSceneMessage, RadiantTextNode, RectangleTool, Runtime, View,
+    RadiantSceneMessage, RadiantTextNode, Runtime, View,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -59,11 +59,6 @@ async fn run() {
     });
 
     let mut runtime = RadiantRuntime::new().await;
-    runtime
-        .view
-        .scene_mut()
-        .tool_manager
-        .register_tool(1u32, Box::new(RectangleTool::new()));
     runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
     runtime

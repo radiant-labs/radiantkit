@@ -4,6 +4,6 @@
         "runtime/pkg", 
         "runtime/web",
         "examples/web",
-        "examples/web-image"
+        "apps/whiteboard"
     ]
 }

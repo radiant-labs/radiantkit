@@ -1,12 +1,12 @@
 use radiantkit_core::{
     RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable, Runtime,
-    SelectionTool, View,
+    View, RectangleTool,
 };
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
 use radiantkit_winit::RadiantView;
 
-use crate::{RadiantMessage, RadiantNodeType, RadiantResponse};
+use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
 
 pub struct RadiantRuntime {
     pub view: RadiantView<RadiantMessage, RadiantNodeType>,
@@ -14,8 +14,13 @@ pub struct RadiantRuntime {
 
 impl RadiantRuntime {
     pub async fn new() -> Self {
+        let mut view = RadiantView::new().await;
+        view.scene_mut().tool_manager.register_tool(
+            RadiantToolType::Rectangle as u32,
+            Box::new(RectangleTool::new()),
+        );
         Self {
-            view: RadiantView::new(SelectionTool::new()).await,
+            view,
         }
     }
 }
