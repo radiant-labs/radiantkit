@@ -1,8 +1,5 @@
-use radiantkit_macros::radiant_wasm_bindgen;
-
 use crate::{RadiantSceneMessage, RadiantTool};
 
-#[radiant_wasm_bindgen]
 pub struct SelectionTool {
     active_node_id: Option<u64>,
     prev_position: [f32; 2],

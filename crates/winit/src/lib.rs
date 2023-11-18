@@ -1,5 +1,5 @@
 use radiantkit_core::{
-    RadiantNode, RadiantScene, RadiantSceneMessage, RadiantTool, Runtime, ScreenDescriptor, View,
+    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, View,
 };
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
@@ -28,7 +28,7 @@ pub struct RadiantView<M, N: RadiantNode> {
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
     RadiantView<M, N>
 {
-    pub async fn new(default_tool: impl RadiantTool<M> + 'static + Send + Sync) -> Self {
+    pub async fn new() -> Self {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -122,7 +122,6 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             device,
             queue,
             screen_descriptor,
-            default_tool,
         );
 
         Self {
