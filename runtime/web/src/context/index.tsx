@@ -12,7 +12,13 @@ const RadiantKitContext = createContext<RadiantKitState>({
     response: {},
 });
 
-function RadiantKitProvider({ width, height, children }: { width: number | undefined, height: number | undefined, children: any }) {
+export interface RadiantKitProviderProps {
+    width?: number;
+    height?: number;
+    children?: any;
+}
+
+function RadiantKitProvider({ width, height, children }: RadiantKitProviderProps) {
     const [controller, setController] = useState<RadiantKitController | null>(null);
     const [response, setResponse] = useState<any>({});
 
