@@ -46,4 +46,4 @@ Install yarn and follow these steps:
 Follow steps for web till #3. Then, run `yarn tauri dev`.
 
 ## Contact
-Send us an email at [hello@radiantkit.xyz](mailto://hello@radiantkit.xyz). You can also [join our slack](https://join.slack.com/t/radiantkit/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q) for quick help and support.
+Send us an email at [hello@radiantkit.xyz](mailto:hello@radiantkit.xyz). You can also [join our slack](https://join.slack.com/t/radiantkit/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q) for quick help and support.
