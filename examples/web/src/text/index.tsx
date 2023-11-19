@@ -27,12 +27,12 @@ const Text = () => {
 
 const TextExample = () => {
     return (
-        <RadiantKitProvider>
+        <RadiantKitProvider width={1600} height={1200}>
             <Stack>
                 <Text />
                 <Box height={10} />
                 <RadiantKitCanvas />
-        </Stack>
+            </Stack>
         </RadiantKitProvider>
     )
 }

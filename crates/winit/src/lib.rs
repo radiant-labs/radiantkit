@@ -1,11 +1,12 @@
 use radiantkit_core::{
-    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, View,
+    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, Vec3, View,
 };
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
 use winit::{event::*, event_loop::ControlFlow};
 
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use winit::dpi::PhysicalSize;
 pub use winit::event::Event::RedrawRequested;
 
 #[cfg(target_arch = "wasm32")]
@@ -14,7 +15,7 @@ use wasm_bindgen::prelude::*;
 use winit::platform::web::EventLoopExtWebSys;
 
 pub struct RadiantView<M, N: RadiantNode> {
-    pub window: Window,
+    pub window: Arc<Window>,
     pub event_loop: Option<EventLoop<()>>,
 
     pub size: winit::dpi::PhysicalSize<u32>,
@@ -28,30 +29,46 @@ pub struct RadiantView<M, N: RadiantNode> {
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
     RadiantView<M, N>
 {
-    pub async fn new() -> Self {
+    pub async fn new(size: Option<Vec3>) -> Self {
         let event_loop = EventLoop::new();
-        let window = WindowBuilder::new().build(&event_loop).unwrap();
+        let window;
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            window = WindowBuilder::new().build(&event_loop).unwrap();
+            if let Some(size) = size {
+                window.set_inner_size(PhysicalSize::new(size.x, size.y));
+            }
+        }
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Winit prevents sizing with CSS, so we have to set
-            // the size manually when on web.
-            use winit::dpi::PhysicalSize;
-            window.set_inner_size(PhysicalSize::new(1600, 1200));
-
             use winit::platform::web::WindowExtWebSys;
-            web_sys::window()
-                .and_then(|win| win.document())
-                .and_then(|doc| {
-                    let dst = doc.get_element_by_id("canvas-container")?;
-                    let canvas = web_sys::Element::from(window.canvas());
-                    dst.append_child(&canvas).ok()?;
-                    Some(())
-                })
-                .expect("Couldn't append canvas to document body.");
-        }
+            let win = web_sys::window().unwrap();
+            let doc = win.document().unwrap();
 
-        let size = window.inner_size();
+            let canvas = doc
+                .query_selector("#radiant-canvas")
+                .expect("Cannot query for canvas element.");
+            if let Some(canvas) = canvas {
+                let canvas = canvas.dyn_into::<web_sys::HtmlCanvasElement>().ok();
+                use winit::platform::web::WindowBuilderExtWebSys;
+                window = WindowBuilder::new()
+                    .with_canvas(canvas)
+                    .build(&event_loop)
+                    .unwrap();
+            } else {
+                window = WindowBuilder::new().build(&event_loop).unwrap();
+
+                let dst = doc
+                    .get_element_by_id("canvas-container")
+                    .expect("Couldn't append canvas to document body.");
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas)
+                    .ok()
+                    .expect("Couldn't append canvas to document body.");
+            }
+        }
 
         // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -62,6 +79,41 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
         // The surface needs to live as long as the window that created it.
         // State owns the window so this should be safe.
         let surface = unsafe { instance.create_surface(&window) }.unwrap();
+
+        let window = Arc::new(window);
+        #[cfg(target_arch = "wasm32")]
+        {
+            if let Some(size) = size {
+                window.set_inner_size(PhysicalSize::new(size.x, size.y));
+            } else {
+                let window_clone = window.clone();
+
+                let closure =
+                    wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::Event| {
+                        let win = web_sys::window().unwrap();
+                        let w = win.inner_width().unwrap().as_f64().unwrap() as u32;
+                        let h = win.inner_height().unwrap().as_f64().unwrap() as u32;
+                        let scale_factor = window_clone.scale_factor() as u32;
+                        window_clone
+                            .set_inner_size(PhysicalSize::new(w * scale_factor, h * scale_factor));
+                    })
+                        as Box<dyn FnMut(_)>);
+                let win = web_sys::window().unwrap();
+                win.add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
+                    .unwrap();
+                closure.forget();
+
+                // Winit prevents sizing with CSS, so we have to set
+                // the size manually when on web.
+                let win = web_sys::window().unwrap();
+                let w = win.inner_width().unwrap().as_f64().unwrap() as u32;
+                let h = win.inner_height().unwrap().as_f64().unwrap() as u32;
+                let scale_factor = window.scale_factor() as u32;
+                window.set_inner_size(PhysicalSize::new(w * scale_factor, h * scale_factor));
+            }
+        }
+
+        let size = window.inner_size();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -116,13 +168,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             pixels_per_point: window.scale_factor() as f32,
         };
 
-        let scene = RadiantScene::new(
-            config,
-            surface,
-            device,
-            queue,
-            screen_descriptor,
-        );
+        let scene = RadiantScene::new(config, surface, device, queue, screen_descriptor);
 
         Self {
             window,
@@ -184,8 +230,13 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                             }
                         }
                         WindowEvent::CursorMoved { position, .. } => {
-                            let ScreenDescriptor { pixels_per_point,  .. } = self.scene().screen_descriptor;
-                            let current_position = [position.x as f32 / pixels_per_point, position.y as f32 / pixels_per_point];
+                            let ScreenDescriptor {
+                                pixels_per_point, ..
+                            } = self.scene().screen_descriptor;
+                            let current_position = [
+                                position.x as f32 / pixels_per_point,
+                                position.y as f32 / pixels_per_point,
+                            ];
                             self.mouse_position = current_position;
                             return self.on_mouse_move(self.mouse_position);
                             //     self.window.request_redraw();
@@ -194,7 +245,9 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                         WindowEvent::Touch(Touch {
                             location, phase, ..
                         }) => {
-                            let ScreenDescriptor { pixels_per_point,  .. } = self.scene().screen_descriptor;
+                            let ScreenDescriptor {
+                                pixels_per_point, ..
+                            } = self.scene().screen_descriptor;
                             let window_origin = self.window.outer_position().unwrap_or_default();
                             let current_position = [
                                 (location.x as f32 - window_origin.x as f32) / pixels_per_point,

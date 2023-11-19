@@ -9,7 +9,7 @@ const RadiantKitContext = (0, react_1.createContext)({
     controller: null,
     response: {},
 });
-function RadiantKitProvider({ children }) {
+function RadiantKitProvider({ width, height, children }) {
     const [controller, setController] = (0, react_1.useState)(null);
     const [response, setResponse] = (0, react_1.useState)({});
     const initWasm = () => tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -17,7 +17,7 @@ function RadiantKitProvider({ children }) {
             yield (0, radiantkit_1.default)();
             let controller = yield controller_1.RadiantKitController.createController((message) => {
                 setResponse(message);
-            });
+            }, width, height);
             setController(controller);
         }
         catch (error) {

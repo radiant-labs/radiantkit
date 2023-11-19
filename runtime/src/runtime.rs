@@ -1,6 +1,6 @@
 use radiantkit_core::{
-    RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable, Runtime,
-    View, RectangleTool,
+    RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
+    RectangleTool, Runtime, Vec3, View,
 };
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
@@ -13,15 +13,13 @@ pub struct RadiantRuntime {
 }
 
 impl RadiantRuntime {
-    pub async fn new() -> Self {
-        let mut view = RadiantView::new().await;
+    pub async fn new(size: Option<Vec3>) -> Self {
+        let mut view = RadiantView::new(size).await;
         view.scene_mut().tool_manager.register_tool(
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
-        Self {
-            view,
-        }
+        Self { view }
     }
 }
 
