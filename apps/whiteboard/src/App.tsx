@@ -3,7 +3,7 @@ import Toolbar from './components/Toolbar';
 
 const App = () => {
   return (
-    <RadiantKitProvider>
+    <RadiantKitProvider width={undefined} height={undefined}>
       <div style={{ display: 'flex' }}>
         <div style={{ zIndex: 1 }}>
           <Toolbar />
