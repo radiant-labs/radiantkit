@@ -11,12 +11,24 @@ pub struct Vec3 {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 impl Vec3 {
-    pub fn new() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
+    pub fn zero() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
+
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
     }
 
     pub fn new_with_min(min: f32) -> Self {
-        Self { x: min, y: min, z: min }
+        Self {
+            x: min,
+            y: min,
+            z: min,
+        }
     }
 
     pub fn new_with_added(first: &Vec3, second: &Vec3) -> Self {
@@ -61,6 +73,12 @@ impl From<[f32; 2]> for Vec3 {
 impl Into<[f32; 2]> for Vec3 {
     fn into(self) -> [f32; 2] {
         [self.x, self.y]
+    }
+}
+
+impl From<(f32, f32)> for Vec3 {
+    fn from((x, y): (f32, f32)) -> Self {
+        Self { x, y, z: 0.0 }
     }
 }
 

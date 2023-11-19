@@ -1,5 +1,5 @@
 import React, { useState, createContext, useEffect, useRef, useContext } from "react";
-import init from "@radiantkit/radiantkit";
+import init, { Vec3 } from "@radiantkit/radiantkit";
 import { RadiantKitController } from "controller";
 
 export interface RadiantKitState {
@@ -12,7 +12,7 @@ const RadiantKitContext = createContext<RadiantKitState>({
     response: {},
 });
 
-function RadiantKitProvider({ children }: any) {
+function RadiantKitProvider({ width, height, children }: { width: number | undefined, height: number | undefined, children: any }) {
     const [controller, setController] = useState<RadiantKitController | null>(null);
     const [response, setResponse] = useState<any>({});
 
@@ -21,7 +21,7 @@ function RadiantKitProvider({ children }: any) {
             await init();
             let controller = await RadiantKitController.createController((message: any) => {
                 setResponse(message);
-            });
+            }, width, height);
             setController(controller);
         } catch (error) {
             console.log(error);

@@ -111,10 +111,7 @@ impl RadiantTextNode {
 
         let galley = fonts.layout_job(job);
 
-        let shape = epaint::TextShape::new(
-            position.into(),
-            galley,
-        );
+        let shape = epaint::TextShape::new(position.into(), galley);
 
         let texture_atlas = fonts.texture_atlas();
         let (font_tex_size, prepared_discs) = {

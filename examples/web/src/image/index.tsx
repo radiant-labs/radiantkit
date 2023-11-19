@@ -49,7 +49,7 @@ const ImageLoader = () => {
 
 const ImageExample = () => {
     return (
-        <RadiantKitProvider>
+        <RadiantKitProvider width={1600} height={1200}>
             <Stack>
                 <ImageLoader />
                 <Box height={10} />

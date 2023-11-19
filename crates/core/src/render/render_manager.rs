@@ -87,9 +87,10 @@ impl RadiantRenderManager {
 
             // we need to store this for later
             let u32_size = std::mem::size_of::<u32>() as u32;
-
-            let output_buffer_size =
-                (u32_size * texture_width * texture_height) as wgpu::BufferAddress;
+            let unpadded_bytes_per_row = u32_size * texture_width;
+            let padded_bytes_per_row =
+                wgpu::util::align_to(unpadded_bytes_per_row, wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
+            let output_buffer_size = (padded_bytes_per_row * texture_height) as wgpu::BufferAddress;
             let output_buffer_desc = wgpu::BufferDescriptor {
                 size: output_buffer_size,
                 usage: wgpu::BufferUsages::COPY_DST
@@ -222,7 +223,11 @@ impl RadiantRenderManager {
     ) -> Result<u64, wgpu::SurfaceError> {
         let texture_width = screen_descriptor.size_in_pixels[0];
         let texture_height = screen_descriptor.size_in_pixels[1];
+
         let u32_size = std::mem::size_of::<u32>() as u32;
+        let unpadded_bytes_per_row = u32_size * texture_width;
+        let padded_bytes_per_row =
+            wgpu::util::align_to(unpadded_bytes_per_row, wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
 
         let mut encoder = self
             .device
@@ -241,7 +246,7 @@ impl RadiantRenderManager {
                 buffer: &self.offscreen_buffer.as_ref().unwrap(),
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: Some(u32_size * texture_width),
+                    bytes_per_row: Some(padded_bytes_per_row),
                     rows_per_image: Some(texture_height),
                 },
             },
@@ -252,7 +257,7 @@ impl RadiantRenderManager {
             },
         );
 
-        self.queue.submit(Some(encoder.finish()));
+        let submission_id = self.queue.submit(Some(encoder.finish()));
 
         let mut id: u64;
 
@@ -262,20 +267,19 @@ impl RadiantRenderManager {
             let buffer = self.offscreen_buffer.as_ref().unwrap();
             let buffer_slice = buffer.slice(..);
 
-            // NOTE: We have to create the mapping THEN device.poll() before await
-            // the future. Otherwise the application will freeze.
-            let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
-            buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-                tx.send(result).unwrap();
+            let (sender, receiver) = std::sync::mpsc::channel();
+            buffer_slice.map_async(wgpu::MapMode::Read, move |v| {
+                drop(sender.send(v));
             });
-            self.device.poll(wgpu::Maintain::Wait);
-            rx.receive().await.unwrap().unwrap();
+            self.device
+                .poll(wgpu::Maintain::WaitForSubmissionIndex(submission_id));
+            receiver.recv().ok().unwrap().ok().unwrap();
 
             let data = buffer_slice.get_mapped_range();
 
             let posx: u32 = (mouse_position[0] * screen_descriptor.pixels_per_point) as u32;
             let posy: u32 = (mouse_position[1] * screen_descriptor.pixels_per_point) as u32;
-            let index = (posy * texture_width * 4 + posx * 4) as usize;
+            let index = (posy * padded_bytes_per_row + posx * 4) as usize;
 
             id = *data.get(index).unwrap() as u64;
             id += (*data.get(index + 1).unwrap() as u64) << 8;

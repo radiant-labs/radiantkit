@@ -174,7 +174,7 @@ const Color = () => {
 
 const BasicExample = () => {
     return (
-        <RadiantKitProvider>
+        <RadiantKitProvider width={1600} height={1200}>
             <Stack>
                 <Tools />
                 <Box height={10} />

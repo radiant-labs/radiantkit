@@ -59,18 +59,9 @@ impl RadiantPathNode {
 
         let points = vec![
             position.into(),
-            epaint::Pos2::new(
-                position.x + scale.x + 200.0,
-                position.y + scale.y + 200.0,
-            ),
-            epaint::Pos2::new(
-                position.x + scale.x,
-                position.y + scale.y + 400.0,
-            ),
-            epaint::Pos2::new(
-                position.x - 200.0,
-                position.y + 200.0,
-            ),
+            epaint::Pos2::new(position.x + scale.x + 200.0, position.y + scale.y + 200.0),
+            epaint::Pos2::new(position.x + scale.x, position.y + scale.y + 400.0),
+            epaint::Pos2::new(position.x - 200.0, position.y + 200.0),
         ];
 
         let color = epaint::Color32::LIGHT_RED;
@@ -125,10 +116,7 @@ impl RadiantTessellatable for RadiantPathNode {
 
         let points = vec![
             position.into(),
-            epaint::Pos2::new(
-                position.x + scale.x + 200.0,
-                position.y + scale.y + 200.0,
-            ),
+            epaint::Pos2::new(position.x + scale.x + 200.0, position.y + scale.y + 200.0),
             epaint::Pos2::new(position.x + scale.x, position.y + scale.y + 400.0),
             epaint::Pos2::new(position.x - 200.0, position.y + 200.0),
         ];

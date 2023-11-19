@@ -1,4 +1,4 @@
-import { RadiantKitAppController } from "@radiantkit/radiantkit";
+import { RadiantKitAppController, Vec3 } from "@radiantkit/radiantkit";
 
 export class RadiantKitController {
     _controller: RadiantKitAppController;
@@ -7,8 +7,8 @@ export class RadiantKitController {
         this._controller = controller;
     }
 
-    static async createController(f: Function): Promise<RadiantKitController> {
-        return new RadiantKitController(await new RadiantKitAppController(f));   
+    static async createController(f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController> {
+        return new RadiantKitController(await new RadiantKitAppController(f, width, height));   
     }
 
     /**

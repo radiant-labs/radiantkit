@@ -16,7 +16,7 @@ pub struct TransformComponent {
 impl TransformComponent {
     pub fn new() -> Self {
         Self {
-            position: Vec3::new(),
+            position: Vec3::zero(),
             scale: Vec3::new_with_min(MIN_SIZE),
             rotation: 0.0,
         }

@@ -5,7 +5,7 @@ const RadiantKitContext = createContext({
     controller: null,
     response: {},
 });
-function RadiantKitProvider({ children }) {
+function RadiantKitProvider({ width, height, children }) {
     const [controller, setController] = useState(null);
     const [response, setResponse] = useState({});
     const initWasm = async () => {
@@ -13,7 +13,7 @@ function RadiantKitProvider({ children }) {
             await init();
             let controller = await RadiantKitController.createController((message) => {
                 setResponse(message);
-            });
+            }, width, height);
             setController(controller);
         }
         catch (error) {
