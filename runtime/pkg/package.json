@@ -1,0 +1,21 @@
+{
+  "name": "@radiantkit/radiantkit",
+  "description": "Framework to build graphic applications",
+  "version": "0.0.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/radiant-labs/radiantkit"
+  },
+  "files": [
+    "radiantkit_bg.wasm",
+    "radiantkit.js",
+    "radiantkit.d.ts"
+  ],
+  "module": "radiantkit.js",
+  "homepage": "https://www.radiantkit.xyz/",
+  "types": "radiantkit.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
