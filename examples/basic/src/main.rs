@@ -13,7 +13,7 @@ async fn run() {
         log::info!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new().await;
+    let mut runtime = RadiantRuntime::new(None).await;
     runtime.add(RadiantRectangleNode::new(1, [100.0, 100.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
 

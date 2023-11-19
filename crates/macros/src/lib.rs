@@ -433,15 +433,13 @@ pub fn radiant_wasm_bindgen(_attr: TokenStream, item: TokenStream) -> TokenStrea
         match &mut item {
             syn::Item::Struct(syn::ItemStruct { fields, .. }) => {
                 for field in fields.iter_mut() {
-                    if let Some(index) = field.attrs.iter().position(|attr| {
-                        match attr.meta {
-                            syn::Meta::List(ref meta_list) => {
-                                meta_list.path.segments.iter().any(
-                                    |segment| segment.ident == "wasm_bindgen"
-                                )
-                            }
-                            _ => false,
-                        }
+                    if let Some(index) = field.attrs.iter().position(|attr| match attr.meta {
+                        syn::Meta::List(ref meta_list) => meta_list
+                            .path
+                            .segments
+                            .iter()
+                            .any(|segment| segment.ident == "wasm_bindgen"),
+                        _ => false,
                     }) {
                         field.attrs.remove(index);
                     }

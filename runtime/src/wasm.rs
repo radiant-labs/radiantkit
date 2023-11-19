@@ -1,4 +1,4 @@
-use crate::{Runtime, RadiantRuntime};
+use crate::{RadiantRuntime, Runtime, Vec3};
 use std::sync::{Arc, RwLock};
 use wasm_bindgen::prelude::*;
 
@@ -10,11 +10,15 @@ pub struct RadiantKitAppController {
 #[wasm_bindgen(js_class = RadiantKitAppController)]
 impl RadiantKitAppController {
     #[wasm_bindgen(constructor)]
-    pub async fn new(f: &js_sys::Function) -> Self {
+    pub async fn new(f: &js_sys::Function, width: Option<f32>, height: Option<f32>) -> Self {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Error).expect("Couldn't initialize logger");
 
-        let runtime = RadiantRuntime::new().await;
+        let size = match (width, height) {
+            (Some(width), Some(height)) => Some(Vec3::new(width, height, 0.0)),
+            _ => None,
+        };
+        let runtime = RadiantRuntime::new(size).await;
         let runtime = Arc::new(RwLock::new(runtime));
 
         radiantkit_winit::run_wasm(runtime.clone(), f.clone());

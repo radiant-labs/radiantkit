@@ -1,6 +1,6 @@
 use crate::{
-    RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent, TransformComponent, Vec3,
+    RadiantComponentProvider, RadiantNode, RadiantTessellatable, ScreenDescriptor,
+    SelectionComponent, TransformComponent, Vec3,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -60,10 +60,7 @@ impl RadiantLineNode {
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
 
-        let points = [
-            self.start.into(),
-            self.end.into(),
-        ];
+        let points = [self.start.into(), self.end.into()];
 
         let color = epaint::Color32::BLUE;
         let shapes = vec![ClippedShape(

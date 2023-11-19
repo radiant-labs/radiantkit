@@ -3,8 +3,7 @@ use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::{
     ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
     RadiantRenderManager, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
-    RadiantTextureManager, RadiantToolManager, ScreenDescriptor,
-    TransformComponent, SelectionTool,
+    RadiantTextureManager, RadiantToolManager, ScreenDescriptor, SelectionTool, TransformComponent,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
 
