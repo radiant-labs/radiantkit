@@ -54,21 +54,22 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 return self
                     .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
             }
-            RadiantMessage::AddImage { path, .. } => {
+            RadiantMessage::AddImage { path, name } => {
                 let screen_descriptor = self.view.scene().screen_descriptor;
                 let texture_manager = self.view.scene_mut().texture_manager.clone();
                 let document = self.view.scene_mut().document.clone();
                 image_loader::load_image(path, move |response| {
                     let image = response
                         .unwrap_or(epaint::ColorImage::new([400, 100], epaint::Color32::RED));
+                    let size = image.size;
                     if let Ok(mut document) = document.write() {
                         let texture_handle =
-                            texture_manager.load_texture("test", image, Default::default());
+                            texture_manager.load_texture(name, image, Default::default());
                         let id = document.counter;
                         let mut node = RadiantImageNode::new(
                             id,
                             [100.0, 200.0],
-                            [100.0, 100.0],
+                            [size[0] as f32, size[1] as f32],
                             texture_handle,
                         );
                         node.attach(&screen_descriptor);
