@@ -1,10 +1,8 @@
 import { InsertPhoto } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
 import { useCurrentController } from "@radiantkit/react";
-import { useState } from "react";
 
 const ImageTool = () => {
-    const [, setPath] = useState<string>('');
     const { controller } = useCurrentController();
 
     const loadImage = async (path: string) => {
@@ -16,7 +14,6 @@ const ImageTool = () => {
         fileReader.readAsDataURL(e.target.files[0]);
         fileReader.onload = (e) => {
             const path = e.target?.result as string;
-            setPath(path);
             loadImage(path);
         };
     }
