@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[combine_enum(radiantkit_core::RadiantRectangleMessage)]
 #[combine_enum(radiantkit_image::RadiantImageMessage)]
 #[combine_enum(radiantkit_text::RadiantTextMessage)]
-#[cfg_attr(not(target_arch = "wasm32"), combine_enum(radiantkit_video::RadiantVideoMessage))]
+#[cfg_attr(all(not(target_arch = "wasm32"), feature = "video"), combine_enum(radiantkit_video::RadiantVideoMessage))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantMessage {
     SceneMessage(RadiantSceneMessage),

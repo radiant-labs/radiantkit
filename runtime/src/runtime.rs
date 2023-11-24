@@ -84,7 +84,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 return self
                     .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "video"))]
             RadiantMessage::AddVideo { name, path } => {
                 let screen_descriptor = self.view.scene().screen_descriptor;
                 let texture_handle = self.view.scene_mut().texture_manager.load_texture(name, epaint::ColorImage::example(), Default::default());   
@@ -102,7 +102,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     document.add(node.into());
                 }
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "video"))]
             RadiantMessage::PlayVideo { id } => {
                 if let Ok(mut document) = self.view.scene_mut().document.write() {
                     if let Some(RadiantNodeType::Video(video_node)) = document.get_node_mut(id) {
