@@ -26,4 +26,6 @@ pub enum RadiantNodeType {
     Path(RadiantPathNode),
     Image(RadiantImageNode),
     Text(RadiantTextNode),
+    #[cfg(not(target_arch = "wasm32"))]
+    Video(radiantkit_video::RadiantVideoNode),
 }

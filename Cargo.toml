@@ -6,6 +6,7 @@ members = [
     "crates/text",
     "crates/macros",
     "crates/path",
+    "crates/video",
 	"crates/winit",
     "runtime",
     "examples/basic",
