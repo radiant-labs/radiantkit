@@ -42,6 +42,16 @@ impl RadiantKitAppController {
                         path: "https://i.imgur.com/XbLP6ux.png".to_string(),
                     });
                 }
+                if ui.button("Load Video").clicked() {
+                    self.pending_messages.push(RadiantMessage::AddVideo {
+                        name: "".to_string(),
+                        path: "/Users/gupnik/Desktop/1.mov".to_string(),
+                    });
+                }
+                if ui.button("Play Video").clicked() {
+                    self.pending_messages
+                        .push(RadiantMessage::PlayVideo { id: 4 });
+                }
                 ui.add_space(10.0);
             });
     }

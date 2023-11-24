@@ -1,0 +1,38 @@
+[package]
+name = "radiantkit-video"
+version = "0.0.1"
+edition = "2021"
+description = "Framework to build graphic applications"
+repository = "https://github.com/radiant-labs/radiantkit"
+homepage = "https://www.radiantkit.xyz/"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wgpu = { version = "0.17", features = ["webgl"]}
+bytemuck = { version = "1.12", features = [ "derive" ] }
+log = "0.4"
+cgmath = "0.18"
+serde = { version = "1.0", features = ["derive"] }
+epaint = { version = "0.22.0", features = ["bytemuck", "serde"] }
+pollster = "0.3"
+futures-intrusive = "0.5"
+radiantkit-core = { version = "0.0.1", path = "../core" }
+macro_magic = "0.5.0"
+image = { version = "0.24.7", features = ["jpeg", "png"] }
+radiantkit-macros = { version = "0.0.1", path = "../macros" }
+ffmpeg-the-third = "1.2.2"
+anyhow = "1.0.75"
+timer = "0.2.0"
+chrono = "0.4.31"
+atomic = "0.5.3"
+tempfile = { version = "3.8.1", optional = true }
+ringbuf = "0.3.3"
+parking_lot = "0.12.1"
+itertools = "0.11.0"
+nom = "7.1.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+serde-wasm-bindgen = "0.4"
+wasm-bindgen = "0.2"
