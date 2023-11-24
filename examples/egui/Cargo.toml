@@ -22,3 +22,7 @@ log = "0.4"
 video = [
     "radiantkit/video",
 ]
+av = [
+    "video",
+    "radiantkit/av",
+]

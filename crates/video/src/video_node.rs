@@ -13,6 +13,9 @@ use std::{
 
 use crate::Player;
 
+#[cfg(feature = "av")]
+use crate::AudioDevice;
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize)]
@@ -24,6 +27,10 @@ pub struct RadiantVideoNode {
     #[serde(skip)]
     #[wasm_bindgen(skip)]
     pub player: Option<Player>,
+    #[serde(skip)]
+    #[wasm_bindgen(skip)]
+    #[cfg(feature = "av")]
+    pub audio_device: Option<AudioDevice>,
     #[serde(skip)]
     #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
@@ -46,6 +53,8 @@ impl Clone for RadiantVideoNode {
             selection: self.selection.clone(),
             tint: self.tint.clone(),
             player: None,
+            #[cfg(feature = "av")]
+            audio_device: None,
             primitives: self.primitives.clone(),
             selection_primitives: self.selection_primitives.clone(),
             needs_tessellation: self.needs_tessellation,
@@ -74,7 +83,24 @@ impl RadiantVideoNode {
         path: String,
         texture_handle: TextureHandle,
     ) -> Self {
-        let player = Player::new(&path, texture_handle).ok();
+        #[cfg(feature = "av")]
+        let mut audio_device = None;
+
+        let player = if let Ok(player) = Player::new(&path, texture_handle) {
+            #[cfg(feature = "av")]
+            if let Ok(device) = AudioDevice::new() {
+                println!("Audio device created");
+                audio_device = Some(device);
+                player.with_audio(&mut audio_device.as_mut().unwrap()).ok()
+            } else {
+                Some(player)
+            }
+
+            #[cfg(not(feature = "av"))]
+            Some(player)
+        } else {
+            None
+        };
 
         let mut transform = TransformComponent::new();
         transform.set_position(&position.into());
@@ -90,6 +116,8 @@ impl RadiantVideoNode {
             selection,
             tint,
             player,
+            #[cfg(feature = "av")]
+            audio_device,
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
             needs_tessellation: true,
