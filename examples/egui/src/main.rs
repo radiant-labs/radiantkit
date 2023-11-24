@@ -42,12 +42,14 @@ impl RadiantKitAppController {
                         path: "https://i.imgur.com/XbLP6ux.png".to_string(),
                     });
                 }
+                #[cfg(feature = "video")]
                 if ui.button("Load Video").clicked() {
                     self.pending_messages.push(RadiantMessage::AddVideo {
                         name: "".to_string(),
                         path: "".to_string(), // Add video path here
                     });
                 }
+                #[cfg(feature = "video")]
                 if ui.button("Play Video").clicked() {
                     self.pending_messages
                         .push(RadiantMessage::PlayVideo { id: 4 });

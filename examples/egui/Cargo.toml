@@ -17,3 +17,8 @@ egui_demo_lib = "0.22.0"
 wgpu = "0.17.0"
 eframe = "0.22.0"
 log = "0.4"
+
+[features]
+video = [
+    "radiantkit/video",
+]
