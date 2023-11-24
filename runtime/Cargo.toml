@@ -50,3 +50,7 @@ web-sys = { version = "0.3", features = [
 video = [
     "dep:radiantkit-video"
 ]
+av = [
+    "video",
+    "radiantkit-video?/av"
+]

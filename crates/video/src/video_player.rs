@@ -10,17 +10,22 @@ use ffmpeg::error::EAGAIN;
 use ffmpeg::ffi::AV_TIME_BASE;
 use ffmpeg::format::context::input::Input;
 use ffmpeg::format::{input, Pixel};
-use ffmpeg::frame::Audio;
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
 use ffmpeg::{rescale, Rational, Rescale};
-use ffmpeg::{software, ChannelLayout};
 use parking_lot::Mutex;
-use ringbuf::SharedRb;
 // use ffmpeg::ffi::AVERROR;
 // use ffmpeg::Packet
-// use sdl2::audio::{self, AudioCallback, AudioFormat, AudioSpecDesired};
+#[cfg(feature = "av")]
+use ringbuf::SharedRb;
+#[cfg(feature = "av")]
+use ffmpeg::frame::Audio;
+#[cfg(feature = "av")]
+use ffmpeg::{software, ChannelLayout};
+#[cfg(feature = "av")]
+use sdl2::audio::{self, AudioCallback, AudioFormat, AudioSpecDesired};
+#[cfg(feature = "av")]
 use std::collections::VecDeque;
 use std::sync::{Arc, Weak};
 use std::time::UNIX_EPOCH;
@@ -44,30 +49,38 @@ fn format_duration(dur: Duration) -> String {
     }
 }
 
-// /// The playback device. Needs to be initialized (and kept alive!) for use by a [`Player`].
-// pub struct AudioDevice(pub(crate) audio::AudioDevice<AudioDeviceCallback>);
+/// The playback device. Needs to be initialized (and kept alive!) for use by a [`Player`].
+#[cfg(feature = "av")]
+pub struct AudioDevice(pub(crate) audio::AudioDevice<AudioDeviceCallback>);
 
-// impl AudioDevice {
-//     /// Create a new [`AudioDevice`] from an existing [`sdl2::AudioSubsystem`]. An [`AudioDevice`] is required for using audio.
-//     pub fn from_subsystem(audio_sys: &sdl2::AudioSubsystem) -> Result<AudioDevice, String> {
-//         let audio_spec = AudioSpecDesired {
-//             freq: Some(44_100),
-//             channels: Some(2),
-//             samples: None,
-//         };
-//         let device = audio_sys.open_playback(None, &audio_spec, |_spec| AudioDeviceCallback {
-//             sample_streams: vec![],
-//         })?;
-//         Ok(AudioDevice(device))
-//     }
+#[cfg(feature = "av")]
+impl AudioDevice {
+    /// Create a new [`AudioDevice`] from an existing [`sdl2::AudioSubsystem`]. An [`AudioDevice`] is required for using audio.
+    pub fn from_subsystem(audio_sys: &sdl2::AudioSubsystem) -> Result<AudioDevice, String> {
+        let audio_spec = AudioSpecDesired {
+            freq: Some(44_100),
+            channels: Some(2),
+            samples: None,
+        };
+        let device = audio_sys.open_playback(None, &audio_spec, |_spec| AudioDeviceCallback {
+            sample_streams: vec![],
+        })?;
+        Ok(AudioDevice(device))
+    }
 
-//     /// Create a new [`AudioDevice`]. Creates an [`sdl2::AudioSubsystem`]. An [`AudioDevice`] is required for using audio.
-//     pub fn new() -> Result<AudioDevice, String> {
-//         Self::from_subsystem(&sdl2::init()?.audio()?)
-//     }
-// }
+    /// Create a new [`AudioDevice`]. Creates an [`sdl2::AudioSubsystem`]. An [`AudioDevice`] is required for using audio.
+    pub fn new() -> Result<AudioDevice, String> {
+        Self::from_subsystem(&sdl2::init()?.audio()?)
+    }
+}
+
+#[cfg(feature = "av")]
+unsafe impl Send for AudioDevice {}
+#[cfg(feature = "av")]
+unsafe impl Sync for AudioDevice {}
 
 enum PlayerMessage {
+    #[allow(unused)]
     StreamCycled(Type),
 }
 
@@ -76,11 +89,15 @@ type PlayerMessageReciever = std::sync::mpsc::Receiver<PlayerMessage>;
 
 type ApplyVideoFrameFn = Box<dyn FnMut(ColorImage) + Send>;
 // type SubtitleQueue = Arc<Mutex<VecDeque<Subtitle>>>;
+#[cfg(feature = "av")]
 type RingbufProducer<T> = ringbuf::Producer<T, Arc<SharedRb<T, Vec<std::mem::MaybeUninit<T>>>>>;
-// type RingbufConsumer<T> = ringbuf::Consumer<T, Arc<SharedRb<T, Vec<std::mem::MaybeUninit<T>>>>>;
+#[cfg(feature = "av")]
+type RingbufConsumer<T> = ringbuf::Consumer<T, Arc<SharedRb<T, Vec<std::mem::MaybeUninit<T>>>>>;
 
+#[cfg(feature = "av")]
 type AudioSampleProducer = RingbufProducer<f32>;
-// type AudioSampleConsumer = RingbufConsumer<f32>;
+#[cfg(feature = "av")]
+type AudioSampleConsumer = RingbufConsumer<f32>;
 
 /// Configurable aspects of a [`Player`].
 #[derive(Clone, Debug)]
@@ -113,6 +130,7 @@ pub struct Player {
     pub video_streamer: Arc<Mutex<VideoStreamer>>,
     /// The audio streamer of the player. Won't exist unless [`Player::with_audio`] is called and there exists
     /// a valid audio stream in the file.
+    #[cfg(feature = "av")]
     pub audio_streamer: Option<Arc<Mutex<AudioStreamer>>>,
     /// The subtitle streamer of the player. Won't exist unless [`Player::with_subtitles`] is called and there exists
     /// a valid subtitle stream in the file.
@@ -131,9 +149,11 @@ pub struct Player {
     pub options: PlayerOptions,
     audio_stream_info: (usize, usize),
     // subtitle_stream_info: (usize, usize),
+    #[allow(unused)]
     message_sender: PlayerMessageSender,
     message_reciever: PlayerMessageReciever,
     video_timer: Timer,
+    #[cfg(feature = "av")]
     audio_timer: Timer,
     // subtitle_timer: Timer,
     audio_thread: Option<Guard>,
@@ -149,7 +169,8 @@ pub struct Player {
     video_elapsed_ms_override: Option<i64>,
     // subtitles_queue: SubtitleQueue,
     // current_subtitles: Vec<Subtitle>,
-    // input_path: String,
+    #[allow(unused)]
+    input_path: String,
 }
 
 unsafe impl Send for Player {}
@@ -185,6 +206,7 @@ pub struct VideoStreamer {
 }
 
 /// Streams audio.
+#[cfg(feature = "av")]
 pub struct AudioStreamer {
     video_elapsed_ms: Shared<i64>,
     audio_elapsed_ms: Shared<i64>,
@@ -265,6 +287,8 @@ impl Player {
         self.video_elapsed_ms.set(0);
         self.audio_elapsed_ms.set(0);
         self.video_streamer.lock().reset();
+
+        #[cfg(feature = "av")]
         if let Some(audio_decoder) = self.audio_streamer.as_mut() {
             audio_decoder.lock().reset();
         }
@@ -318,18 +342,21 @@ impl Player {
             }
 
             let video_streamer = self.video_streamer.clone();
-            let mut audio_streamer = self.audio_streamer.clone();
             // let mut subtitle_streamer = self.subtitle_streamer.clone();
             // let subtitle_queue = self.subtitles_queue.clone();
 
             self.last_seek_ms = Some((seek_frac as f64 * self.duration_ms as f64) as i64);
             self.set_state(PlayerState::Seeking(true));
 
-            if let Some(audio_streamer) = audio_streamer.take() {
-                std::thread::spawn(move || {
-                    audio_streamer.lock().seek(seek_frac);
-                });
-            };
+            #[cfg(feature = "av")]
+            {
+                let mut audio_streamer = self.audio_streamer.clone();
+                if let Some(audio_streamer) = audio_streamer.take() {
+                    std::thread::spawn(move || {
+                        audio_streamer.lock().seek(seek_frac);
+                    });
+                };
+        }
             // if let Some(subtitle_streamer) = subtitle_streamer.take() {
             //     self.current_subtitles.clear();
             //     std::thread::spawn(move || {
@@ -379,6 +406,7 @@ impl Player {
 
         self.video_thread = Some(video_timer_guard);
 
+        #[cfg(feature = "av")]
         if let Some(audio_decoder) = self.audio_streamer.as_ref() {
             let audio_decoder_ref = Arc::downgrade(&audio_decoder);
             let audio_timer_guard = self
@@ -483,59 +511,60 @@ impl Player {
         Ok(slf)
     }
 
-    // /// Initializes the audio stream (if there is one), required for making a [`Player`] output audio.
-    // /// Will stop and reset the player's state.
-    // pub fn add_audio(&mut self, audio_device: &mut AudioDevice) -> Result<()> {
-    //     let audio_input_context = input(&self.input_path)?;
-    //     let audio_stream_indices = get_stream_indices_of_type(&audio_input_context, Type::Audio);
+    /// Initializes the audio stream (if there is one), required for making a [`Player`] output audio.
+    /// Will stop and reset the player's state.
+    #[cfg(feature = "av")]
+    pub fn add_audio(&mut self, audio_device: &mut AudioDevice) -> Result<()> {
+        let audio_input_context = input(&self.input_path)?;
+        let audio_stream_indices = get_stream_indices_of_type(&audio_input_context, Type::Audio);
 
-    //     let audio_streamer = if !audio_stream_indices.is_empty() {
-    //         let audio_decoder =
-    //             get_decoder_from_stream_index(&audio_input_context, audio_stream_indices[0])?
-    //                 .audio()?;
+        let audio_streamer = if !audio_stream_indices.is_empty() {
+            let audio_decoder =
+                get_decoder_from_stream_index(&audio_input_context, audio_stream_indices[0])?
+                    .audio()?;
 
-    //         let audio_sample_buffer =
-    //             SharedRb::<f32, Vec<_>>::new(audio_device.0.spec().size as usize);
-    //         let (audio_sample_producer, audio_sample_consumer) = audio_sample_buffer.split();
-    //         let audio_resampler = ffmpeg::software::resampling::context::Context::get(
-    //             audio_decoder.format(),
-    //             audio_decoder.channel_layout(),
-    //             audio_decoder.rate(),
-    //             audio_device.0.spec().format.to_sample(),
-    //             ChannelLayout::STEREO,
-    //             audio_device.0.spec().freq as u32,
-    //         )?;
+            let audio_sample_buffer =
+                SharedRb::<f32, Vec<_>>::new(audio_device.0.spec().size as usize);
+            let (audio_sample_producer, audio_sample_consumer) = audio_sample_buffer.split();
+            let audio_resampler = ffmpeg::software::resampling::context::Context::get(
+                audio_decoder.format(),
+                audio_decoder.channel_layout(),
+                audio_decoder.rate(),
+                audio_device.0.spec().format.to_sample(),
+                ChannelLayout::STEREO,
+                audio_device.0.spec().freq as u32,
+            )?;
 
-    //         audio_device
-    //             .0
-    //             .lock()
-    //             .sample_streams
-    //             .push(AudioSampleStream {
-    //                 sample_consumer: audio_sample_consumer,
-    //                 audio_volume: self.options.audio_volume.clone(),
-    //             });
+            audio_device
+                .0
+                .lock()
+                .sample_streams
+                .push(AudioSampleStream {
+                    sample_consumer: audio_sample_consumer,
+                    audio_volume: self.options.audio_volume.clone(),
+                });
 
-    //         audio_device.0.resume();
+            audio_device.0.resume();
 
-    //         self.stop_direct();
-    //         self.audio_stream_info = (1, audio_stream_indices.len()); // first stream, out of all the other streams
-    //         Some(AudioStreamer {
-    //             duration_ms: self.duration_ms,
-    //             player_state: self.player_state.clone(),
-    //             video_elapsed_ms: self.video_elapsed_ms.clone(),
-    //             audio_elapsed_ms: self.audio_elapsed_ms.clone(),
-    //             audio_sample_producer,
-    //             input_context: audio_input_context,
-    //             audio_decoder,
-    //             resampler: audio_resampler,
-    //             audio_stream_indices,
-    //         })
-    //     } else {
-    //         None
-    //     };
-    //     self.audio_streamer = audio_streamer.map(|s| Arc::new(Mutex::new(s)));
-    //     Ok(())
-    // }
+            self.stop_direct();
+            self.audio_stream_info = (1, audio_stream_indices.len()); // first stream, out of all the other streams
+            Some(AudioStreamer {
+                duration_ms: self.duration_ms,
+                player_state: self.player_state.clone(),
+                video_elapsed_ms: self.video_elapsed_ms.clone(),
+                audio_elapsed_ms: self.audio_elapsed_ms.clone(),
+                audio_sample_producer,
+                input_context: audio_input_context,
+                audio_decoder,
+                resampler: audio_resampler,
+                audio_stream_indices,
+            })
+        } else {
+            None
+        };
+        self.audio_streamer = audio_streamer.map(|s| Arc::new(Mutex::new(s)));
+        Ok(())
+    }
 
     /// Initializes the subtitle stream (if there is one), required for making a [`Player`] display subtitles.
     /// Will stop and reset the player's state.
@@ -570,6 +599,7 @@ impl Player {
     //     Ok(())
     // }
 
+    #[cfg(feature = "av")]
     fn cycle_stream<T: Streamer + 'static>(&self, mut streamer: Option<&Arc<Mutex<T>>>) {
         if let Some(streamer) = streamer.take() {
             let message_sender = self.message_sender.clone();
@@ -588,15 +618,17 @@ impl Player {
     // }
 
     /// Switches to the next audio stream.
+    #[cfg(feature = "av")]
     pub fn cycle_audio_stream(&mut self) {
         self.cycle_stream(self.audio_streamer.as_ref());
     }
 
-    // /// Enables using [`Player::add_audio`] with the builder pattern.
-    // pub fn with_audio(mut self, audio_device: &mut AudioDevice) -> Result<Self> {
-    //     self.add_audio(audio_device)?;
-    //     Ok(self)
-    // }
+    /// Enables using [`Player::add_audio`] with the builder pattern.
+    #[cfg(feature = "av")]
+    pub fn with_audio(mut self, audio_device: &mut AudioDevice) -> Result<Self> {
+        self.add_audio(audio_device)?;
+        Ok(self)
+    }
 
     /// Enables using [`Player::add_subtitles`] with the builder pattern.
     // pub fn with_subtitles(mut self) -> Result<Self> {
@@ -642,7 +674,8 @@ impl Player {
         //     ctx.load_texture("vidstream", ColorImage::example(), options.texture_options);
         let (message_sender, message_reciever) = std::sync::mpsc::channel();
         let mut streamer = Self {
-            // input_path: input_path.clone(),
+            input_path: input_path.clone(),
+            #[cfg(feature = "av")]
             audio_streamer: None,
             // subtitle_streamer: None,
             video_streamer: Arc::new(Mutex::new(stream_decoder)),
@@ -650,6 +683,7 @@ impl Player {
             audio_stream_info: (0, 0),
             framerate,
             video_timer: Timer::new(),
+            #[cfg(feature = "av")]
             audio_timer: Timer::new(),
             // subtitle_timer: Timer::new(),
             // subtitle_elapsed_ms: Shared::new(0),
@@ -700,16 +734,18 @@ impl Player {
     }
 }
 
-// fn get_stream_indices_of_type(
-//     input_context: &Input,
-//     stream_type: ffmpeg::media::Type,
-// ) -> VecDeque<usize> {
-//     input_context
-//         .streams()
-//         .filter_map(|s| (s.parameters().medium() == stream_type).then_some(s.index()))
-//         .collect::<VecDeque<_>>()
-// }
+#[cfg(feature = "av")]
+fn get_stream_indices_of_type(
+    input_context: &Input,
+    stream_type: ffmpeg::media::Type,
+) -> VecDeque<usize> {
+    input_context
+        .streams()
+        .filter_map(|s| (s.parameters().medium() == stream_type).then_some(s.index()))
+        .collect::<VecDeque<_>>()
+}
 
+#[cfg(feature = "av")]
 fn get_decoder_from_stream_index(
     input_context: &Input,
     stream_index: usize,
@@ -925,6 +961,7 @@ impl Streamer for VideoStreamer {
     }
 }
 
+#[cfg(feature = "av")]
 impl Streamer for AudioStreamer {
     type Frame = Audio;
     type ProcessedFrame = ();
@@ -1086,55 +1123,64 @@ impl Streamer for AudioStreamer {
 //     }
 // }
 
-// type FfmpegAudioFormat = ffmpeg::format::Sample;
-// type FfmpegAudioFormatType = ffmpeg::format::sample::Type;
-// trait AsFfmpegSample {
-//     fn to_sample(&self) -> FfmpegAudioFormat;
-// }
+#[cfg(feature = "av")]
+type FfmpegAudioFormat = ffmpeg::format::Sample;
+#[cfg(feature = "av")]
+type FfmpegAudioFormatType = ffmpeg::format::sample::Type;
 
-// impl AsFfmpegSample for AudioFormat {
-//     fn to_sample(&self) -> FfmpegAudioFormat {
-//         match self {
-//             AudioFormat::U8 => FfmpegAudioFormat::U8(FfmpegAudioFormatType::Packed),
-//             AudioFormat::S8 => panic!("unsupported audio format"),
-//             AudioFormat::U16LSB => panic!("unsupported audio format"),
-//             AudioFormat::U16MSB => panic!("unsupported audio format"),
-//             AudioFormat::S16LSB => FfmpegAudioFormat::I16(FfmpegAudioFormatType::Packed),
-//             AudioFormat::S16MSB => FfmpegAudioFormat::I16(FfmpegAudioFormatType::Packed),
-//             AudioFormat::S32LSB => FfmpegAudioFormat::I32(FfmpegAudioFormatType::Packed),
-//             AudioFormat::S32MSB => FfmpegAudioFormat::I32(FfmpegAudioFormatType::Packed),
-//             AudioFormat::F32LSB => FfmpegAudioFormat::F32(FfmpegAudioFormatType::Packed),
-//             AudioFormat::F32MSB => FfmpegAudioFormat::F32(FfmpegAudioFormatType::Packed),
-//         }
-//     }
-// }
+#[cfg(feature = "av")]
+trait AsFfmpegSample {
+    fn to_sample(&self) -> FfmpegAudioFormat;
+}
 
-// /// Pipes audio samples to SDL2.
-// pub struct AudioDeviceCallback {
-//     sample_streams: Vec<AudioSampleStream>,
-// }
+#[cfg(feature = "av")]
+impl AsFfmpegSample for AudioFormat {
+    fn to_sample(&self) -> FfmpegAudioFormat {
+        match self {
+            AudioFormat::U8 => FfmpegAudioFormat::U8(FfmpegAudioFormatType::Packed),
+            AudioFormat::S8 => panic!("unsupported audio format"),
+            AudioFormat::U16LSB => panic!("unsupported audio format"),
+            AudioFormat::U16MSB => panic!("unsupported audio format"),
+            AudioFormat::S16LSB => FfmpegAudioFormat::I16(FfmpegAudioFormatType::Packed),
+            AudioFormat::S16MSB => FfmpegAudioFormat::I16(FfmpegAudioFormatType::Packed),
+            AudioFormat::S32LSB => FfmpegAudioFormat::I32(FfmpegAudioFormatType::Packed),
+            AudioFormat::S32MSB => FfmpegAudioFormat::I32(FfmpegAudioFormatType::Packed),
+            AudioFormat::F32LSB => FfmpegAudioFormat::F32(FfmpegAudioFormatType::Packed),
+            AudioFormat::F32MSB => FfmpegAudioFormat::F32(FfmpegAudioFormatType::Packed),
+        }
+    }
+}
 
-// struct AudioSampleStream {
-//     sample_consumer: AudioSampleConsumer,
-//     audio_volume: Shared<f32>,
-// }
+/// Pipes audio samples to SDL2.
+#[cfg(feature = "av")]
+pub struct AudioDeviceCallback {
+    sample_streams: Vec<AudioSampleStream>,
+}
 
-// impl AudioCallback for AudioDeviceCallback {
-//     type Channel = f32;
-//     fn callback(&mut self, output: &mut [Self::Channel]) {
-//         for x in output.iter_mut() {
-//             *x = self
-//                 .sample_streams
-//                 .iter_mut()
-//                 .map(|s| s.sample_consumer.pop().unwrap_or(0.) * s.audio_volume.get())
-//                 .sum()
-//         }
-//     }
-// }
+#[cfg(feature = "av")]
+struct AudioSampleStream {
+    sample_consumer: AudioSampleConsumer,
+    audio_volume: Shared<f32>,
+}
+
+#[cfg(feature = "av")]
+impl AudioCallback for AudioDeviceCallback {
+    type Channel = f32;
+    fn callback(&mut self, output: &mut [Self::Channel]) {
+        for x in output.iter_mut() {
+            *x = self
+                .sample_streams
+                .iter_mut()
+                .map(|s| s.sample_consumer.pop().unwrap_or(0.) * s.audio_volume.get())
+                .sum()
+        }
+    }
+}
 
 #[inline]
 // Thanks https://github.com/zmwangx/rust-ffmpeg/issues/72 <3
 // Interpret the audio frame's data as packed (alternating channels, 12121212, as opposed to planar 11112222)
+#[cfg(feature = "av")]
 fn packed<T: ffmpeg::frame::audio::Sample>(frame: &ffmpeg::frame::Audio) -> &[T] {
     if !frame.is_packed() {
         panic!("data is not packed");
