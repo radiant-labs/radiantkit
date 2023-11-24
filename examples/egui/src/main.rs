@@ -45,7 +45,7 @@ impl RadiantKitAppController {
                 if ui.button("Load Video").clicked() {
                     self.pending_messages.push(RadiantMessage::AddVideo {
                         name: "".to_string(),
-                        path: "/Users/gupnik/Desktop/1.mov".to_string(),
+                        path: "".to_string(), // Add video path here
                     });
                 }
                 if ui.button("Play Video").clicked() {
