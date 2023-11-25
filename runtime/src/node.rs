@@ -1,9 +1,8 @@
 use epaint::ClippedPrimitive;
 use radiantkit_core::{
     RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantRectangleNode,
-    RadiantTessellatable, ScreenDescriptor,
+    RadiantTessellatable, ScreenDescriptor, RadiantGroupNode,
 };
-use radiantkit_core::{RadiantDocumentNode, RadiantGroupNode};
 use radiantkit_image::RadiantImageNode;
 use radiantkit_macros::{RadiantComponentProvider, RadiantNode, RadiantTessellatable};
 use radiantkit_path::RadiantPathNode;
@@ -20,7 +19,6 @@ use serde::{Deserialize, Serialize};
     RadiantTessellatable,
 )]
 pub enum RadiantNodeType {
-    Document(RadiantDocumentNode<RadiantNodeType>),
     Artboard(RadiantGroupNode<RadiantNodeType>),
     Rectangle(RadiantRectangleNode),
     Path(RadiantPathNode),

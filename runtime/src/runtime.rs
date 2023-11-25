@@ -5,7 +5,7 @@ use radiantkit_core::{
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
 use radiantkit_winit::RadiantView;
-
+use radiankit_collaboration::Collaborator;
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
 
 pub struct RadiantRuntime {
@@ -19,6 +19,9 @@ impl RadiantRuntime {
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
+        if let Ok(mut document) = view.scene_mut().document.write() {
+            document.add_listener(Box::new(Collaborator::new()));
+        }
         Self { view }
     }
 }

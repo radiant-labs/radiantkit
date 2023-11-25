@@ -8,6 +8,7 @@ members = [
     "crates/path",
     "crates/video",
 	"crates/winit",
+    "crates/collaboration",
     "runtime",
     "examples/basic",
     "examples/egui",
