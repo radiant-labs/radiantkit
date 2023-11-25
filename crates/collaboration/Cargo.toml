@@ -1,0 +1,11 @@
+[package]
+name = "radiankit-collaboration"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+radiantkit-core = { version = "0.0.1", path = "../core" }
+serde_json = "1.0.108"
+yrs = "0.17.1"
