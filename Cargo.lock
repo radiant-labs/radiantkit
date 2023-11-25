@@ -1998,8 +1998,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi 0.9.0+wasi-snapshot-preview1",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3889,6 +3891,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "radiankit-collaboration"
+version = "0.0.1"
+dependencies = [
+ "radiantkit-core",
+ "serde_json",
+ "yrs",
+]
+
+[[package]]
 name = "radiant-egui-app"
 version = "0.1.0"
 dependencies = [
@@ -3930,6 +3941,7 @@ dependencies = [
  "log",
  "macro_magic",
  "pollster",
+ "radiankit-collaboration",
  "radiantkit-core",
  "radiantkit-image",
  "radiantkit-macros",
@@ -4534,9 +4546,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.107"
+version = "1.0.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
+checksum = "3d1c7e3eac408d115102c4c24ad393e0821bb3a5df4d506a80f85f7a742a526b"
 dependencies = [
  "itoa 1.0.9",
  "ryu",
@@ -4698,6 +4710,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1e08e261d0e8f5c43123b7adf3e4ca1690d655377ac93a03b2c9d3e98de1342"
 dependencies = [
  "version_check",
+]
+
+[[package]]
+name = "smallstr"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b1aefdf380735ff8ded0b15f31aab05daf1f70216c01c02a12926badd1df9d"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]
@@ -6539,6 +6560,21 @@ name = "xml-rs"
 version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fcb9cbac069e033553e8bb871be2fbdffcab578eb25bd0f7c508cedc6dcd75a"
+
+[[package]]
+name = "yrs"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86f2fbea97ed32722d4f09fcf1aace9daf36e8b2e72b1f605d5a1bee575fa0da"
+dependencies = [
+ "atomic_refcell",
+ "rand 0.7.3",
+ "serde",
+ "serde_json",
+ "smallstr",
+ "smallvec",
+ "thiserror",
+]
 
 [[package]]
 name = "zbus"

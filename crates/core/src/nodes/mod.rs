@@ -1,12 +1,11 @@
-pub mod document;
 pub mod group;
 pub mod line;
 pub mod rectangle;
 
-pub use document::*;
 pub use group::*;
 pub use line::*;
 pub use rectangle::*;
+use serde::Serialize;
 
 use crate::{RadiantComponentProvider, ScreenDescriptor};
 use epaint::ClippedPrimitive;
@@ -24,7 +23,7 @@ pub trait RadiantTessellatable {
     ) -> Vec<ClippedPrimitive>;
 }
 
-pub trait RadiantNode: Clone + RadiantTessellatable + RadiantComponentProvider {
+pub trait RadiantNode: Serialize + Clone + RadiantTessellatable + RadiantComponentProvider {
     fn get_id(&self) -> u64;
     fn set_id(&mut self, id: u64);
     fn get_bounding_rect(&self) -> [f32; 4];
