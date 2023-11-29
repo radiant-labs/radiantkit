@@ -12,6 +12,8 @@ use std::{
     fmt::Debug,
 };
 
+use crate::RadiantTextMessage;
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Clone)]
@@ -221,6 +223,17 @@ impl RadiantComponentProvider for RadiantTextNode {
             unsafe { Some(&mut *(&mut self.color as *mut dyn Any as *mut T)) }
         } else {
             None
+        }
+    }
+}
+
+impl RadiantTextNode {
+    pub fn handle_message(&mut self, message: RadiantTextMessage) {
+        match message {
+            RadiantTextMessage::SetText { text, .. } => {
+                self.text = text;
+                self.set_needs_tessellation();
+            }
         }
     }
 }
