@@ -50,6 +50,13 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     }
                 }
             }
+            RadiantMessage::TextMessage(message) => {
+                if let Ok(mut document) = self.view.scene_mut().document.write() {
+                    if let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(message.id()) {
+                        text_node.handle_message(message);
+                    }
+                }
+            }
             RadiantMessage::AddRectangle { position, scale } => {
                 let id = self.view.scene().document().counter;
                 let node = RadiantRectangleNode::new(id, position, scale);
