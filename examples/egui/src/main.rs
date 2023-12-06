@@ -1,6 +1,6 @@
 use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
-    RadiantSceneMessage, RadiantTextNode, Runtime, View,
+    RadiantSceneMessage, RadiantTextNode, Runtime, View, RadiantTextMessage,
 };
 use std::iter;
 use winit::event::Event::RedrawRequested;
@@ -11,12 +11,14 @@ use egui_winit_platform::{Platform, PlatformDescriptor};
 
 struct RadiantKitAppController {
     pending_messages: Vec<RadiantMessage>,
+    text: String,
 }
 
 impl RadiantKitAppController {
     fn new() -> Self {
         Self {
             pending_messages: Vec::new(),
+            text: "Hello".to_string(),
         }
     }
 }
@@ -42,6 +44,20 @@ impl RadiantKitAppController {
                         path: "https://i.imgur.com/XbLP6ux.png".to_string(),
                     });
                 }
+                if ui.button("Add Text").clicked() {
+                    self.pending_messages.push(RadiantMessage::AddText {
+                        text: "Hello".to_string(),
+                        position: [200.0, 200.0],
+                    });
+                }
+                if ui.text_edit_singleline(&mut self.text).changed() {
+                    self.pending_messages.push(RadiantMessage::TextMessage(
+                        RadiantTextMessage::SetText {
+                            id: 4,
+                            text: self.text.clone(),
+                        },
+                    ));
+                }
                 #[cfg(feature = "video")]
                 if ui.button("Load Video").clicked() {
                     self.pending_messages.push(RadiantMessage::AddVideo {
@@ -61,7 +77,7 @@ impl RadiantKitAppController {
 
 async fn run() {
     let env = env_logger::Env::default()
-        .filter_or("MY_LOG_LEVEL", "error")
+        .filter_or("MY_LOG_LEVEL", "info")
         .write_style_or("MY_LOG_STYLE", "always");
 
     env_logger::init_from_env(env);
