@@ -75,5 +75,15 @@ export class RadiantKitController {
             },
         });
     }
+    setText(nodeId, text) {
+        this._controller.handleMessage({
+            TextMessage: {
+                SetText: {
+                    id: nodeId,
+                    text,
+                },
+            },
+        });
+    }
 }
 //# sourceMappingURL=index.js.map

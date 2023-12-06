@@ -51,10 +51,18 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 }
             }
             RadiantMessage::TextMessage(message) => {
-                if let Ok(mut document) = self.view.scene_mut().document.write() {
-                    if let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(message.id()) {
-                        text_node.handle_message(message);
-                    }
+                let id = message.id();
+                let update_interactions;
+                {
+                    let mut scene = self.view.scene_mut();
+                    let document = &mut scene.document;
+                    let Ok(mut document) = document.write() else { return None };
+                    let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(id) else { return None };
+                    update_interactions = text_node.handle_message(message);
+                }
+                if update_interactions {
+                    return self
+                    .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
                 }
             }
             RadiantMessage::AddRectangle { position, scale } => {

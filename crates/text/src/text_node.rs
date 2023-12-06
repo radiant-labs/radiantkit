@@ -228,11 +228,12 @@ impl RadiantComponentProvider for RadiantTextNode {
 }
 
 impl RadiantTextNode {
-    pub fn handle_message(&mut self, message: RadiantTextMessage) {
+    pub fn handle_message(&mut self, message: RadiantTextMessage) -> bool {
         match message {
             RadiantTextMessage::SetText { text, .. } => {
                 self.text = text;
                 self.set_needs_tessellation();
+                true
             }
         }
     }
