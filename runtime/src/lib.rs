@@ -12,6 +12,7 @@ pub use radiantkit_core::*;
 pub use radiantkit_image::RadiantImageNode;
 pub use radiantkit_path::RadiantPathNode;
 pub use radiantkit_text::RadiantTextNode;
+pub use radiantkit_text::RadiantTextMessage;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use radiantkit_winit::run_native;
