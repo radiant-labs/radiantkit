@@ -86,4 +86,15 @@ export class RadiantKitController {
             },
         });
     }
+
+    setText(nodeId: number, text: string) {
+        this._controller.handleMessage({
+            TextMessage: {
+                SetText: {
+                    id: nodeId,
+                    text,
+                },
+            },
+        });
+    }
 }

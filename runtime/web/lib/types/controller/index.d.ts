@@ -15,5 +15,6 @@ export declare class RadiantKitController {
     setTransform(nodeId: number, position: number[], scale: number[]): void;
     setFillColor(nodeId: number, color: number[]): void;
     setStrokeColor(nodeId: number, color: number[]): void;
+    setText(nodeId: number, text: string): void;
 }
 //# sourceMappingURL=index.d.ts.map

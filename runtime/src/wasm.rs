@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(js_name = RadiantKitAppController)]
 pub struct RadiantKitAppController {
     runtime: Arc<RwLock<RadiantRuntime>>,
+    callback: js_sys::Function,
 }
 
 #[wasm_bindgen(js_class = RadiantKitAppController)]
@@ -23,14 +24,18 @@ impl RadiantKitAppController {
 
         radiantkit_winit::run_wasm(runtime.clone(), f.clone());
 
-        Self { runtime }
+        Self { runtime, callback: f.clone() }
     }
 
     #[wasm_bindgen(js_name = handleMessage)]
     pub fn handle_message(&mut self, message: JsValue) {
         if let Ok(message) = serde_wasm_bindgen::from_value(message.clone()) {
             if let Ok(mut runtime) = self.runtime.write() {
-                runtime.handle_message(message);
+                if let Some(response) = runtime.handle_message(message) {
+                    let this = JsValue::null();
+                    let _ =
+                        self.callback.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
+                }
             }
         } else {
             log::error!("Couldn't deserialize message {:?}", message);
