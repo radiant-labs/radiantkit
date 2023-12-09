@@ -207,6 +207,19 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             RadiantSceneMessage::SelectTool { id } => {
                 self.tool_manager.activate_tool(id);
             }
+            RadiantSceneMessage::HandleKey { id, key } => {
+                if let Some(id) = match id {
+                    Some(id) => Some(id),
+                    None => self.document.read().unwrap().selected_node_id,
+                } {
+                    if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                        if node.handle_key_down(key) {
+                            self.interaction_manager
+                                .update_interactions(node, &self.screen_descriptor);
+                        }
+                    }
+                }
+            }
         }
         None
     }

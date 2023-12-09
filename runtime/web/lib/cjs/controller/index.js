@@ -43,12 +43,14 @@ class RadiantKitController {
         });
     }
     addText(text, position = [100, 100], scale = [100, 100]) {
+        var _a;
         this._controller.handleMessage({
             AddText: {
                 text,
                 position,
             },
         });
+        (_a = document.getElementById("radiantkit-canvas")) === null || _a === void 0 ? void 0 : _a.focus();
     }
     setTransform(nodeId, position, scale) {
         this._controller.handleMessage({

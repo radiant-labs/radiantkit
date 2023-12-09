@@ -51,6 +51,7 @@ export class RadiantKitController {
                 position,
             },
         });
+        document.getElementById("radiantkit-canvas")?.focus();
     }
 
     setTransform(nodeId: number, position: number[], scale: number[]) {
