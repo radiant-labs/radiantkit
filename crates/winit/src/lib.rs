@@ -1,5 +1,5 @@
 use radiantkit_core::{
-    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, Vec3, View,
+    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, Vec3, View, KeyCode,
 };
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
@@ -64,6 +64,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     .get_element_by_id("canvas-container")
                     .expect("Couldn't append canvas to document body.");
                 let canvas = web_sys::Element::from(window.canvas());
+                canvas.set_id("radiantkit-canvas");
                 dst.append_child(&canvas)
                     .ok()
                     .expect("Couldn't append canvas to document body.");
@@ -277,6 +278,11 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                                 }
                             }
                         }
+                        WindowEvent::KeyboardInput { input, .. } => {
+                            if input.state == ElementState::Pressed {
+                                return self.on_key_down(&input.virtual_keycode);
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -332,6 +338,69 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             .tool_manager
             .active_tool()
             .on_mouse_up(position)
+    }
+
+    pub fn on_key_down(&mut self, input: &Option<VirtualKeyCode>) -> Option<M> {
+        if let Some(keycode) = input {
+            self.scene_mut()
+            .tool_manager
+            .active_tool()
+            .on_key_down(to_keycode(keycode))
+        } else {
+            None
+        }
+    }
+}
+
+fn to_keycode(keycode: &VirtualKeyCode) -> KeyCode {
+    match keycode {
+        VirtualKeyCode::Back => KeyCode::Backspace,
+        VirtualKeyCode::Delete => KeyCode::Delete,
+        VirtualKeyCode::Return => KeyCode::Enter,
+        VirtualKeyCode::Escape => KeyCode::Escape,
+        VirtualKeyCode::Space => KeyCode::Space,
+        VirtualKeyCode::Tab => KeyCode::Tab,
+        VirtualKeyCode::Down => KeyCode::ArrowDown,
+        VirtualKeyCode::Left => KeyCode::ArrowLeft,
+        VirtualKeyCode::Right => KeyCode::ArrowRight,
+        VirtualKeyCode::Up => KeyCode::ArrowUp,
+        VirtualKeyCode::Key0 => KeyCode::Char("0".to_string()),
+        VirtualKeyCode::Key1 => KeyCode::Char("1".to_string()),
+        VirtualKeyCode::Key2 => KeyCode::Char("2".to_string()),
+        VirtualKeyCode::Key3 => KeyCode::Char("3".to_string()),
+        VirtualKeyCode::Key4 => KeyCode::Char("4".to_string()),
+        VirtualKeyCode::Key5 => KeyCode::Char("5".to_string()),
+        VirtualKeyCode::Key6 => KeyCode::Char("6".to_string()),
+        VirtualKeyCode::Key7 => KeyCode::Char("7".to_string()),
+        VirtualKeyCode::Key8 => KeyCode::Char("8".to_string()),
+        VirtualKeyCode::Key9 => KeyCode::Char("9".to_string()),
+        VirtualKeyCode::A => KeyCode::Char("a".to_string()),
+        VirtualKeyCode::B => KeyCode::Char("b".to_string()),
+        VirtualKeyCode::C => KeyCode::Char("c".to_string()),
+        VirtualKeyCode::D => KeyCode::Char("d".to_string()),
+        VirtualKeyCode::E => KeyCode::Char("e".to_string()),
+        VirtualKeyCode::F => KeyCode::Char("f".to_string()),
+        VirtualKeyCode::G => KeyCode::Char("g".to_string()),
+        VirtualKeyCode::H => KeyCode::Char("h".to_string()),
+        VirtualKeyCode::I => KeyCode::Char("i".to_string()),
+        VirtualKeyCode::J => KeyCode::Char("j".to_string()),
+        VirtualKeyCode::K => KeyCode::Char("k".to_string()),
+        VirtualKeyCode::L => KeyCode::Char("l".to_string()),
+        VirtualKeyCode::M => KeyCode::Char("m".to_string()),
+        VirtualKeyCode::N => KeyCode::Char("n".to_string()),
+        VirtualKeyCode::O => KeyCode::Char("o".to_string()),
+        VirtualKeyCode::P => KeyCode::Char("p".to_string()),
+        VirtualKeyCode::Q => KeyCode::Char("q".to_string()),
+        VirtualKeyCode::R => KeyCode::Char("r".to_string()),
+        VirtualKeyCode::S => KeyCode::Char("s".to_string()),
+        VirtualKeyCode::T => KeyCode::Char("t".to_string()),
+        VirtualKeyCode::U => KeyCode::Char("u".to_string()),
+        VirtualKeyCode::V => KeyCode::Char("v".to_string()),
+        VirtualKeyCode::W => KeyCode::Char("w".to_string()),
+        VirtualKeyCode::X => KeyCode::Char("x".to_string()),
+        VirtualKeyCode::Y => KeyCode::Char("y".to_string()),
+        VirtualKeyCode::Z => KeyCode::Char("z".to_string()),
+        _ => KeyCode::Char("".to_string()),
     }
 }
 

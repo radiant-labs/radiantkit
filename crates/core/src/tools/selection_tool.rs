@@ -3,6 +3,7 @@ use crate::{RadiantSceneMessage, RadiantTool};
 pub struct SelectionTool {
     active_node_id: Option<u64>,
     prev_position: [f32; 2],
+    is_mouse_down: bool,
 }
 
 impl SelectionTool {
@@ -10,6 +11,7 @@ impl SelectionTool {
         Self {
             active_node_id: None,
             prev_position: [0.0, 0.0],
+            is_mouse_down: false,
         }
     }
 }
@@ -17,6 +19,7 @@ impl SelectionTool {
 impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
     fn on_mouse_down(&mut self, node_id: u64, _node_count: u64, position: [f32; 2]) -> Option<M> {
         self.prev_position = position;
+        self.is_mouse_down = true;
         Some(
             if node_id > 0 {
                 self.active_node_id = Some(node_id - 1);
@@ -32,6 +35,9 @@ impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
     }
 
     fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
+        if !self.is_mouse_down {
+            return None;
+        }
         let result = if let Some(id) = self.active_node_id {
             let message = RadiantSceneMessage::TransformNode {
                 id: id,
@@ -51,7 +57,12 @@ impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
 
     fn on_mouse_up(&mut self, _position: [f32; 2]) -> Option<M> {
         self.active_node_id = None;
+        self.is_mouse_down = false;
         self.prev_position = [0.0, 0.0];
         None
+    }
+
+    fn on_key_down(&mut self, key: crate::KeyCode) -> Option<M> {
+        return Some(RadiantSceneMessage::HandleKey { id: None, key }.into());
     }
 }

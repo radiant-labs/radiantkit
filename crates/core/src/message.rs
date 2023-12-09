@@ -1,7 +1,7 @@
 use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
 
-use crate::RadiantNode;
+use crate::{RadiantNode, KeyCode};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantSceneMessage {
@@ -32,6 +32,10 @@ pub enum RadiantSceneMessage {
     },
     SelectTool {
         id: u32,
+    },
+    HandleKey {
+        id: Option<u64>,
+        key: KeyCode,
     },
 }
 

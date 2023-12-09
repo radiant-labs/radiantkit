@@ -97,6 +97,14 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
                     )*
                 }
             }
+
+            fn handle_key_down(&mut self, key: crate::KeyCode) -> bool {
+                match self {
+                    #(
+                        #name::#node_names(node) => node.handle_key_down(key),
+                    )*
+                }
+            }
         }
 
         #(

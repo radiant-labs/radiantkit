@@ -32,6 +32,12 @@ pub struct RadiantLineNode {
     pub bounding_rect: [f32; 4],
 }
 
+impl Default for RadiantLineNode {
+    fn default() -> Self {
+        Self::new(0, [0.0, 0.0], [0.0, 0.0])
+    }
+}
+
 impl RadiantLineNode {
     pub fn new(id: u64, start: [f32; 2], end: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
