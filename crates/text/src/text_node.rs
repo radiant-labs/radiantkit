@@ -2,9 +2,10 @@ use epaint::{
     text::{LayoutJob, TextFormat},
     ClippedPrimitive, ClippedShape, Color32, FontFamily, FontId, Fonts, Rect, TessellationOptions,
 };
+use epaint::emath::NumExt;
 use radiantkit_core::{
     ColorComponent, RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent, RadiantLineNode,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,6 +14,8 @@ use std::{
 };
 
 use crate::RadiantTextMessage;
+
+const CURSOR_NODE_ID: u64 = 400;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
@@ -24,6 +27,9 @@ pub struct RadiantTextNode {
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     pub color: ColorComponent,
+    #[serde(skip)]
+    #[wasm_bindgen(skip)]
+    pub cursor_node: RadiantLineNode,
     #[serde(skip)]
     #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
@@ -59,12 +65,15 @@ impl RadiantTextNode {
         let selection = SelectionComponent::new();
         let color = ColorComponent::new();
 
+        let cursor_node = RadiantLineNode::new(CURSOR_NODE_ID, [0.0, 0.0], [0.0, 0.0]);
+
         Self {
             id,
             text,
             transform,
             selection,
             color,
+            cursor_node,
             primitives: Vec::new(),
             selection_primitives: Vec::new(),
             needs_tessellation: true,
@@ -82,12 +91,15 @@ impl RadiantTextNode {
         let position = self.transform.position();
         // let scale = self.transform.scale();
 
+        let font_id = FontId::new(24.0, FontFamily::Proportional);
+        let row_height = fonts.row_height(&font_id);
+
         let mut job = LayoutJob::default();
         job.append(
             &self.text,
             0.0,
             TextFormat {
-                font_id: FontId::new(24.0, FontFamily::Proportional),
+                font_id,
                 color: Color32::WHITE,
                 ..Default::default()
             },
@@ -113,6 +125,17 @@ impl RadiantTextNode {
 
         let galley = fonts.layout_job(job);
 
+        let cursor = galley.end();
+        let mut cursor_pos = galley.pos_from_cursor(&cursor); //.translate(pos.to_vec2());
+        cursor_pos.max.y = cursor_pos.max.y.at_least(cursor_pos.min.y + row_height); // Handle completely empty galleys
+        cursor_pos = cursor_pos.expand(1.5); // slightly above/below row
+    
+        let top = cursor_pos.center_top();
+        let bottom = cursor_pos.center_bottom();
+        self.cursor_node.start = [top.x + position.x, top.y + position.y].into();
+        self.cursor_node.end = [bottom.x + position.x, bottom.y + position.y].into();
+        // self.cursor_node.transform = self.transform.clone();
+
         let shape = epaint::TextShape::new(position.into(), galley);
 
         let texture_atlas = fonts.texture_atlas();
@@ -125,7 +148,7 @@ impl RadiantTextNode {
         self.bounding_rect = [
             rect.left_top().x,
             rect.left_top().y,
-            rect.right_bottom().x,
+            rect.right_bottom().x + 10.0,
             rect.right_bottom().y,
         ];
 
@@ -139,6 +162,14 @@ impl RadiantTextNode {
             prepared_discs,
             shapes,
         );
+
+        if self.selection.is_selected() {
+            self.primitives.append(&mut self.cursor_node.tessellate(
+                false,
+                screen_descriptor,
+                fonts,
+            ));
+        }
 
         let fill_color = epaint::Color32::from_rgb(
             (self.id + 1 >> 0) as u8 & 0xFF,
@@ -170,6 +201,7 @@ impl RadiantTessellatable for RadiantTextNode {
 
     fn set_needs_tessellation(&mut self) {
         self.needs_tessellation = true;
+        self.cursor_node.set_needs_tessellation();
     }
 
     fn tessellate(
@@ -198,6 +230,32 @@ impl RadiantNode for RadiantTextNode {
 
     fn get_bounding_rect(&self) -> [f32; 4] {
         self.bounding_rect
+    }
+
+    fn handle_key_down(&mut self, key: radiantkit_core::KeyCode) -> bool {
+        let did_update = match key {
+            radiantkit_core::KeyCode::Backspace => {
+                self.text.pop();
+                true
+            }
+            radiantkit_core::KeyCode::Enter => {
+                self.text.push('\n');
+                true
+            }
+            radiantkit_core::KeyCode::Space => {
+                self.text.push(' ');
+                true
+            }
+            radiantkit_core::KeyCode::Char(c) => {
+                self.text.push_str(&c);
+                true
+            }
+            _ => { false }
+        };
+        if did_update {
+            self.set_needs_tessellation();
+        }
+        did_update
     }
 }
 

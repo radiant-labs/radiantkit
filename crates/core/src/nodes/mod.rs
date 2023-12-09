@@ -27,4 +27,5 @@ pub trait RadiantNode: Serialize + Clone + RadiantTessellatable + RadiantCompone
     fn get_id(&self) -> u64;
     fn set_id(&mut self, id: u64);
     fn get_bounding_rect(&self) -> [f32; 4];
+    fn handle_key_down(&mut self, _key: crate::KeyCode) -> bool { false }
 }
