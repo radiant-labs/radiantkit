@@ -1,0 +1,17 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+futures-util = "0.3.29"
+log = "0.4.20"
+pretty_env_logger = "0.5.0"
+tokio = { version = "1.34.0", features = ["rt", "rt-multi-thread", "macros"] }
+warp = "0.3.6"
+yrs = "0.17.1"
+y-sync = { version = "0.4.0", features = ["net"] }
+yrs-warp = "0.7.0"
