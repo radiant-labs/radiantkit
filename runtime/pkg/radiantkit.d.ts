@@ -33,11 +33,12 @@ export class RadiantImageNode {
 export class RadiantKitAppController {
   free(): void;
 /**
+* @param {bigint} client_id
 * @param {Function} f
 * @param {number | undefined} width
 * @param {number | undefined} height
 */
-  constructor(f: Function, width?: number, height?: number);
+  constructor(client_id: bigint, f: Function, width?: number, height?: number);
 /**
 * @param {any} message
 */
@@ -220,7 +221,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_radiantkitappcontroller_free: (a: number) => void;
-  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly radiantkitappcontroller_handleMessage: (a: number, b: number) => void;
   readonly __wbg_radiantpathnode_free: (a: number) => void;
   readonly __wbg_get_radiantpathnode_id: (a: number) => number;
@@ -344,9 +345,11 @@ export interface InitOutput {
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
-  readonly wasm_bindgen__convert__closures__invoke1_mut__h5395aec797758a2e: (a: number, b: number, c: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke0_mut__h3742014c802fb14f: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1a68760c989ce7c3: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h16c859ca2d77b233: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__ha5db9716ac5368d3: (a: number, b: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke1_mut__h436bb9ff5b45db47: (a: number, b: number, c: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke0_mut__h5dcc6e20a1bcebe5: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7bd9f0eadce704a4: (a: number, b: number, c: number) => void;
   readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h206ecff7fb3d562a: (a: number, b: number, c: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
