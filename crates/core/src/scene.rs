@@ -6,6 +6,7 @@ use crate::{
     RadiantTextureManager, RadiantToolManager, ScreenDescriptor, SelectionTool, TransformComponent,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
+use uuid::Uuid;
 
 pub struct RadiantScene<M, N: RadiantNode> {
     pub document: Arc<RwLock<RadiantDocumentNode<N>>>,
@@ -85,7 +86,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             .render(primitives, &self.screen_descriptor, false)
     }
 
-    pub async fn select(&mut self, mouse_position: [f32; 2]) -> u64 {
+    pub async fn select(&mut self, mouse_position: [f32; 2]) -> Option<Uuid> {
         let primitives = self.get_primitives(true);
         self.render_manager
             .render_offscreen(primitives, &self.screen_descriptor, true, mouse_position)

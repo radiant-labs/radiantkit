@@ -1,5 +1,6 @@
 use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{RadiantNode, KeyCode};
 
@@ -7,34 +8,34 @@ use crate::{RadiantNode, KeyCode};
 pub enum RadiantSceneMessage {
     AddArtboard {},
     SelectArtboard {
-        id: u64,
+        id: Uuid,
     },
     SelectNode {
-        id: Option<u64>,
+        id: Option<Uuid>,
     },
     TransformNode {
-        id: u64,
+        id: Uuid,
         position: [f32; 2],
         scale: [f32; 2],
     },
     SetTransform {
-        id: u64,
+        id: Uuid,
         position: [f32; 2],
         scale: [f32; 2],
     },
     SetFillColor {
-        id: u64,
+        id: Uuid,
         fill_color: epaint::Color32,
     },
     SetStrokeColor {
-        id: u64,
+        id: Uuid,
         stroke_color: epaint::Color32,
     },
     SelectTool {
         id: u32,
     },
     HandleKey {
-        id: Option<u64>,
+        id: Option<Uuid>,
         key: KeyCode,
     },
 }
@@ -49,7 +50,7 @@ pub enum RadiantSceneResponse<M, N: RadiantNode> {
         node: N,
     },
     TransformUpdated {
-        id: u64,
+        id: uuid::Uuid,
         position: [f32; 2],
         scale: [f32; 2],
     },
