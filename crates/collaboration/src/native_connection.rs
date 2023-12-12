@@ -8,6 +8,7 @@ use tokio_tungstenite::{tungstenite, WebSocketStream, MaybeTlsStream};
 use tokio::{sync::RwLock, net::TcpStream, sync::RwLockReadGuard};
 use tungstenite::Message;
 use y_sync::awareness::Awareness;
+use yrs::UpdateSubscription;
 use yrs::updates::encoder::Encode;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -84,6 +85,7 @@ impl Stream for TungsteniteStream {
 
 pub struct NativeConnection {
     connection: Option<Connection<TungsteniteSink, TungsteniteStream>>,
+    _sub: Option<UpdateSubscription>,
 }
 
 impl NativeConnection {
@@ -92,7 +94,7 @@ impl NativeConnection {
         let (sink, stream) = ws_stream.split();
         let connection = Connection::new(awareness.clone(), TungsteniteSink(sink), TungsteniteStream(stream));
 
-        let _sub = {
+        let sub = {
             let sink = connection.sink();
             let a = connection.awareness().write().await;
             let doc = a.doc();
@@ -114,6 +116,7 @@ impl NativeConnection {
 
         Ok(Arc::new(std::sync::RwLock::new(Self {
             connection: Some(connection),
+            _sub: Some(sub),
         })))
     }
 
