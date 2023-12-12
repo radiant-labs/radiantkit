@@ -1,39 +1,33 @@
 use crate::{
     ColorComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent, TransformComponent, Vec3,
+    SelectionComponent, TransformComponent, Vec3, get_color_for_node,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
 };
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
-#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantRectangleNode {
-    pub id: u64,
+    pub id: Uuid,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     pub color: ColorComponent,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
 impl RadiantRectangleNode {
-    pub fn new_wasm(id: u64, position: Vec3, scale: Vec3) -> Self {
+    pub fn new_wasm(id: Uuid, position: Vec3, scale: Vec3) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_position(&position);
         transform.set_scale(&scale);
@@ -55,7 +49,7 @@ impl RadiantRectangleNode {
 }
 
 impl RadiantRectangleNode {
-    pub fn new(id: u64, position: [f32; 2], scale: [f32; 2]) -> Self {
+    pub fn new(id: Uuid, position: [f32; 2], scale: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_position(&position.into());
         transform.set_scale(&scale.into());
@@ -106,11 +100,7 @@ impl RadiantRectangleNode {
             shapes,
         );
 
-        let fill_color = epaint::Color32::from_rgb(
-            (self.id + 1 >> 0) as u8 & 0xFF,
-            (self.id + 1 >> 8) as u8 & 0xFF,
-            (self.id + 1 >> 16) as u8 & 0xFF,
-        );
+        let fill_color = get_color_for_node(self.id);
         let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
@@ -171,11 +161,11 @@ impl RadiantTessellatable for RadiantRectangleNode {
 }
 
 impl RadiantNode for RadiantRectangleNode {
-    fn get_id(&self) -> u64 {
+    fn get_id(&self) -> Uuid {
         return self.id;
     }
 
-    fn set_id(&mut self, id: u64) {
+    fn set_id(&mut self, id: Uuid) {
         self.id = id;
     }
 

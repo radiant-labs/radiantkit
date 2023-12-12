@@ -1,4 +1,5 @@
 use radiantkit_core::{RadiantDocumentListener, RadiantDocumentNode, RadiantNode};
+use uuid::Uuid;
 use y_sync::awareness::Awareness;
 use yrs::*;
 use std::sync::{Arc, RwLock};
@@ -50,7 +51,7 @@ impl Collaborator {
 }
 
 impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator {
-    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: u64) {
+    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: Uuid) {
         let Ok(connection) = self.connection.write() else { return };
         let awareness = connection.awareness();
         let Ok(awareness) = awareness.write() else { return };

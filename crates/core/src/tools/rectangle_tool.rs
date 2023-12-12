@@ -1,15 +1,16 @@
 use crate::{RadiantSceneMessage, RadiantTool};
 use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantRectangleMessage {
-    AddRectangle { position: [f32; 2], scale: [f32; 2] },
+    AddRectangle { id: Option<uuid::Uuid>, position: [f32; 2], scale: [f32; 2] },
 }
 
 pub struct RectangleTool {
-    active_node_id: Option<u64>,
+    active_node_id: Option<Uuid>,
     start_position: [f32; 2],
     prev_position: [f32; 2],
 }
@@ -27,12 +28,14 @@ impl RectangleTool {
 impl<M: From<RadiantRectangleMessage> + From<RadiantSceneMessage>> RadiantTool<M>
     for RectangleTool
 {
-    fn on_mouse_down(&mut self, _node_id: u64, node_count: u64, position: [f32; 2]) -> Option<M> {
+    fn on_mouse_down(&mut self, _node_id: Option<Uuid>,position: [f32; 2]) -> Option<M> {
+        let id = Uuid::new_v4();
         let message = RadiantRectangleMessage::AddRectangle {
+            id: Some(id),
             position,
             scale: [10.0, 10.0],
         };
-        self.active_node_id = Some(node_count);
+        self.active_node_id = Some(id);
         self.start_position = position;
         self.prev_position = position;
         Some(message.into())

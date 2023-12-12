@@ -34,3 +34,10 @@ web-sys = { version = "0.3", features = [
     "WebSocket",
     "console"
 ]}
+
+[dependencies.uuid]
+version = "1.6.1"
+features = [
+    "wasm-bindgen",
+    "serde",
+]

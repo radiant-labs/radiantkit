@@ -52,7 +52,7 @@ const Tools = () => {
 const Transform = () => {
     const { controller, response } = useCurrentController();
 
-    const [nodeId, setNodeId] = useState<number>(0)
+    const [nodeId, setNodeId] = useState<string>("00000000-0000-0000-0000-000000000000")
     const [position, setPosition] = useState({ x: 0, y: 0 })
     const [scale, setScale] = useState({ x: 1, y: 1 })
 
@@ -61,8 +61,8 @@ const Transform = () => {
             let node = response.Selected.node.Rectangle;
             setNodeId(node.id)
             let transform = node.transform
-            setPosition({ x: transform.position[0], y: transform.position[1] })
-            setScale({ x: transform.scale[0], y: transform.scale[1] })
+            setPosition({ x: transform.position.x, y: transform.position.y })
+            setScale({ x: transform.scale.x, y: transform.scale.y })
             // setRotation(transform.rotation)
         } else if (response?.TransformUpdated) {
             let transform = response.TransformUpdated
@@ -127,7 +127,7 @@ const Transform = () => {
 const Color = () => {
     const { controller, response } = useCurrentController();
 
-    const [nodeId, setNodeId] = useState<number>(0)
+    const [nodeId, setNodeId] = useState<string>("00000000-0000-0000-0000-000000000000")
     const [fillColor, setFillColor] = useState('#000000')
     const [strokeColor, setStrokeColor] = useState('#000000')
 

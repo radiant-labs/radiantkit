@@ -319,11 +319,10 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
 {
     pub fn on_mouse_down(&mut self, position: [f32; 2]) -> Option<M> {
         let id = pollster::block_on(self.scene_mut().select(position));
-        let node_count = self.scene().document().counter;
         self.scene_mut()
             .tool_manager
             .active_tool()
-            .on_mouse_down(id, node_count, position)
+            .on_mouse_down(id, position)
     }
 
     pub fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {

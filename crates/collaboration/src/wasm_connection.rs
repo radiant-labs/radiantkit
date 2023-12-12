@@ -30,8 +30,8 @@ impl Connection {
 }
 
 impl Connection {
-    pub fn new(awareness: Arc<RwLock<Awareness>>, ws: WebSocket) -> Self {
-        Self::with_protocol(awareness, DefaultProtocol, &ws).unwrap()
+    pub fn new(awareness: Arc<RwLock<Awareness>>, ws: WebSocket) -> Result<Self, ()> {
+        Self::with_protocol(awareness, DefaultProtocol, &ws).map_err(|_| ())
     }
 
     pub fn awareness(&self) -> &Arc<RwLock<Awareness>> {
@@ -187,6 +187,7 @@ pub fn handle_msg<P: Protocol>(
 }
 
 pub struct WasmConnection {
+    awareness: Arc<RwLock<Awareness>>,
     connection: Option<Connection>,
 }
 
@@ -194,17 +195,19 @@ impl WasmConnection {
     pub fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<RwLock<Self>>, ()> {
         if let Ok(ws) = WebSocket::new(url) {
             let wasm_connection = Arc::new(RwLock::new(WasmConnection {
+                awareness: awareness.clone(),
                 connection: None,
             }));
         
             let cloned_wrapper = wasm_connection.clone();
             let cloned_ws = ws.clone();
+            let cloned_awareness = awareness.clone();
             let onopen_callback = Closure::<dyn FnOnce()>::once(move || {
                 let mut wrapper = cloned_wrapper.write().unwrap();
-                wrapper.connection = Some(Connection::new(
-                    awareness.clone(),
-                    cloned_ws
-                ));
+                match Connection::new(cloned_awareness, cloned_ws) {
+                    Ok(conn) => wrapper.connection = Some(conn),
+                    Err(_) => return,
+                }
             });
         
             ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
@@ -217,6 +220,6 @@ impl WasmConnection {
     }
 
     pub fn awareness(&self) -> Arc<RwLock<Awareness>> {
-        self.connection.as_ref().unwrap().awareness().clone()
+        self.awareness.clone()
     }
 }

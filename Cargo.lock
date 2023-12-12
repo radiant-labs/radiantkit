@@ -492,6 +492,7 @@ dependencies = [
  "log",
  "pollster",
  "radiantkit",
+ "uuid",
 ]
 
 [[package]]
@@ -2018,8 +2019,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3581,9 +3584,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.18.0"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
+checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "orbclient"
@@ -4052,9 +4055,11 @@ dependencies = [
  "egui_winit_platform",
  "env_logger",
  "log",
+ "once_cell",
  "pollster",
  "radiantkit",
  "tokio",
+ "uuid",
  "wgpu",
  "winit",
 ]
@@ -4094,6 +4099,7 @@ dependencies = [
  "radiantkit-winit",
  "serde",
  "serde-wasm-bindgen",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4127,6 +4133,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4144,10 +4151,12 @@ dependencies = [
  "futures-intrusive",
  "log",
  "macro_magic",
+ "once_cell",
  "pollster",
  "radiantkit-macros",
  "serde",
  "serde-wasm-bindgen",
+ "uuid",
  "wasm-bindgen",
  "wgpu",
 ]
@@ -4169,6 +4178,7 @@ dependencies = [
  "radiantkit-macros",
  "serde",
  "serde-wasm-bindgen",
+ "uuid",
  "wasm-bindgen",
  "wgpu",
 ]
@@ -4199,6 +4209,7 @@ dependencies = [
  "radiantkit-macros",
  "serde",
  "serde-wasm-bindgen",
+ "uuid",
  "wasm-bindgen",
  "wgpu",
 ]
@@ -4213,11 +4224,13 @@ dependencies = [
  "futures-intrusive",
  "log",
  "macro_magic",
+ "once_cell",
  "pollster",
  "radiantkit-core",
  "radiantkit-macros",
  "serde",
  "serde-wasm-bindgen",
+ "uuid",
  "wasm-bindgen",
  "wgpu",
 ]
@@ -4249,6 +4262,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "tempfile",
  "timer",
+ "uuid",
  "wasm-bindgen",
  "wgpu",
 ]
@@ -5926,11 +5940,13 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "uuid"
-version = "1.5.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88ad59a7560b41a70d191093a945f0b87bc1deeda46fb237479708a1d6b6cdfc"
+checksum = "5e395fcf16a7a3d8127ec99782007af141946b4795001f876d54fb0d55978560"
 dependencies = [
  "getrandom 0.2.10",
+ "serde",
+ "wasm-bindgen",
 ]
 
 [[package]]

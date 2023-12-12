@@ -13,23 +13,6 @@ export class ColorComponent {
 }
 /**
 */
-export class RadiantImageNode {
-  free(): void;
-/**
-*/
-  id: bigint;
-/**
-*/
-  selection: SelectionComponent;
-/**
-*/
-  tint: ColorComponent;
-/**
-*/
-  transform: TransformComponent;
-}
-/**
-*/
 export class RadiantKitAppController {
   free(): void;
 /**
@@ -43,81 +26,6 @@ export class RadiantKitAppController {
 * @param {any} message
 */
   handleMessage(message: any): void;
-}
-/**
-*/
-export class RadiantLineNode {
-  free(): void;
-/**
-*/
-  end: Vec3;
-/**
-*/
-  id: bigint;
-/**
-*/
-  selection: SelectionComponent;
-/**
-*/
-  start: Vec3;
-/**
-*/
-  transform: TransformComponent;
-}
-/**
-*/
-export class RadiantPathNode {
-  free(): void;
-/**
-*/
-  id: bigint;
-/**
-*/
-  selection: SelectionComponent;
-/**
-*/
-  transform: TransformComponent;
-}
-/**
-*/
-export class RadiantRectangleNode {
-  free(): void;
-/**
-* @param {bigint} id
-* @param {Vec3} position
-* @param {Vec3} scale
-* @returns {RadiantRectangleNode}
-*/
-  static new_wasm(id: bigint, position: Vec3, scale: Vec3): RadiantRectangleNode;
-/**
-*/
-  color: ColorComponent;
-/**
-*/
-  id: bigint;
-/**
-*/
-  selection: SelectionComponent;
-/**
-*/
-  transform: TransformComponent;
-}
-/**
-*/
-export class RadiantTextNode {
-  free(): void;
-/**
-*/
-  color: ColorComponent;
-/**
-*/
-  id: bigint;
-/**
-*/
-  selection: SelectionComponent;
-/**
-*/
-  transform: TransformComponent;
 }
 /**
 */
@@ -223,62 +131,6 @@ export interface InitOutput {
   readonly __wbg_radiantkitappcontroller_free: (a: number) => void;
   readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly radiantkitappcontroller_handleMessage: (a: number, b: number) => void;
-  readonly __wbg_radiantpathnode_free: (a: number) => void;
-  readonly __wbg_get_radiantpathnode_id: (a: number) => number;
-  readonly __wbg_set_radiantpathnode_id: (a: number, b: number) => void;
-  readonly __wbg_get_radiantpathnode_transform: (a: number) => number;
-  readonly __wbg_set_radiantpathnode_transform: (a: number, b: number) => void;
-  readonly __wbg_get_radiantpathnode_selection: (a: number) => number;
-  readonly __wbg_set_radiantpathnode_selection: (a: number, b: number) => void;
-  readonly __wbg_radiantimagenode_free: (a: number) => void;
-  readonly __wbg_get_radiantimagenode_id: (a: number) => number;
-  readonly __wbg_set_radiantimagenode_id: (a: number, b: number) => void;
-  readonly __wbg_get_radiantimagenode_transform: (a: number) => number;
-  readonly __wbg_set_radiantimagenode_transform: (a: number, b: number) => void;
-  readonly __wbg_get_radiantimagenode_selection: (a: number) => number;
-  readonly __wbg_set_radiantimagenode_selection: (a: number, b: number) => void;
-  readonly __wbg_get_radiantimagenode_tint: (a: number) => number;
-  readonly __wbg_set_radiantimagenode_tint: (a: number, b: number) => void;
-  readonly __wbg_radianttextnode_free: (a: number) => void;
-  readonly __wbg_get_radianttextnode_id: (a: number) => number;
-  readonly __wbg_set_radianttextnode_id: (a: number, b: number) => void;
-  readonly __wbg_get_radianttextnode_transform: (a: number) => number;
-  readonly __wbg_set_radianttextnode_transform: (a: number, b: number) => void;
-  readonly __wbg_get_radianttextnode_selection: (a: number) => number;
-  readonly __wbg_set_radianttextnode_selection: (a: number, b: number) => void;
-  readonly __wbg_get_radianttextnode_color: (a: number) => number;
-  readonly __wbg_set_radianttextnode_color: (a: number, b: number) => void;
-  readonly __wbg_radiantrectanglenode_free: (a: number) => void;
-  readonly __wbg_get_radiantrectanglenode_id: (a: number) => number;
-  readonly __wbg_set_radiantrectanglenode_id: (a: number, b: number) => void;
-  readonly __wbg_get_radiantrectanglenode_transform: (a: number) => number;
-  readonly __wbg_set_radiantrectanglenode_transform: (a: number, b: number) => void;
-  readonly __wbg_get_radiantrectanglenode_selection: (a: number) => number;
-  readonly __wbg_set_radiantrectanglenode_selection: (a: number, b: number) => void;
-  readonly __wbg_get_radiantrectanglenode_color: (a: number) => number;
-  readonly __wbg_set_radiantrectanglenode_color: (a: number, b: number) => void;
-  readonly radiantrectanglenode_new_wasm: (a: number, b: number, c: number) => number;
-  readonly __wbg_radiantlinenode_free: (a: number) => void;
-  readonly __wbg_get_radiantlinenode_id: (a: number) => number;
-  readonly __wbg_set_radiantlinenode_id: (a: number, b: number) => void;
-  readonly __wbg_get_radiantlinenode_start: (a: number) => number;
-  readonly __wbg_set_radiantlinenode_start: (a: number, b: number) => void;
-  readonly __wbg_get_radiantlinenode_end: (a: number) => number;
-  readonly __wbg_set_radiantlinenode_end: (a: number, b: number) => void;
-  readonly __wbg_get_radiantlinenode_transform: (a: number) => number;
-  readonly __wbg_set_radiantlinenode_transform: (a: number, b: number) => void;
-  readonly __wbg_get_radiantlinenode_selection: (a: number) => number;
-  readonly __wbg_set_radiantlinenode_selection: (a: number, b: number) => void;
-  readonly __wbg_selectioncomponent_free: (a: number) => void;
-  readonly __wbg_transformcomponent_free: (a: number) => void;
-  readonly transformcomponent_transform_xy: (a: number, b: number) => void;
-  readonly transformcomponent_transform_scale: (a: number, b: number) => void;
-  readonly transformcomponent_set_position: (a: number, b: number) => void;
-  readonly transformcomponent_set_scale: (a: number, b: number) => void;
-  readonly transformcomponent_set_rotation: (a: number, b: number) => void;
-  readonly transformcomponent_position: (a: number) => number;
-  readonly transformcomponent_scale: (a: number) => number;
-  readonly transformcomponent_get_rotation: (a: number) => number;
   readonly __wbg_colorcomponent_free: (a: number) => void;
   readonly __wbg_vec3_free: (a: number) => void;
   readonly __wbg_get_vec3_x: (a: number) => number;
@@ -295,6 +147,16 @@ export interface InitOutput {
   readonly vec3_add_with_min: (a: number, b: number, c: number) => void;
   readonly vec3_add_scalar: (a: number, b: number) => void;
   readonly vec3_set_with_min: (a: number, b: number, c: number) => void;
+  readonly __wbg_selectioncomponent_free: (a: number) => void;
+  readonly __wbg_transformcomponent_free: (a: number) => void;
+  readonly transformcomponent_transform_xy: (a: number, b: number) => void;
+  readonly transformcomponent_transform_scale: (a: number, b: number) => void;
+  readonly transformcomponent_set_position: (a: number, b: number) => void;
+  readonly transformcomponent_set_scale: (a: number, b: number) => void;
+  readonly transformcomponent_set_rotation: (a: number, b: number) => void;
+  readonly transformcomponent_position: (a: number) => number;
+  readonly transformcomponent_scale: (a: number) => number;
+  readonly transformcomponent_get_rotation: (a: number) => number;
   readonly wgpu_compute_pass_set_pipeline: (a: number, b: number) => void;
   readonly wgpu_compute_pass_set_bind_group: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wgpu_compute_pass_set_push_constant: (a: number, b: number, c: number, d: number) => void;
@@ -345,15 +207,15 @@ export interface InitOutput {
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h16c859ca2d77b233: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__ha5db9716ac5368d3: (a: number, b: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke1_mut__h436bb9ff5b45db47: (a: number, b: number, c: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke0_mut__h5dcc6e20a1bcebe5: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7bd9f0eadce704a4: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h206ecff7fb3d562a: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1541be4407e5b54a: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h831daedbf394e0b8: (a: number, b: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke1_mut__h9ed5dc6036647b52: (a: number, b: number, c: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke0_mut__hc594443bfec64e6f: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h5234d6fbfa4fe934: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7f0e0b13653e5123: (a: number, b: number, c: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h7feb6432b025df08: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke2_mut__h27d1f5ca9c4fdc62: (a: number, b: number, c: number, d: number) => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;

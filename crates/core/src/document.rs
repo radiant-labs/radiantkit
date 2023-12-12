@@ -1,16 +1,19 @@
+use std::collections::BTreeMap;
+
 use crate::{
     RadiantGroupNode, RadiantNode, RadiantSelectable,
     RadiantTessellatable, ScreenDescriptor, SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct RadiantDocumentNode<N: RadiantNode> {
     pub counter: u64,
-    pub artboards: Vec<RadiantGroupNode<N>>,
-    pub active_artboard_id: u64,
-    pub selected_node_id: Option<u64>,
+    pub artboards: BTreeMap<Uuid, RadiantGroupNode<N>>,
+    pub active_artboard_id: Uuid,
+    pub selected_node_id: Option<Uuid>,
     #[serde(skip)]
     listeners: Vec<Box<dyn RadiantDocumentListener<N>>>,
 }
@@ -20,11 +23,13 @@ unsafe impl<N: RadiantNode> Sync for RadiantDocumentNode<N> {}
 
 impl<N: RadiantNode> RadiantDocumentNode<N> {
     pub fn new() -> Self {
-        let artboards = vec![RadiantGroupNode::new(0)];
+        let artboard_id = Uuid::new_v4();
+        let mut artboards = BTreeMap::new();
+        artboards.insert(artboard_id, RadiantGroupNode::new(artboard_id));
         Self {
             counter: 1,
             artboards,
-            active_artboard_id: 0,
+            active_artboard_id: artboard_id,
             selected_node_id: None,
             listeners: Vec::new(),
         }
@@ -40,15 +45,16 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
     }
 
     pub fn add_artboard(&mut self) {
-        self.artboards.push(RadiantGroupNode::new(self.counter));
+        let id = Uuid::new_v4();
+        self.artboards.insert(id, RadiantGroupNode::new(id));
         self.counter += 1;
     }
 
     pub fn add(&mut self, node: N) {
-        if let Some(artboard) = self.artboards.get_mut(self.active_artboard_id as usize) {
+        if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
             artboard.add(node.clone());
 
-            let id = self.counter;
+            let id = node.get_id();
             let mut listeners = std::mem::take(&mut self.listeners);
             listeners.iter_mut().for_each(|listener| {
                 listener.on_node_added(self, id);
@@ -59,21 +65,21 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         }
     }
 
-    pub fn set_active_artboard(&mut self, id: u64) {
+    pub fn set_active_artboard(&mut self, id: Uuid) {
         self.active_artboard_id = id;
     }
 
     pub fn get_active_artboard(&self) -> Option<&RadiantGroupNode<N>> {
-        self.artboards.get(self.active_artboard_id as usize)
+        self.artboards.get(&self.active_artboard_id)
     }
 
-    pub fn select(&mut self, id: Option<u64>) {
+    pub fn select(&mut self, id: Option<Uuid>) {
         if id == self.selected_node_id {
             return;
         }
         self.artboards.iter_mut().for_each(|artboard| {
             if let Some(prev_selected_node_id) = self.selected_node_id {
-                if let Some(node) = artboard.get_node_mut(prev_selected_node_id) {
+                if let Some(node) = artboard.1.get_node_mut(prev_selected_node_id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(false);
                         node.set_needs_tessellation();
@@ -81,7 +87,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                 }
             }
             if let Some(id) = id {
-                if let Some(node) = artboard.get_node_mut(id) {
+                if let Some(node) = artboard.1.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(true);
                         node.set_needs_tessellation();
@@ -92,18 +98,18 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         self.selected_node_id = id
     }
 
-    pub fn get_node(&self, id: u64) -> Option<&N> {
+    pub fn get_node(&self, id: Uuid) -> Option<&N> {
         for artboard in &self.artboards {
-            if let Some(node) = artboard.get_node(id) {
+            if let Some(node) = artboard.1.get_node(id) {
                 return Some(node);
             }
         }
         None
     }
 
-    pub fn get_node_mut(&mut self, id: u64) -> Option<&mut N> {
+    pub fn get_node_mut(&mut self, id: Uuid) -> Option<&mut N> {
         for artboard in &mut self.artboards {
-            if let Some(node) = artboard.get_node_mut(id) {
+            if let Some(node) = artboard.1.get_node_mut(id) {
                 return Some(node);
             }
         }
@@ -114,13 +120,13 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
 impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
     fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
         for artboard in &mut self.artboards {
-            artboard.attach(screen_descriptor);
+            artboard.1.attach(screen_descriptor);
         }
     }
 
     fn detach(&mut self) {
         for artboard in &mut self.artboards {
-            artboard.detach();
+            artboard.1.detach();
         }
     }
 
@@ -135,7 +141,7 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
         self.artboards
             .iter_mut()
             .fold(Vec::new(), |mut primitives, artboard| {
-                primitives.append(&mut artboard.tessellate(
+                primitives.append(&mut artboard.1.tessellate(
                     selection,
                     screen_descriptor,
                     fonts_manager,
@@ -146,5 +152,5 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
 }
 
 pub trait RadiantDocumentListener<N: RadiantNode> {
-    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: u64);
+    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: Uuid);
 }

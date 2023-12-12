@@ -3,20 +3,22 @@ use crate::{
     RadiantTessellatable, ScreenDescriptor, TransformComponent,
 };
 use epaint::ClippedPrimitive;
+use once_cell::sync::Lazy;
+use uuid::Uuid;
 
-const BOUNDING_BOX_TOP_ID: u64 = 201;
-const BOUNDING_BOX_RIGHT_ID: u64 = 202;
-const BOUNDING_BOX_BOTTOM_ID: u64 = 203;
-const BOUNDING_BOX_LEFT_ID: u64 = 204;
+static BOUNDING_BOX_TOP_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_RIGHT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_BOTTOM_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_LEFT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 
-const BOUNDING_BOX_TOP_RIGHT_ID: u64 = 205;
-const BOUNDING_BOX_BOTTOM_RIGHT_ID: u64 = 206;
-const BOUNDING_BOX_BOTTOM_LEFT_ID: u64 = 207;
-const BOUNDING_BOX_TOP_LEFT_ID: u64 = 208;
+static BOUNDING_BOX_TOP_RIGHT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_BOTTOM_RIGHT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_BOTTOM_LEFT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static BOUNDING_BOX_TOP_LEFT_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 
 #[derive(Debug, Clone)]
 pub struct BoundingBoxInteraction {
-    pub active_node_id: Option<u64>,
+    pub active_node_id: Option<Uuid>,
     pub nodes: Vec<RadiantLineNode>,
     pub corner_nodes: Vec<RadiantRectangleNode>,
     pub primitives: Vec<ClippedPrimitive>,
@@ -26,17 +28,17 @@ pub struct BoundingBoxInteraction {
 impl BoundingBoxInteraction {
     pub fn new() -> Self {
         let nodes = vec![
-            RadiantLineNode::new(BOUNDING_BOX_TOP_ID, [0.0, 0.0], [0.0, 0.0]),
-            RadiantLineNode::new(BOUNDING_BOX_RIGHT_ID, [0.0, 0.0], [0.0, 0.0]),
-            RadiantLineNode::new(BOUNDING_BOX_BOTTOM_ID, [0.0, 0.0], [0.0, 0.0]),
-            RadiantLineNode::new(BOUNDING_BOX_LEFT_ID, [0.0, 0.0], [0.0, 0.0]),
+            RadiantLineNode::new(*BOUNDING_BOX_TOP_ID, [0.0, 0.0], [0.0, 0.0]),
+            RadiantLineNode::new(*BOUNDING_BOX_RIGHT_ID, [0.0, 0.0], [0.0, 0.0]),
+            RadiantLineNode::new(*BOUNDING_BOX_BOTTOM_ID, [0.0, 0.0], [0.0, 0.0]),
+            RadiantLineNode::new(*BOUNDING_BOX_LEFT_ID, [0.0, 0.0], [0.0, 0.0]),
         ];
 
         let mut corner_nodes = vec![
-            RadiantRectangleNode::new(BOUNDING_BOX_TOP_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
-            RadiantRectangleNode::new(BOUNDING_BOX_BOTTOM_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
-            RadiantRectangleNode::new(BOUNDING_BOX_BOTTOM_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
-            RadiantRectangleNode::new(BOUNDING_BOX_TOP_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(*BOUNDING_BOX_TOP_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(*BOUNDING_BOX_BOTTOM_RIGHT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(*BOUNDING_BOX_BOTTOM_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
+            RadiantRectangleNode::new(*BOUNDING_BOX_TOP_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
         ];
         for node in &mut corner_nodes {
             node.color.set_fill_color(epaint::Color32::BLUE);
@@ -59,15 +61,15 @@ impl Default for BoundingBoxInteraction {
 }
 
 impl BoundingBoxInteraction {
-    pub fn contains(&self, id: u64) -> bool {
-        return id == BOUNDING_BOX_TOP_ID
-            || id == BOUNDING_BOX_RIGHT_ID
-            || id == BOUNDING_BOX_BOTTOM_ID
-            || id == BOUNDING_BOX_LEFT_ID
-            || id == BOUNDING_BOX_TOP_RIGHT_ID
-            || id == BOUNDING_BOX_BOTTOM_RIGHT_ID
-            || id == BOUNDING_BOX_BOTTOM_LEFT_ID
-            || id == BOUNDING_BOX_TOP_LEFT_ID;
+    pub fn contains(&self, id: Uuid) -> bool {
+        return id == *BOUNDING_BOX_TOP_ID
+            || id == *BOUNDING_BOX_RIGHT_ID
+            || id == *BOUNDING_BOX_BOTTOM_ID
+            || id == *BOUNDING_BOX_LEFT_ID
+            || id == *BOUNDING_BOX_TOP_RIGHT_ID
+            || id == *BOUNDING_BOX_BOTTOM_RIGHT_ID
+            || id == *BOUNDING_BOX_BOTTOM_LEFT_ID
+            || id == *BOUNDING_BOX_TOP_LEFT_ID;
     }
 
     pub fn enable(&mut self, node: &impl RadiantNode, _screen_descriptor: &ScreenDescriptor) {
@@ -187,45 +189,45 @@ impl RadiantInteraction for BoundingBoxInteraction {
 }
 
 impl BoundingBoxInteraction {
-    pub fn handle(&mut self, id: u64, transform: [f32; 2]) -> Option<RadiantSceneMessage> {
+    pub fn handle(&mut self, id: Uuid, transform: [f32; 2]) -> Option<RadiantSceneMessage> {
         let Some(node_id) = self.active_node_id else { return None; };
         match id {
-            BOUNDING_BOX_TOP_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_TOP_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, transform[1]],
                 scale: [0.0, -transform[1]],
             }),
-            BOUNDING_BOX_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [transform[0], 0.0],
             }),
-            BOUNDING_BOX_BOTTOM_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_BOTTOM_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [0.0, transform[1]],
             }),
-            BOUNDING_BOX_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], 0.0],
                 scale: [-transform[0], 0.0],
             }),
-            BOUNDING_BOX_TOP_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_TOP_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, transform[1]],
                 scale: [transform[0], -transform[1]],
             }),
-            BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [0.0, 0.0],
                 scale: [transform[0], transform[1]],
             }),
-            BOUNDING_BOX_BOTTOM_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_BOTTOM_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], 0.0],
                 scale: [-transform[0], transform[1]],
             }),
-            BOUNDING_BOX_TOP_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
+            _id if id == *BOUNDING_BOX_TOP_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], transform[1]],
                 scale: [-transform[0], -transform[1]],
