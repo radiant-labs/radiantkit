@@ -458,21 +458,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "backend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures-util",
- "log",
- "pretty_env_logger",
- "tokio",
- "warp",
- "y-sync",
- "yrs",
- "yrs-warp",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3943,16 +3928,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
-name = "pretty_env_logger"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "865724d4dbe39d9f3dd3b52b88d859d66bcb2d6a0acfd5ea68a65fb66d4bdc1c"
-dependencies = [
- "env_logger",
- "log",
-]
-
-[[package]]
 name = "prettyplease"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4079,6 +4054,7 @@ dependencies = [
  "log",
  "pollster",
  "radiantkit",
+ "tokio",
  "wgpu",
  "winit",
 ]
@@ -4125,15 +4101,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "radiantkit-backend"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "futures-util",
+ "log",
+ "tokio",
+ "warp",
+ "y-sync",
+ "yrs",
+ "yrs-warp",
+]
+
+[[package]]
 name = "radiantkit-collaboration"
 version = "0.0.1"
 dependencies = [
  "futures-util",
+ "js-sys",
+ "log",
  "pollster",
  "radiantkit-core",
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "y-sync",
  "yrs",
@@ -5587,7 +5582,9 @@ dependencies = [
  "libc",
  "mio",
  "num_cpus",
+ "parking_lot",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2 0.5.5",
  "tokio-macros",
  "windows-sys 0.48.0",

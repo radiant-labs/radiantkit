@@ -5,7 +5,7 @@ use radiantkit_core::{
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
 use radiantkit_winit::RadiantView;
-use radiankit_collaboration::Collaborator;
+use radiantkit_collaboration::Collaborator;
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
 
 pub struct RadiantRuntime {
@@ -13,14 +13,16 @@ pub struct RadiantRuntime {
 }
 
 impl RadiantRuntime {
-    pub async fn new(size: Option<Vec3>) -> Self {
+    pub async fn new(client_id: u64, size: Option<Vec3>) -> Self {
         let mut view = RadiantView::new(size).await;
         view.scene_mut().tool_manager.register_tool(
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
         if let Ok(mut document) = view.scene_mut().document.write() {
-            document.add_listener(Box::new(Collaborator::new()));
+            if let Ok(collaborator) = Collaborator::new(client_id).await {
+                document.add_listener(Box::new(collaborator));
+            }
         }
         Self { view }
     }
