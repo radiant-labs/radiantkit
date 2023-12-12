@@ -9,9 +9,10 @@ pub mod texture;
 pub mod tools;
 pub mod utils;
 
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use std::{sync::{RwLockReadGuard, RwLockWriteGuard}, collections::HashMap};
 
 pub use components::*;
+use epaint::Color32;
 pub use interactions::*;
 pub use message::*;
 pub use nodes::*;
@@ -71,4 +72,38 @@ pub trait Runtime<
     fn add(&'a mut self, node: N) {
         self.scene_mut().add(node);
     }
+}
+
+use once_cell::sync::Lazy;
+use uuid::Uuid; 
+use std::sync::Mutex;
+
+static COUNTER : Lazy<Mutex<u64>> = Lazy::new(|| Mutex::new(0));
+static NODE_TO_COLORS: Lazy<Mutex<HashMap<Uuid, Color32>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static COLOR_TO_NODES: Lazy<Mutex<HashMap<Color32, Uuid>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+
+pub fn get_color_for_node(node_id: Uuid) -> Color32 {
+    let mut colors = NODE_TO_COLORS.lock().unwrap();
+    if let Some(color) = colors.get(&node_id) {
+        return *color;
+    }
+    let mut counter = COUNTER.lock().unwrap();
+    *counter += 1;
+    let c = *counter;
+    let color = Color32::from_rgb(
+        (c >> 0) as u8 & 0xFF,
+        (c >> 8) as u8 & 0xFF,
+        (c >> 16) as u8 & 0xFF,
+    );
+    colors.insert(node_id, color);
+
+    let mut color_to_nodes = COLOR_TO_NODES.lock().unwrap();
+    color_to_nodes.insert(color, node_id);
+
+    color
+}
+
+pub fn get_node_for_color(color: Color32) -> Option<Uuid> {
+    let color_to_nodes = COLOR_TO_NODES.lock().unwrap();
+    color_to_nodes.get(&color).copied()
 }

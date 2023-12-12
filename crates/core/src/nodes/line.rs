@@ -1,6 +1,6 @@
 use crate::{
     RadiantComponentProvider, RadiantNode, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent, TransformComponent, Vec3,
+    SelectionComponent, TransformComponent, Vec3, get_color_for_node,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -8,38 +8,33 @@ use std::{
     any::{Any, TypeId},
     fmt::Debug,
 };
+use uuid::Uuid;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
-#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantLineNode {
-    pub id: u64,
+    pub id: Uuid,
     pub start: Vec3,
     pub end: Vec3,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
 impl Default for RadiantLineNode {
     fn default() -> Self {
-        Self::new(0, [0.0, 0.0], [0.0, 0.0])
+        Self::new(Uuid::new_v4(), [0.0, 0.0], [0.0, 0.0])
     }
 }
 
 impl RadiantLineNode {
-    pub fn new(id: u64, start: [f32; 2], end: [f32; 2]) -> Self {
+    pub fn new(id: Uuid, start: [f32; 2], end: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_position(&start.into());
 
@@ -84,11 +79,7 @@ impl RadiantLineNode {
             shapes,
         );
 
-        let color = epaint::Color32::from_rgb(
-            (self.id + 1 >> 0) as u8 & 0xFF,
-            (self.id + 1 >> 8) as u8 & 0xFF,
-            (self.id + 1 >> 16) as u8 & 0xFF,
-        );
+        let color = get_color_for_node(self.id);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::LineSegment {
@@ -136,11 +127,11 @@ impl RadiantTessellatable for RadiantLineNode {
 }
 
 impl RadiantNode for RadiantLineNode {
-    fn get_id(&self) -> u64 {
+    fn get_id(&self) -> Uuid {
         return self.id;
     }
 
-    fn set_id(&mut self, id: u64) {
+    fn set_id(&mut self, id: Uuid) {
         self.id = id;
     }
 

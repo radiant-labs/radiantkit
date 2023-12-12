@@ -1,5 +1,6 @@
-use crate::{RadiantRenderer, ScreenDescriptor};
-use epaint::{textures::TexturesDelta, ClippedPrimitive, ImageDelta};
+use crate::{RadiantRenderer, ScreenDescriptor, get_node_for_color};
+use epaint::{textures::TexturesDelta, ClippedPrimitive, ImageDelta, Color32};
+use uuid::Uuid;
 
 pub struct RadiantRenderManager {
     pub config: wgpu::SurfaceConfiguration,
@@ -220,7 +221,7 @@ impl RadiantRenderManager {
         screen_descriptor: &ScreenDescriptor,
         selection: bool,
         mouse_position: [f32; 2],
-    ) -> Result<u64, wgpu::SurfaceError> {
+    ) -> Result<Option<Uuid>, wgpu::SurfaceError> {
         let texture_width = screen_descriptor.size_in_pixels[0];
         let texture_height = screen_descriptor.size_in_pixels[1];
 
@@ -259,7 +260,7 @@ impl RadiantRenderManager {
 
         let submission_id = self.queue.submit(Some(encoder.finish()));
 
-        let mut id: u64;
+        let color: Color32;
 
         // We need to scope the mapping variables so that we can
         // unmap the buffer
@@ -281,11 +282,11 @@ impl RadiantRenderManager {
             let posy: u32 = (mouse_position[1] * screen_descriptor.pixels_per_point) as u32;
             let index = (posy * padded_bytes_per_row + posx * 4) as usize;
 
-            id = *data.get(index).unwrap() as u64;
-            id += (*data.get(index + 1).unwrap() as u64) << 8;
-            id += (*data.get(index + 2).unwrap() as u64) << 16;
-
-            // log::error!("id: {}", id);
+            color = Color32::from_rgb(
+                *data.get(index).unwrap(),
+                *data.get(index + 1).unwrap(),
+                *data.get(index + 2).unwrap(),
+            );
 
             // use image::{ImageBuffer, Rgba};
             // let buffer =
@@ -298,6 +299,6 @@ impl RadiantRenderManager {
             buffer.unmap();
         }
 
-        Ok(id)
+        Ok(get_node_for_color(color))
     }
 }
