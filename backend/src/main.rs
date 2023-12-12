@@ -9,11 +9,19 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    pretty_env_logger::init();
+    let env = env_logger::Env::default()
+        .filter_or("MY_LOG_LEVEL", "info")
+        .write_style_or("MY_LOG_STYLE", "always");
+
+    env_logger::init_from_env(env);
 
     // We're using a single static document shared among all the peers.
     let awareness: AwarenessRef = {
         let doc = Doc::with_client_id(1);
+        {
+            // pre-initialize code mirror document with some text
+            let _map = doc.get_or_insert_map("radiantkit-root");
+        }
         Arc::new(RwLock::new(Awareness::new(doc)))
     };
 

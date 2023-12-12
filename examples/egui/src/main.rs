@@ -86,7 +86,7 @@ async fn run() {
         log::info!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(None).await;
+    let mut runtime = RadiantRuntime::new(2, None).await;
     runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
     runtime
@@ -207,6 +207,7 @@ async fn run() {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     pollster::block_on(run());
 }
