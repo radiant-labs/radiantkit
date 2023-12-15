@@ -42,3 +42,10 @@ wasm-bindgen = "0.2"
 av = [
     "dep:sdl2"
 ]
+
+[dependencies.uuid]
+version = "1.6.1"
+features = [
+    "wasm-bindgen",
+    "serde",
+]

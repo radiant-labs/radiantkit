@@ -1,5 +1,6 @@
 use crate::{BoundingBoxInteraction, RadiantNode, RadiantSceneMessage, ScreenDescriptor};
 use epaint::ClippedPrimitive;
+use uuid::Uuid;
 
 pub struct RadiantInteractionManager<M> {
     pub bounding_box_interaction: BoundingBoxInteraction,
@@ -14,7 +15,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>> RadiantInterac
         }
     }
 
-    pub fn is_interaction(&self, id: u64) -> bool {
+    pub fn is_interaction(&self, id: Uuid) -> bool {
         self.bounding_box_interaction.contains(id)
     }
 

@@ -1,37 +1,32 @@
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use radiantkit_core::{
     RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent, TransformComponent,
+    ScreenDescriptor, SelectionComponent, TransformComponent, get_color_for_node,
 };
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
 };
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
-#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantPathNode {
-    pub id: u64,
+    pub id: Uuid,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
 impl RadiantPathNode {
-    pub fn new(id: u64, position: [f32; 2]) -> Self {
+    pub fn new(id: Uuid, position: [f32; 2]) -> Self {
         let mut transform = TransformComponent::new();
         transform.set_position(&position.into());
 
@@ -79,11 +74,7 @@ impl RadiantPathNode {
             shapes,
         );
 
-        let color = epaint::Color32::from_rgb(
-            (self.id + 1 >> 0) as u8 & 0xFF,
-            (self.id + 1 >> 8) as u8 & 0xFF,
-            (self.id + 1 >> 16) as u8 & 0xFF,
-        );
+        let color = get_color_for_node(self.id);
         let stroke = epaint::Stroke::new(1.0, color);
         let path_shape = epaint::PathShape::convex_polygon(points, color, stroke);
         let shapes = vec![ClippedShape(
@@ -151,11 +142,11 @@ impl RadiantTessellatable for RadiantPathNode {
 }
 
 impl RadiantNode for RadiantPathNode {
-    fn get_id(&self) -> u64 {
+    fn get_id(&self) -> Uuid {
         return self.id;
     }
 
-    fn set_id(&mut self, id: u64) {
+    fn set_id(&mut self, id: Uuid) {
         self.id = id;
     }
 

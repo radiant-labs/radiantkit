@@ -7,8 +7,8 @@ export class RadiantKitController {
         this._controller = controller;
     }
 
-    static async createController(f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController> {
-        return new RadiantKitController(await new RadiantKitAppController(f, width, height));   
+    static async createController(client_id: bigint, f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController> {
+        return new RadiantKitController(await new RadiantKitAppController(client_id, f, width, height));   
     }
 
     /**
@@ -54,7 +54,7 @@ export class RadiantKitController {
         document.getElementById("radiantkit-canvas")?.focus();
     }
 
-    setTransform(nodeId: number, position: number[], scale: number[]) {
+    setTransform(nodeId: string, position: number[], scale: number[]) {
         this._controller.handleMessage({
             SceneMessage: {
                 SetTransform: {
@@ -66,7 +66,7 @@ export class RadiantKitController {
         });
     }
 
-    setFillColor(nodeId: number, color: number[]) {
+    setFillColor(nodeId: string, color: number[]) {
         this._controller.handleMessage({
             SceneMessage: {
                 SetFillColor: {
@@ -77,7 +77,7 @@ export class RadiantKitController {
         });
     }
 
-    setStrokeColor(nodeId: number, color: number[]) {
+    setStrokeColor(nodeId: string, color: number[]) {
         this._controller.handleMessage({
             SceneMessage: {
                 SetStrokeColor: {
@@ -88,7 +88,7 @@ export class RadiantKitController {
         });
     }
 
-    setText(nodeId: number, text: string) {
+    setText(nodeId: string, text: string) {
         this._controller.handleMessage({
             TextMessage: {
                 SetText: {

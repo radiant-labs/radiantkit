@@ -10,6 +10,7 @@ members = [
 	"crates/winit",
     "crates/collaboration",
     "runtime",
+    "backend",
     "examples/basic",
     "examples/egui",
     "examples/web/src-tauri"
