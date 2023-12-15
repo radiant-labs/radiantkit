@@ -4,17 +4,18 @@ use crate::{
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantGroupNode<N: RadiantNode> {
-    pub id: u64,
+    pub id: Uuid,
     pub selection: SelectionComponent,
-    pub nodes: BTreeMap<u64, N>,
+    pub nodes: BTreeMap<Uuid, N>,
 }
 
 impl<N: RadiantNode> RadiantGroupNode<N> {
-    pub fn new(id: u64) -> Self {
+    pub fn new(id: Uuid) -> Self {
         let selection = SelectionComponent::new();
         Self {
             id,
@@ -27,11 +28,11 @@ impl<N: RadiantNode> RadiantGroupNode<N> {
         self.nodes.insert(node.get_id(), node);
     }
 
-    pub fn get_node(&self, id: u64) -> Option<&N> {
+    pub fn get_node(&self, id: Uuid) -> Option<&N> {
         self.nodes.get(&id)
     }
 
-    pub fn get_node_mut(&mut self, id: u64) -> Option<&mut N> {
+    pub fn get_node_mut(&mut self, id: Uuid) -> Option<&mut N> {
         self.nodes.get_mut(&id)
     }
 }
@@ -66,11 +67,11 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
 }
 
 impl<N: RadiantNode> RadiantNode for RadiantGroupNode<N> {
-    fn get_id(&self) -> u64 {
+    fn get_id(&self) -> Uuid {
         self.id
     }
 
-    fn set_id(&mut self, id: u64) {
+    fn set_id(&mut self, id: Uuid) {
         self.id = id;
     }
 

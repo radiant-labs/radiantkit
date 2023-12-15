@@ -1,5 +1,6 @@
 use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -9,11 +10,11 @@ pub enum RadiantAddTextMessage {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantTextMessage {
-    SetText { id: u64, text: String },
+    SetText { id: Uuid, text: String },
 }
 
 impl RadiantTextMessage {
-    pub fn id(&self) -> u64 {
+    pub fn id(&self) -> Uuid {
         match self {
             RadiantTextMessage::SetText { id, .. } => *id,
         }

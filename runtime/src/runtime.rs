@@ -5,7 +5,8 @@ use radiantkit_core::{
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
 use radiantkit_winit::RadiantView;
-use radiankit_collaboration::Collaborator;
+use radiantkit_collaboration::Collaborator;
+use uuid::Uuid;
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
 
 pub struct RadiantRuntime {
@@ -13,14 +14,16 @@ pub struct RadiantRuntime {
 }
 
 impl RadiantRuntime {
-    pub async fn new(size: Option<Vec3>) -> Self {
+    pub async fn new(client_id: u64, size: Option<Vec3>) -> Self {
         let mut view = RadiantView::new(size).await;
         view.scene_mut().tool_manager.register_tool(
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
         if let Ok(mut document) = view.scene_mut().document.write() {
-            document.add_listener(Box::new(Collaborator::new()));
+            if let Ok(collaborator) = Collaborator::new(client_id).await {
+                document.add_listener(Box::new(collaborator));
+            }
         }
         Self { view }
     }
@@ -65,8 +68,8 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
                 }
             }
-            RadiantMessage::AddRectangle { position, scale } => {
-                let id = self.view.scene().document().counter;
+            RadiantMessage::AddRectangle { id, position, scale } => {
+                let id = id.unwrap_or(Uuid::new_v4());
                 let node = RadiantRectangleNode::new(id, position, scale);
                 self.view.scene_mut().add(node.into());
                 return self
@@ -83,7 +86,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     if let Ok(mut document) = document.write() {
                         let texture_handle =
                             texture_manager.load_texture(name, image, Default::default());
-                        let id = document.counter;
+                        let id = Uuid::new_v4();
                         let mut node = RadiantImageNode::new(
                             id,
                             [100.0, 200.0],
@@ -96,7 +99,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 });
             }
             RadiantMessage::AddText { text, position } => {
-                let id = self.view.scene().document().counter;
+                let id = Uuid::new_v4();
                 let node = RadiantTextNode::new(id, text, position, [100.0, 100.0]);
                 self.view.scene_mut().add(node.into());
                 return self

@@ -74,7 +74,7 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
 
     let res = quote! {
         impl RadiantNode for #name {
-            fn get_id(&self) -> u64 {
+            fn get_id(&self) -> uuid::Uuid {
                 match self {
                     #(
                         #name::#node_names(node) => node.get_id(),
@@ -82,7 +82,7 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
                 }
             }
 
-            fn set_id(&mut self, id: u64) {
+            fn set_id(&mut self, id: uuid::Uuid) {
                 match self {
                     #(
                         #name::#node_names(node) => node.set_id(id),

@@ -2,7 +2,7 @@ import { RadiantKitAppController } from "@radiantkit/radiantkit";
 export declare class RadiantKitController {
     _controller: RadiantKitAppController;
     constructor(controller: RadiantKitAppController);
-    static createController(f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController>;
+    static createController(client_id: bigint, f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController>;
     /**
      * Activates the provided tool.
      *
@@ -12,9 +12,9 @@ export declare class RadiantKitController {
     addRectangle(position?: number[], scale?: number[]): void;
     addImage(path: string, name?: string, position?: number[], scale?: number[]): void;
     addText(text: string, position?: number[], scale?: number[]): void;
-    setTransform(nodeId: number, position: number[], scale: number[]): void;
-    setFillColor(nodeId: number, color: number[]): void;
-    setStrokeColor(nodeId: number, color: number[]): void;
-    setText(nodeId: number, text: string): void;
+    setTransform(nodeId: string, position: number[], scale: number[]): void;
+    setFillColor(nodeId: string, color: number[]): void;
+    setStrokeColor(nodeId: string, color: number[]): void;
+    setText(nodeId: string, text: string): void;
 }
 //# sourceMappingURL=index.d.ts.map

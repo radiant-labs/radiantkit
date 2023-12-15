@@ -1,7 +1,9 @@
+use uuid::Uuid;
+
 use crate::{RadiantSceneMessage, RadiantTool};
 
 pub struct SelectionTool {
-    active_node_id: Option<u64>,
+    active_node_id: Option<Uuid>,
     prev_position: [f32; 2],
     is_mouse_down: bool,
 }
@@ -17,18 +19,13 @@ impl SelectionTool {
 }
 
 impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
-    fn on_mouse_down(&mut self, node_id: u64, _node_count: u64, position: [f32; 2]) -> Option<M> {
+    fn on_mouse_down(&mut self, node_id: Option<Uuid>, position: [f32; 2]) -> Option<M> {
         self.prev_position = position;
         self.is_mouse_down = true;
+        self.active_node_id = node_id;
         Some(
-            if node_id > 0 {
-                self.active_node_id = Some(node_id - 1);
-                RadiantSceneMessage::SelectNode {
-                    id: Some(node_id - 1),
-                }
-            } else {
-                self.active_node_id = None;
-                RadiantSceneMessage::SelectNode { id: None }
+            RadiantSceneMessage::SelectNode {
+                id: node_id,
             }
             .into(),
         )

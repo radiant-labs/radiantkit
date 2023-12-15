@@ -1,13 +1,19 @@
+use once_cell::sync::Lazy;
 use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
     RadiantSceneMessage, RadiantTextNode, Runtime, View, RadiantTextMessage,
 };
+use uuid::Uuid;
 use std::iter;
 use winit::event::Event::RedrawRequested;
 
 use egui::{FontDefinitions, Id};
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 use egui_winit_platform::{Platform, PlatformDescriptor};
+
+static NODE_1: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static NODE_2: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+static NODE_3: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 
 struct RadiantKitAppController {
     pending_messages: Vec<RadiantMessage>,
@@ -53,7 +59,7 @@ impl RadiantKitAppController {
                 if ui.text_edit_singleline(&mut self.text).changed() {
                     self.pending_messages.push(RadiantMessage::TextMessage(
                         RadiantTextMessage::SetText {
-                            id: 4,
+                            id: *NODE_3,
                             text: self.text.clone(),
                         },
                     ));
@@ -86,11 +92,11 @@ async fn run() {
         log::info!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(None).await;
-    runtime.add(RadiantRectangleNode::new(1, [200.0, 200.0], [200.0, 200.0]).into());
-    runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
+    let mut runtime = RadiantRuntime::new(2, None).await;
+    runtime.add(RadiantRectangleNode::new(*NODE_1, [200.0, 200.0], [200.0, 200.0]).into());
+    runtime.add(RadiantPathNode::new(*NODE_2, [400.0, 400.0]).into());
     runtime
-        .add(RadiantTextNode::new(3, String::from("Hello"), [300.0, 300.0], [200.0, 200.0]).into());
+        .add(RadiantTextNode::new(*NODE_3, String::from("Hello"), [300.0, 300.0], [200.0, 200.0]).into());
 
     let size = runtime.view.window.inner_size();
     let scale_factor = runtime.view.window.scale_factor();
@@ -207,6 +213,7 @@ async fn run() {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     pollster::block_on(run());
 }
