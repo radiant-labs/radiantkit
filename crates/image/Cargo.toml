@@ -27,3 +27,10 @@ radiantkit-macros = { version = "0.0.1", path = "../macros" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 serde-wasm-bindgen = "0.4"
 wasm-bindgen = "0.2"
+
+[dependencies.uuid]
+version = "1.6.1"
+features = [
+    "wasm-bindgen",
+    "serde",
+]

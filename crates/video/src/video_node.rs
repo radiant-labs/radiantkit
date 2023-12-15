@@ -6,6 +6,7 @@ use radiantkit_core::{
     ScreenDescriptor, SelectionComponent, TransformComponent, Vec3,
 };
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
@@ -16,32 +17,24 @@ use crate::Player;
 #[cfg(feature = "av")]
 use crate::AudioDevice;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
-#[cfg_attr(not(target_arch = "wasm32"), radiantkit_macros::radiant_wasm_bindgen)]
 #[derive(Serialize, Deserialize)]
 pub struct RadiantVideoNode {
-    pub id: u64,
+    pub id: Uuid,
     pub transform: TransformComponent,
     pub selection: SelectionComponent,
     pub tint: ColorComponent,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub player: Option<Player>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     #[cfg(feature = "av")]
     pub audio_device: Option<AudioDevice>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub selection_primitives: Vec<ClippedPrimitive>,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub needs_tessellation: bool,
     #[serde(skip)]
-    #[wasm_bindgen(skip)]
     pub bounding_rect: [f32; 4],
 }
 
@@ -77,7 +70,7 @@ impl Debug for RadiantVideoNode {
 
 impl RadiantVideoNode {
     pub fn new(
-        id: u64,
+        id: Uuid,
         position: [f32; 2],
         scale: [f32; 2],
         path: String,
@@ -162,9 +155,9 @@ impl RadiantVideoNode {
         );
 
         let color = epaint::Color32::from_rgb(
-            (self.id + 1 >> 0) as u8 & 0xFF,
-            (self.id + 1 >> 8) as u8 & 0xFF,
-            (self.id + 1 >> 16) as u8 & 0xFF,
+            (self.id.as_u128() + 1 >> 0) as u8 & 0xFF,
+            (self.id.as_u128() + 1 >> 8) as u8 & 0xFF,
+            (self.id.as_u128() + 1 >> 16) as u8 & 0xFF,
         );
         let rect_shape = epaint::RectShape::filled(rect, rounding, color);
         let shapes = vec![ClippedShape(
@@ -225,11 +218,11 @@ impl RadiantTessellatable for RadiantVideoNode {
 }
 
 impl RadiantNode for RadiantVideoNode {
-    fn get_id(&self) -> u64 {
+    fn get_id(&self) -> Uuid {
         return self.id;
     }
 
-    fn set_id(&mut self, id: u64) {
+    fn set_id(&mut self, id: Uuid) {
         self.id = id;
     }
 
