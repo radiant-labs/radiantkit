@@ -1,6 +1,6 @@
 #![cfg(target_arch = "wasm32")]
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use y_sync::awareness::Awareness;
 use yrs::Update;
 use y_sync::sync::{Error, Message, Protocol, SyncMessage, DefaultProtocol, MessageReader};
@@ -11,6 +11,7 @@ use web_sys::{MessageEvent, WebSocket};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::closure::Closure;
 use yrs::UpdateSubscription;
+use parking_lot::RwLock;
 
 #[derive(Debug)]
 pub struct Connection {
@@ -54,7 +55,7 @@ impl Connection {
         let payload = {
             let awareness = loop_awareness.upgrade().unwrap();
             let mut encoder = EncoderV1::new();
-            let awareness = awareness.read().unwrap();
+            let awareness = awareness.read();
             protocol.start(&awareness, &mut encoder)?;
             encoder.to_vec()
         };
@@ -158,33 +159,33 @@ pub fn handle_msg<P: Protocol>(
     match msg {
         Message::Sync(msg) => match msg {
             SyncMessage::SyncStep1(sv) => {
-                let awareness = a.read().unwrap();
+                let awareness = a.read();
                 protocol.handle_sync_step1(&awareness, sv)
             }
             SyncMessage::SyncStep2(update) => {
-                let mut awareness = a.write().unwrap();
+                let mut awareness = a.write();
                 protocol.handle_sync_step2(&mut awareness, Update::decode_v1(&update)?)
             }
             SyncMessage::Update(update) => {
-                let mut awareness = a.write().unwrap();
+                let mut awareness = a.write();
                 
                 protocol.handle_update(&mut awareness, Update::decode_v1(&update)?)
             }
         },
         Message::Auth(reason) => {
-            let awareness = a.read().unwrap();
+            let awareness = a.read();
             protocol.handle_auth(&awareness, reason)
         }
         Message::AwarenessQuery => {
-            let awareness = a.read().unwrap();
+            let awareness = a.read();
             protocol.handle_awareness_query(&awareness)
         }
         Message::Awareness(update) => {
-            let mut awareness = a.write().unwrap();
+            let mut awareness = a.write();
             protocol.handle_awareness_update(&mut awareness, update)
         }
         Message::Custom(tag, data) => {
-            let mut awareness = a.write().unwrap();
+            let mut awareness = a.write();
             protocol.missing_handle(&mut awareness, tag, data)
         }
     }
@@ -200,7 +201,7 @@ impl WasmConnection {
     pub fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<RwLock<Self>>, ()> {
         if let Ok(ws) = WebSocket::new(url) {
             let sub = {
-                let a = awareness.write().unwrap();
+                let a = awareness.write();
                 let doc = a.doc();
                 let cloned_ws = ws.clone();
                 doc.observe_update_v1(move |_txn, e| {
@@ -229,7 +230,7 @@ impl WasmConnection {
             let cloned_ws = ws.clone();
             let cloned_awareness = awareness.clone();
             let onopen_callback = Closure::<dyn FnOnce()>::once(move || {
-                let mut wrapper = cloned_wrapper.write().unwrap();
+                let mut wrapper = cloned_wrapper.write();
                 match Connection::new(cloned_awareness, cloned_ws) {
                     Ok(conn) => wrapper.connection = Some(conn),
                     Err(_) => return,
