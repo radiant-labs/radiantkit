@@ -3,9 +3,8 @@
 use futures_util::SinkExt;
 use futures_util::{StreamExt, stream::SplitSink, Sink, Stream, ready};
 use futures_util::stream::SplitStream;
-use pollster::block_on;
 use tokio_tungstenite::{tungstenite, WebSocketStream, MaybeTlsStream};
-use tokio::{sync::RwLock, net::TcpStream, sync::RwLockReadGuard};
+use tokio::{sync::RwLock, net::TcpStream};
 use tungstenite::Message;
 use y_sync::awareness::Awareness;
 use yrs::UpdateSubscription;
@@ -84,7 +83,8 @@ impl Stream for TungsteniteStream {
 }
 
 pub struct NativeConnection {
-    connection: Option<Connection<TungsteniteSink, TungsteniteStream>>,
+    _connection: Option<Connection<TungsteniteSink, TungsteniteStream>>,
+    awareness: Arc<RwLock<Awareness>>,
     _sub: Option<UpdateSubscription>,
 }
 
@@ -99,7 +99,7 @@ impl NativeConnection {
             let a = connection.awareness().write().await;
             let doc = a.doc();
             doc.observe_update_v1(move |_txn, e| {
-                log::info!("sending update");
+                log::error!("sending update");
                 let update = e.update.to_owned();
                 if let Some(sink) = sink.upgrade() {
                     task::spawn(async move {
@@ -115,13 +115,14 @@ impl NativeConnection {
         };
 
         Ok(Arc::new(std::sync::RwLock::new(Self {
-            connection: Some(connection),
+            _connection: Some(connection),
+            awareness,
             _sub: Some(sub),
         })))
     }
 
-    pub fn awareness(&self) -> Arc<std::sync::RwLock<RwLockReadGuard<Awareness>>> {
-        let awareness = block_on(self.connection.as_ref().unwrap().awareness().read());
-        Arc::new(std::sync::RwLock::new(awareness))
+    pub fn awareness(&self) -> Arc<RwLock<Awareness>> {
+        self.awareness.clone()
+
     }
 }
