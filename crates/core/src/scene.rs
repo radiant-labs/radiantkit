@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::Arc;
 
 use crate::{
     ColorComponent, RadiantDocumentNode, RadiantInteractionManager, RadiantNode,
@@ -6,6 +6,7 @@ use crate::{
     RadiantTextureManager, RadiantToolManager, ScreenDescriptor, SelectionTool, TransformComponent,
 };
 use epaint::{text::FontDefinitions, ClippedPrimitive, Fonts, TextureId};
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
 pub struct RadiantScene<M, N: RadiantNode> {
@@ -24,11 +25,11 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     RadiantScene<M, N>
 {
     pub fn document(&self) -> RwLockReadGuard<RadiantDocumentNode<N>> {
-        self.document.read().unwrap()
+        self.document.read()
     }
 
     pub fn document_mut(&mut self) -> RwLockWriteGuard<RadiantDocumentNode<N>> {
-        self.document.write().unwrap()
+        self.document.write()
     }
 
     pub fn new(
@@ -95,7 +96,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     }
 
     fn get_primitives(&mut self, selection: bool) -> Vec<ClippedPrimitive> {
-        let mut primitives = self.document.write().unwrap().tessellate(
+        let mut primitives = self.document.write().tessellate(
             selection,
             &self.screen_descriptor,
             &self.fonts_manager,
@@ -130,7 +131,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 self.document_mut().select(id);
                 if let Some(id) = id {
                     if !self.interaction_manager.is_interaction(id) {
-                        if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                        if let Some(node) = self.document.write().get_node_mut(id) {
                             node.tessellate(false, &self.screen_descriptor, &self.fonts_manager);
                             self.interaction_manager
                                 .enable_interactions(node, &self.screen_descriptor);
@@ -154,7 +155,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     {
                         return Some(RadiantSceneResponse::Message { message });
                     }
-                } else if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                } else if let Some(node) = self.document.write().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position.into());
                         component.transform_scale(&scale.into());
@@ -178,7 +179,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 position,
                 scale,
             } => {
-                if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                if let Some(node) = self.document.write().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.set_position(&position.into());
                         component.set_scale(&scale.into());
@@ -211,9 +212,9 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
             RadiantSceneMessage::HandleKey { id, key } => {
                 if let Some(id) = match id {
                     Some(id) => Some(id),
-                    None => self.document.read().unwrap().selected_node_id,
+                    None => self.document.read().selected_node_id,
                 } {
-                    if let Some(node) = self.document.write().unwrap().get_node_mut(id) {
+                    if let Some(node) = self.document.write().get_node_mut(id) {
                         if node.handle_key_down(key) {
                             self.interaction_manager
                                 .update_interactions(node, &self.screen_descriptor);
