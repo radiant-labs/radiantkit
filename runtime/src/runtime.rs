@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use radiantkit_core::{
     RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
     RectangleTool, Runtime, Vec3, View,
@@ -20,8 +22,9 @@ impl RadiantRuntime {
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
-        if let Ok(mut document) = view.scene_mut().document.write() {
-            if let Ok(collaborator) = Collaborator::new(client_id).await {
+        let doc = Arc::downgrade(&view.scene_mut().document.clone());
+        if let Ok(collaborator) = Collaborator::new(client_id, doc).await {
+            if let Ok(mut document) = view.scene_mut().document.write() {
                 document.add_listener(Box::new(collaborator));
             }
         }
