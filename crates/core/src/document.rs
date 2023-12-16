@@ -52,15 +52,33 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
 
     pub fn add(&mut self, node: N) {
         if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
-            artboard.add(node.clone());
-
             let id = node.get_id();
+            artboard.add(node);
+
             let mut listeners = std::mem::take(&mut self.listeners);
             listeners.iter_mut().for_each(|listener| {
                 listener.on_node_added(self, id);
             });
             self.listeners = listeners;
  
+            self.counter += 1;
+        }
+    }
+
+    pub fn add_excluding_listener(&mut self, node: N) { //, listener: &Box<dyn RadiantDocumentListener<N>>
+        if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
+            artboard.add(node);
+
+            // let id = node.get_id();
+            // let mut listeners = std::mem::take(&mut self.listeners);
+            // listeners
+            //     .iter_mut()
+            //     .filter(|l| !std::ptr::eq(&**l, listener))
+            //     .for_each(|listener| {
+            //         listener.on_node_added(self, id);
+            //     });
+            // self.listeners = listeners;
+
             self.counter += 1;
         }
     }
