@@ -34,6 +34,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
             event.keys(txn).iter().for_each(|(key, change)| {
                 match change {
                     EntryChange::Inserted(val) => {
+                        log::error!("inserted");
                         let id = Uuid::parse_str(key).unwrap();
                         let node: String = val.clone().cast().unwrap();
                         let mut node: N = serde_json::from_str(&node).unwrap();
@@ -46,7 +47,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                         
                     },
                     EntryChange::Updated(_old, _new) => {
-
+                        log::error!("updated");
                     }
                 }
             });
