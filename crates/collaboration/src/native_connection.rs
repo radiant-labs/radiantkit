@@ -89,7 +89,7 @@ pub struct NativeConnection {
 }
 
 impl NativeConnection {
-    pub async fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<std::sync::RwLock<Self>>, ()> {
+    pub async fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<parking_lot::RwLock<Self>>, ()> {
         let Ok((ws_stream, _)) = tokio_tungstenite::connect_async(url).await else { return Err(()) };
         let (sink, stream) = ws_stream.split();
         let connection = Connection::new(awareness.clone(), TungsteniteSink(sink), TungsteniteStream(stream));
@@ -114,7 +114,7 @@ impl NativeConnection {
             .unwrap()
         };
 
-        Ok(Arc::new(std::sync::RwLock::new(Self {
+        Ok(Arc::new(parking_lot::RwLock::new(Self {
             _connection: Some(connection),
             awareness,
             _sub: Some(sub),

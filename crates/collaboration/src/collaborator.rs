@@ -2,7 +2,8 @@ use radiantkit_core::{RadiantDocumentListener, RadiantDocumentNode, RadiantNode}
 use uuid::Uuid;
 use y_sync::awareness::{Awareness, UpdateSubscription as AwarenessUpdateSubscription};
 use yrs::{*, types::{map::MapEvent, EntryChange}};
-use std::sync::{Arc, RwLock, Weak};
+use std::sync::{Arc, Weak};
+use parking_lot::RwLock;
 use pollster::block_on;
 
 #[cfg(target_arch = "wasm32")]
@@ -30,7 +31,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         let root_sub = root.observe(move |txn, event| {
             log::error!("root event received");
             let Some(document) = document_clone.upgrade() else { return };
-            let Ok(mut document) = document.try_write() else { return };
+            let Some(mut document) = document.try_write() else { return };
             event.keys(txn).iter().for_each(|(key, change)| {
                 match change {
                     EntryChange::Inserted(val) => {
@@ -91,12 +92,12 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
 impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
     fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: Uuid) {
         block_on(async {
-            let Ok(connection) = self.connection.write() else { return };
+            let connection = self.connection.write();
             let awareness = connection.awareness();
             #[cfg(not(target_arch = "wasm32"))]
             let awareness = awareness.write().await;
             #[cfg(target_arch = "wasm32")]
-            let Ok(awareness) = awareness.write() else { return };
+            let Some(awareness) = awareness.try_write() else { return };
             if let Some(node) = document.get_node(id) {
                 let doc = awareness.doc();
                 let Ok(mut txn) = doc.try_transact_mut() else { log::error!("Failed to transact"); return };
