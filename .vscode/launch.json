@@ -1,0 +1,327 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-core'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-core"
+                ],
+                "filter": {
+                    "name": "radiantkit-core",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-image'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-image"
+                ],
+                "filter": {
+                    "name": "radiantkit-image",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-text'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-text"
+                ],
+                "filter": {
+                    "name": "radiantkit-text",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-path'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-path"
+                ],
+                "filter": {
+                    "name": "radiantkit-path",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-video'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-video"
+                ],
+                "filter": {
+                    "name": "radiantkit-video",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-winit'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-winit"
+                ],
+                "filter": {
+                    "name": "radiantkit-winit",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit-collaboration'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit-collaboration"
+                ],
+                "filter": {
+                    "name": "radiantkit-collaboration",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'radiantkit'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=radiantkit"
+                ],
+                "filter": {
+                    "name": "radiantkit",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'messages'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=messages",
+                    "--package=radiantkit"
+                ],
+                "filter": {
+                    "name": "messages",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'radiantkit-backend'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=radiantkit-backend",
+                    "--package=radiantkit-backend"
+                ],
+                "filter": {
+                    "name": "radiantkit-backend",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'radiantkit-backend'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=radiantkit-backend",
+                    "--package=radiantkit-backend"
+                ],
+                "filter": {
+                    "name": "radiantkit-backend",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'basic'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=basic",
+                    "--package=basic"
+                ],
+                "filter": {
+                    "name": "basic",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'basic'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=basic",
+                    "--package=basic"
+                ],
+                "filter": {
+                    "name": "basic",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'radiant-egui-app'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=radiant-egui-app",
+                    "--package=radiant-egui-app"
+                ],
+                "filter": {
+                    "name": "radiant-egui-app",
+                    "kind": "bin"
+                }
+            },
+            "args": ["2"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'radiant-egui-app'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=radiant-egui-app",
+                    "--package=radiant-egui-app"
+                ],
+                "filter": {
+                    "name": "radiant-egui-app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'radiant-tauri-app'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=radiant-tauri-app",
+                    "--package=radiant-tauri-app"
+                ],
+                "filter": {
+                    "name": "radiant-tauri-app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'radiant-tauri-app'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=radiant-tauri-app",
+                    "--package=radiant-tauri-app"
+                ],
+                "filter": {
+                    "name": "radiant-tauri-app",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
