@@ -18,11 +18,13 @@ pub struct Connection {
 }
 
 impl Connection {
+    #[allow(dead_code)]
     pub async fn send(&self, msg: Vec<u8>) -> Result<(), Error> {
         let _ = self.ws.send_with_u8_array(&msg);
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn cslose(self) -> Result<(), Error> {
         let _ = self.ws.close();
         Ok(())
@@ -34,6 +36,7 @@ impl Connection {
         Self::with_protocol(awareness, DefaultProtocol, &ws).map_err(|_| ())
     }
 
+    #[allow(dead_code)]
     pub fn awareness(&self) -> &Arc<RwLock<Awareness>> {
         &self.awareness
     }
