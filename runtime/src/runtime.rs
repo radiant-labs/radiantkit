@@ -24,7 +24,7 @@ impl RadiantRuntime {
         );
         let doc = Arc::downgrade(&view.scene_mut().document.clone());
         if let Ok(collaborator) = Collaborator::new(client_id, doc).await {
-            if let Ok(mut document) = view.scene_mut().document.write() {
+            if let Some(mut document) = view.scene_mut().document.try_write() {
                 document.add_listener(Box::new(collaborator));
             }
         }
@@ -62,7 +62,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 {
                     let mut scene = self.view.scene_mut();
                     let document = &mut scene.document;
-                    let Ok(mut document) = document.write() else { return None };
+                    let Some(mut document) = document.try_write() else { return None };
                     let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(id) else { return None };
                     update_interactions = text_node.handle_message(message);
                 }
@@ -86,7 +86,7 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     let image = response
                         .unwrap_or(epaint::ColorImage::new([400, 100], epaint::Color32::RED));
                     let size = image.size;
-                    if let Ok(mut document) = document.write() {
+                    if let Some(mut document) = document.try_write() {
                         let texture_handle =
                             texture_manager.load_texture(name, image, Default::default());
                         let id = Uuid::new_v4();
