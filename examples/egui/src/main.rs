@@ -5,6 +5,7 @@ use radiantkit::{
 };
 use uuid::Uuid;
 use std::iter;
+use std::env;
 use winit::event::Event::RedrawRequested;
 
 use egui::{FontDefinitions, Id};
@@ -81,7 +82,7 @@ impl RadiantKitAppController {
     }
 }
 
-async fn run() {
+async fn run(client_id: u64) {
     let env = env_logger::Env::default()
         .filter_or("MY_LOG_LEVEL", "info")
         .write_style_or("MY_LOG_STYLE", "always");
@@ -89,10 +90,10 @@ async fn run() {
     env_logger::init_from_env(env);
 
     let handler: Box<dyn Fn(RadiantResponse)> = Box::new(move |response: RadiantResponse| {
-        log::info!("Response: {:?}", response);
+        log::debug!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(2, None).await;
+    let mut runtime = RadiantRuntime::new(client_id, None).await;
     runtime.add(RadiantRectangleNode::new(*NODE_1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(*NODE_2, [400.0, 400.0]).into());
     runtime
@@ -135,7 +136,7 @@ async fn run() {
             if !platform.captures_event(&event) {
                 if let Some(message) = runtime.view.handle_event(&event, control_flow) {
                     if let Some(response) = runtime.handle_message(message) {
-                        log::info!("Response: {:?}", response);
+                        log::debug!("Response: {:?}", response);
                     }
                 }
             }
@@ -215,5 +216,7 @@ async fn run() {
 
 #[tokio::main]
 async fn main() {
-    pollster::block_on(run());
+    let args: Vec<String> = env::args().collect();
+    let client_id = if args.len() > 1 { args[1].parse::<u64>().unwrap_or(2) } else { 2 };
+    pollster::block_on(run(client_id));
 }
