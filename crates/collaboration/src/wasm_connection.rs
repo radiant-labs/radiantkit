@@ -10,6 +10,7 @@ use yrs::encoding::read::Cursor;
 use web_sys::{MessageEvent, WebSocket};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::closure::Closure;
+use yrs::UpdateSubscription;
 
 #[derive(Debug)]
 pub struct Connection {
@@ -192,14 +193,36 @@ pub fn handle_msg<P: Protocol>(
 pub struct WasmConnection {
     awareness: Arc<RwLock<Awareness>>,
     connection: Option<Connection>,
+    _sub: UpdateSubscription,
 }
 
 impl WasmConnection {
     pub fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<RwLock<Self>>, ()> {
         if let Ok(ws) = WebSocket::new(url) {
+            let sub = {
+                let a = awareness.write().unwrap();
+                let doc = a.doc();
+                let cloned_ws = ws.clone();
+                doc.observe_update_v1(move |_txn, e| {
+                    log::error!("sending update");
+                    let update = e.update.to_owned();
+                    let msg =
+                    y_sync::sync::Message::Sync(y_sync::sync::SyncMessage::Update(update))
+                        .encode_v1();
+                    if let Err(e) = cloned_ws.send_with_u8_array(&msg) {
+                        log::error!("connection failed to send back the reply {:?}", e);
+                    } else {
+                        // console_log!("connection send back the reply");
+                        // return Err(Error::Unsupported(2)); // parent ConnHandler has been dropped
+                    }
+                })
+                .unwrap()
+            };
+
             let wasm_connection = Arc::new(RwLock::new(WasmConnection {
                 awareness: awareness.clone(),
                 connection: None,
+                _sub: sub,
             }));
         
             let cloned_wrapper = wasm_connection.clone();
@@ -215,6 +238,8 @@ impl WasmConnection {
         
             ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
             onopen_callback.forget();
+
+     
 
             Ok(wasm_connection)
         } else {
