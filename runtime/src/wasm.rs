@@ -11,7 +11,12 @@ pub struct RadiantKitAppController {
 #[wasm_bindgen(js_class = RadiantKitAppController)]
 impl RadiantKitAppController {
     #[wasm_bindgen(constructor)]
-    pub async fn new(client_id: u64, f: &js_sys::Function, width: Option<f32>, height: Option<f32>) -> Self {
+    pub async fn new(
+        client_id: u64,
+        f: &js_sys::Function,
+        width: Option<f32>,
+        height: Option<f32>,
+    ) -> Self {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Error).expect("Couldn't initialize logger");
 
@@ -24,7 +29,10 @@ impl RadiantKitAppController {
 
         radiantkit_winit::run_wasm(runtime.clone(), f.clone());
 
-        Self { runtime, callback: f.clone() }
+        Self {
+            runtime,
+            callback: f.clone(),
+        }
     }
 
     #[wasm_bindgen(js_name = handleMessage)]
@@ -33,8 +41,9 @@ impl RadiantKitAppController {
             if let Ok(mut runtime) = self.runtime.write() {
                 if let Some(response) = runtime.handle_message(message) {
                     let this = JsValue::null();
-                    let _ =
-                        self.callback.call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
+                    let _ = self
+                        .callback
+                        .call1(&this, &serde_wasm_bindgen::to_value(&response).unwrap());
                 }
             }
         } else {

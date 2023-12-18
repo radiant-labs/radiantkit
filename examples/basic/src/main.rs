@@ -1,6 +1,7 @@
 use radiantkit::{
     run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, Runtime,
 };
+use uuid::Uuid;
 
 async fn run() {
     let env = env_logger::Env::default()
@@ -14,8 +15,8 @@ async fn run() {
     });
 
     let mut runtime = RadiantRuntime::new(2, None).await;
-    runtime.add(RadiantRectangleNode::new(1, [100.0, 100.0], [200.0, 200.0]).into());
-    runtime.add(RadiantPathNode::new(2, [400.0, 400.0]).into());
+    runtime.add(RadiantRectangleNode::new(Uuid::new_v4(), [100.0, 100.0], [200.0, 200.0]).into());
+    runtime.add(RadiantPathNode::new(Uuid::new_v4(), [400.0, 400.0]).into());
 
     run_native(runtime, handler);
 }

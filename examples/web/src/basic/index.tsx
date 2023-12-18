@@ -58,7 +58,7 @@ const Transform = () => {
 
     useEffect(() => {
         if (response?.Selected) {
-            let node = response.Selected.node.Rectangle;
+            let node = response.Selected.node.Rectangle.base;
             setNodeId(node.id)
             let transform = node.transform
             setPosition({ x: transform.position.x, y: transform.position.y })
@@ -133,7 +133,7 @@ const Color = () => {
 
     useEffect(() => {
         if (response?.Selected) {
-            let node = response.Selected.node.Rectangle
+            let node = response.Selected.node.Rectangle.base
             setNodeId(node.id)
             let { fill_color, stroke_color } = node.color
             setFillColor(rgbToHex(fill_color[0], fill_color[1], fill_color[2]))

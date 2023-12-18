@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use crate::{
-    RadiantGroupNode, RadiantNode, RadiantSelectable,
-    RadiantTessellatable, ScreenDescriptor, SelectionComponent,
+    RadiantGroupNode, RadiantNode, RadiantSelectable, RadiantTessellatable, ScreenDescriptor,
+    SelectionComponent,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
@@ -40,8 +40,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
     }
 
     pub fn remove_listener(&mut self, listener: &dyn RadiantDocumentListener<N>) {
-        self.listeners
-            .retain(|l| !std::ptr::eq(&**l, listener));
+        self.listeners.retain(|l| !std::ptr::eq(&**l, listener));
     }
 
     pub fn add_artboard(&mut self) {
@@ -60,12 +59,13 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                 listener.on_node_added(self, id);
             });
             self.listeners = listeners;
- 
+
             self.counter += 1;
         }
     }
 
-    pub fn add_excluding_listener(&mut self, node: N) { //, listener: &Box<dyn RadiantDocumentListener<N>>
+    pub fn add_excluding_listener(&mut self, node: N) {
+        //, listener: &Box<dyn RadiantDocumentListener<N>>
         if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
             artboard.add(node);
 

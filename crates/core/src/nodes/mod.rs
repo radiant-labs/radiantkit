@@ -1,14 +1,17 @@
+pub mod base_node;
 pub mod group;
 pub mod line;
 pub mod rectangle;
 
+pub use base_node::*;
 pub use group::*;
 pub use line::*;
 pub use rectangle::*;
+
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{RadiantComponentProvider, ScreenDescriptor};
+use crate::{ColorComponent, ScreenDescriptor, TransformComponent};
 use epaint::ClippedPrimitive;
 
 pub trait RadiantTessellatable {
@@ -24,9 +27,43 @@ pub trait RadiantTessellatable {
     ) -> Vec<ClippedPrimitive>;
 }
 
-pub trait RadiantNode: Serialize + Clone + RadiantTessellatable + RadiantComponentProvider {
-    fn get_id(&self) -> Uuid;
-    fn set_id(&mut self, id: Uuid);
-    fn get_bounding_rect(&self) -> [f32; 4];
-    fn handle_key_down(&mut self, _key: crate::KeyCode) -> bool { false }
+pub trait RadiantNode: Serialize + Clone + RadiantTessellatable {
+    fn base(&self) -> &BaseNode;
+    fn base_mut(&mut self) -> &mut BaseNode;
+
+    fn get_id(&self) -> Uuid {
+        self.base().id
+    }
+    fn set_id(&mut self, id: Uuid) {
+        self.base_mut().id = id;
+    }
+
+    fn get_bounding_rect(&self) -> [f32; 4] {
+        self.base().bounding_rect
+    }
+
+    fn transform(&self) -> &TransformComponent {
+        &self.base().transform
+    }
+    fn transform_mut(&mut self) -> &mut TransformComponent {
+        &mut self.base_mut().transform
+    }
+
+    fn color(&self) -> ColorComponent {
+        self.base().color
+    }
+    fn color_mut(&mut self) -> &mut ColorComponent {
+        &mut self.base_mut().color
+    }
+
+    fn handle_key_down(&mut self, _key: crate::KeyCode) -> bool {
+        false
+    }
+
+    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
+        self.base().get_component::<T>()
+    }
+    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
+        self.base_mut().get_component_mut::<T>()
+    }
 }
