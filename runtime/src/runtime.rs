@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
+use radiantkit_collaboration::Collaborator;
 use radiantkit_core::{
     RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
     RectangleTool, Runtime, Vec3, View,
@@ -7,9 +9,7 @@ use radiantkit_core::{
 use radiantkit_image::{image_loader, RadiantImageNode};
 use radiantkit_text::RadiantTextNode;
 use radiantkit_winit::RadiantView;
-use radiantkit_collaboration::Collaborator;
 use uuid::Uuid;
-use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
 
 pub struct RadiantRuntime {
     pub view: RadiantView<RadiantMessage, RadiantNodeType>,
@@ -62,16 +62,24 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 {
                     let mut scene = self.view.scene_mut();
                     let document = &mut scene.document;
-                    let Some(mut document) = document.try_write() else { return None };
-                    let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(id) else { return None };
+                    let Some(mut document) = document.try_write() else {
+                        return None;
+                    };
+                    let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(id) else {
+                        return None;
+                    };
                     update_interactions = text_node.handle_message(message);
                 }
                 if update_interactions {
                     return self
-                    .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
+                        .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
                 }
             }
-            RadiantMessage::AddRectangle { id, position, scale } => {
+            RadiantMessage::AddRectangle {
+                id,
+                position,
+                scale,
+            } => {
                 let id = id.unwrap_or(Uuid::new_v4());
                 let node = RadiantRectangleNode::new(id, position, scale);
                 self.view.scene_mut().add(node.into());
@@ -111,7 +119,11 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
             #[cfg(all(not(target_arch = "wasm32"), feature = "video"))]
             RadiantMessage::AddVideo { name, path } => {
                 let screen_descriptor = self.view.scene().screen_descriptor;
-                let texture_handle = self.view.scene_mut().texture_manager.load_texture(name, epaint::ColorImage::example(), Default::default());   
+                let texture_handle = self.view.scene_mut().texture_manager.load_texture(
+                    name,
+                    epaint::ColorImage::example(),
+                    Default::default(),
+                );
                 if let Ok(mut document) = self.view.scene_mut().document.write() {
                     let id = document.counter;
                     println!("Adding video node with id: {}", id);

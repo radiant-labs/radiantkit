@@ -1,5 +1,5 @@
-use crate::{RadiantRenderer, ScreenDescriptor, get_node_for_color};
-use epaint::{textures::TexturesDelta, ClippedPrimitive, ImageDelta, Color32};
+use crate::{get_node_for_color, RadiantRenderer, ScreenDescriptor};
+use epaint::{textures::TexturesDelta, ClippedPrimitive, Color32, ImageDelta};
 use uuid::Uuid;
 
 pub struct RadiantRenderManager {

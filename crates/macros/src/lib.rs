@@ -74,6 +74,22 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
 
     let res = quote! {
         impl RadiantNode for #name {
+            fn base(&self) -> &radiantkit_core::BaseNode {
+                match self {
+                    #(
+                        #name::#node_names(node) => node.base(),
+                    )*
+                }
+            }
+
+            fn base_mut(&mut self) -> &mut radiantkit_core::BaseNode {
+                match self {
+                    #(
+                        #name::#node_names(node) => node.base_mut(),
+                    )*
+                }
+            }
+
             fn get_id(&self) -> uuid::Uuid {
                 match self {
                     #(
@@ -114,38 +130,6 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
                 }
             }
         )*
-    };
-    Ok(res)
-}
-
-fn derive_component_provider_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
-    let item = syn::parse2::<syn::ItemEnum>(item)?;
-
-    let name = item.ident.clone();
-    let node_names = item
-        .variants
-        .iter()
-        .map(|variant| variant.ident.clone())
-        .collect::<Vec<_>>();
-
-    let res = quote! {
-        impl RadiantComponentProvider for #name {
-            fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
-                match self {
-                    #(
-                        #name::#node_names(node) => node.get_component(),
-                    )*
-                }
-            }
-
-            fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
-                match self {
-                    #(
-                        #name::#node_names(node) => node.get_component_mut(),
-                    )*
-                }
-            }
-        }
     };
     Ok(res)
 }
@@ -385,15 +369,6 @@ pub fn derive_tessellatable(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(RadiantNode)]
 pub fn derive_node(item: TokenStream) -> TokenStream {
     let res = match derive_node_internal(item.into()) {
-        Ok(res) => res,
-        Err(err) => err.to_compile_error(),
-    };
-    res.into()
-}
-
-#[proc_macro_derive(RadiantComponentProvider)]
-pub fn derive_component_provider(item: TokenStream) -> TokenStream {
-    let res = match derive_component_provider_internal(item.into()) {
         Ok(res) => res,
         Err(err) => err.to_compile_error(),
     };

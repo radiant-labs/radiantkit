@@ -1,17 +1,17 @@
 #![cfg(target_arch = "wasm32")]
 
-use std::sync::Arc;
-use y_sync::awareness::Awareness;
-use yrs::Update;
-use y_sync::sync::{Error, Message, Protocol, SyncMessage, DefaultProtocol, MessageReader};
-use yrs::updates::decoder::{Decode, DecoderV1};
-use yrs::updates::encoder::{EncoderV1, Encoder, Encode};
-use yrs::encoding::read::Cursor;
-use web_sys::{MessageEvent, WebSocket};
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::closure::Closure;
-use yrs::UpdateSubscription;
 use parking_lot::RwLock;
+use std::sync::Arc;
+use wasm_bindgen::closure::Closure;
+use wasm_bindgen::prelude::*;
+use web_sys::{MessageEvent, WebSocket};
+use y_sync::awareness::Awareness;
+use y_sync::sync::{DefaultProtocol, Error, Message, MessageReader, Protocol, SyncMessage};
+use yrs::encoding::read::Cursor;
+use yrs::updates::decoder::{Decode, DecoderV1};
+use yrs::updates::encoder::{Encode, Encoder, EncoderV1};
+use yrs::Update;
+use yrs::UpdateSubscription;
 
 #[derive(Debug)]
 pub struct Connection {
@@ -47,7 +47,7 @@ impl Connection {
         awareness: Arc<RwLock<Awareness>>,
         protocol: P,
         ws: &WebSocket,
-    ) ->Result<Self, Error>
+    ) -> Result<Self, Error>
     where
         P: Protocol + Send + Sync + 'static,
     {
@@ -62,8 +62,8 @@ impl Connection {
 
         if !payload.is_empty() {
             if let Err(e) = ws.send_with_u8_array(&payload) {
-                    log::error!("connection failed to send back the reply {:?}", e);
-                    return Err(Error::Unsupported(1));
+                log::error!("connection failed to send back the reply {:?}", e);
+                return Err(Error::Unsupported(1));
             } else {
                 // console_log!("connection send back the reply");
                 // return Err(Error::Unsupported(2)); // parent ConnHandler has been dropped
@@ -76,7 +76,7 @@ impl Connection {
                 let array = js_sys::Uint8Array::new(&abuf);
                 // let len = array.byte_length() as usize;
                 let data = array.to_vec();
-                
+
                 if let Some(awareness) = loop_awareness.upgrade() {
                     match Self::process(&protocol, &awareness, &ws_clone, data) {
                         Ok(()) => { /* continue */ }
@@ -94,22 +94,23 @@ impl Connection {
                 // create onLoadEnd callback
                 let cl = loop_awareness.clone();
                 let ws_clone = ws_clone.clone();
-                let onloadend_cb = Closure::<dyn FnMut(_)>::new(move |_e: web_sys::ProgressEvent| {
-                    let array = js_sys::Uint8Array::new(&fr_c.result().unwrap());
-                    // let len = array.byte_length() as usize;
+                let onloadend_cb =
+                    Closure::<dyn FnMut(_)>::new(move |_e: web_sys::ProgressEvent| {
+                        let array = js_sys::Uint8Array::new(&fr_c.result().unwrap());
+                        // let len = array.byte_length() as usize;
 
-                    let data = array.to_vec();
-                    if let Some(awareness) = cl.upgrade() {
-                        let protocol = DefaultProtocol;
-                        match Self::process(&protocol, &awareness, &ws_clone, data) {
-                            Ok(()) => { /* continue */ }
-                            Err(e) => {
-                                log::error!("connection failed to process {:?}", e);
+                        let data = array.to_vec();
+                        if let Some(awareness) = cl.upgrade() {
+                            let protocol = DefaultProtocol;
+                            match Self::process(&protocol, &awareness, &ws_clone, data) {
+                                Ok(()) => { /* continue */ }
+                                Err(e) => {
+                                    log::error!("connection failed to process {:?}", e);
+                                }
                             }
+                        } else {
+                            // return Ok(()); // parent ConnHandler has been dropped
                         }
-                    } else {
-                        // return Ok(()); // parent ConnHandler has been dropped
-                    }
                         // here you can for example use the received image/png data
                     });
                 fr.set_onloadend(Some(onloadend_cb.as_ref().unchecked_ref()));
@@ -117,7 +118,7 @@ impl Connection {
                 onloadend_cb.forget();
             }
         });
-    
+
         ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
         onmessage_callback.forget();
 
@@ -150,7 +151,6 @@ impl Connection {
     }
 }
 
-
 pub fn handle_msg<P: Protocol>(
     protocol: &P,
     a: &Arc<RwLock<Awareness>>,
@@ -168,7 +168,7 @@ pub fn handle_msg<P: Protocol>(
             }
             SyncMessage::Update(update) => {
                 let mut awareness = a.write();
-                
+
                 protocol.handle_update(&mut awareness, Update::decode_v1(&update)?)
             }
         },
@@ -208,8 +208,8 @@ impl WasmConnection {
                     log::error!("sending update");
                     let update = e.update.to_owned();
                     let msg =
-                    y_sync::sync::Message::Sync(y_sync::sync::SyncMessage::Update(update))
-                        .encode_v1();
+                        y_sync::sync::Message::Sync(y_sync::sync::SyncMessage::Update(update))
+                            .encode_v1();
                     if let Err(e) = cloned_ws.send_with_u8_array(&msg) {
                         log::error!("connection failed to send back the reply {:?}", e);
                     } else {
@@ -225,7 +225,7 @@ impl WasmConnection {
                 connection: None,
                 _sub: sub,
             }));
-        
+
             let cloned_wrapper = wasm_connection.clone();
             let cloned_ws = ws.clone();
             let cloned_awareness = awareness.clone();
@@ -236,11 +236,9 @@ impl WasmConnection {
                     Err(_) => return,
                 }
             });
-        
+
             ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
             onopen_callback.forget();
-
-     
 
             Ok(wasm_connection)
         } else {

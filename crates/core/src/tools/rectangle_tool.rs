@@ -6,7 +6,11 @@ use uuid::Uuid;
 #[export_tokens]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantRectangleMessage {
-    AddRectangle { id: Option<uuid::Uuid>, position: [f32; 2], scale: [f32; 2] },
+    AddRectangle {
+        id: Option<uuid::Uuid>,
+        position: [f32; 2],
+        scale: [f32; 2],
+    },
 }
 
 pub struct RectangleTool {
@@ -28,7 +32,7 @@ impl RectangleTool {
 impl<M: From<RadiantRectangleMessage> + From<RadiantSceneMessage>> RadiantTool<M>
     for RectangleTool
 {
-    fn on_mouse_down(&mut self, _node_id: Option<Uuid>,position: [f32; 2]) -> Option<M> {
+    fn on_mouse_down(&mut self, _node_id: Option<Uuid>, position: [f32; 2]) -> Option<M> {
         let id = Uuid::new_v4();
         let message = RadiantRectangleMessage::AddRectangle {
             id: Some(id),
