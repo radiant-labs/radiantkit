@@ -5,7 +5,7 @@ use anyhow::Result;
 use atomic::Atomic;
 use chrono::{DateTime, Duration, Utc};
 use epaint::textures::TextureOptions;
-use epaint::{ColorImage, Color32, TextureHandle, Vec2};
+use epaint::{Color32, ColorImage, TextureHandle, Vec2};
 use ffmpeg::error::EAGAIN;
 use ffmpeg::ffi::AV_TIME_BASE;
 use ffmpeg::format::context::input::Input;
@@ -18,11 +18,11 @@ use parking_lot::Mutex;
 // use ffmpeg::ffi::AVERROR;
 // use ffmpeg::Packet
 #[cfg(feature = "av")]
-use ringbuf::SharedRb;
-#[cfg(feature = "av")]
 use ffmpeg::frame::Audio;
 #[cfg(feature = "av")]
 use ffmpeg::{software, ChannelLayout};
+#[cfg(feature = "av")]
+use ringbuf::SharedRb;
 #[cfg(feature = "av")]
 use sdl2::audio::{self, AudioCallback, AudioFormat, AudioSpecDesired};
 #[cfg(feature = "av")]
@@ -356,7 +356,7 @@ impl Player {
                         audio_streamer.lock().seek(seek_frac);
                     });
                 };
-        }
+            }
             // if let Some(subtitle_streamer) = subtitle_streamer.take() {
             //     self.current_subtitles.clear();
             //     std::thread::spawn(move || {
@@ -726,7 +726,8 @@ impl Player {
                 //     first_frame,
                 //     self.options.texture_options,
                 // );
-                self.texture_handle.set(first_frame, self.options.texture_options);
+                self.texture_handle
+                    .set(first_frame, self.options.texture_options);
                 Ok(self.texture_handle.clone())
             }
             Err(e) => Err(e),

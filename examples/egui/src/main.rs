@@ -1,11 +1,11 @@
 use once_cell::sync::Lazy;
 use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
-    RadiantSceneMessage, RadiantTextNode, Runtime, View, RadiantTextMessage,
+    RadiantSceneMessage, RadiantTextMessage, RadiantTextNode, Runtime, View,
 };
-use uuid::Uuid;
-use std::iter;
 use std::env;
+use std::iter;
+use uuid::Uuid;
 use winit::event::Event::RedrawRequested;
 
 use egui::{FontDefinitions, Id};
@@ -96,8 +96,15 @@ async fn run(client_id: u64) {
     let mut runtime = RadiantRuntime::new(client_id, None).await;
     runtime.add(RadiantRectangleNode::new(*NODE_1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(*NODE_2, [400.0, 400.0]).into());
-    runtime
-        .add(RadiantTextNode::new(*NODE_3, String::from("Hello"), [300.0, 300.0], [200.0, 200.0]).into());
+    runtime.add(
+        RadiantTextNode::new(
+            *NODE_3,
+            String::from("Hello"),
+            [300.0, 300.0],
+            [200.0, 200.0],
+        )
+        .into(),
+    );
 
     let size = runtime.view.window.inner_size();
     let scale_factor = runtime.view.window.scale_factor();
@@ -217,6 +224,10 @@ async fn run(client_id: u64) {
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
-    let client_id = if args.len() > 1 { args[1].parse::<u64>().unwrap_or(2) } else { 2 };
+    let client_id = if args.len() > 1 {
+        args[1].parse::<u64>().unwrap_or(2)
+    } else {
+        2
+    };
     pollster::block_on(run(client_id));
 }

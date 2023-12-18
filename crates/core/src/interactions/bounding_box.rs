@@ -41,7 +41,7 @@ impl BoundingBoxInteraction {
             RadiantRectangleNode::new(*BOUNDING_BOX_TOP_LEFT_ID, [0.0, 0.0], [16.0, 16.0]),
         ];
         for node in &mut corner_nodes {
-            node.color.set_fill_color(epaint::Color32::BLUE);
+            node.color_mut().set_fill_color(epaint::Color32::BLUE);
         }
 
         Self {
@@ -89,16 +89,16 @@ impl BoundingBoxInteraction {
             self.nodes[3].end = [rect[0], rect[1]].into();
 
             self.corner_nodes[0]
-                .transform
+                .transform_mut()
                 .set_position(&[rect[2] - 8.0, rect[1] - 8.0].into());
             self.corner_nodes[1]
-                .transform
+                .transform_mut()
                 .set_position(&[rect[2] - 8.0, rect[3] - 8.0].into());
             self.corner_nodes[2]
-                .transform
+                .transform_mut()
                 .set_position(&[rect[0] - 8.0, rect[3] - 8.0].into());
             self.corner_nodes[3]
-                .transform
+                .transform_mut()
                 .set_position(&[rect[0] - 8.0, rect[1] - 8.0].into());
 
             for node in &mut self.nodes {
@@ -190,7 +190,9 @@ impl RadiantInteraction for BoundingBoxInteraction {
 
 impl BoundingBoxInteraction {
     pub fn handle(&mut self, id: Uuid, transform: [f32; 2]) -> Option<RadiantSceneMessage> {
-        let Some(node_id) = self.active_node_id else { return None; };
+        let Some(node_id) = self.active_node_id else {
+            return None;
+        };
         match id {
             _id if id == *BOUNDING_BOX_TOP_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
@@ -217,11 +219,13 @@ impl BoundingBoxInteraction {
                 position: [0.0, transform[1]],
                 scale: [transform[0], -transform[1]],
             }),
-            _id if id == *BOUNDING_BOX_BOTTOM_RIGHT_ID => Some(RadiantSceneMessage::TransformNode {
-                id: node_id,
-                position: [0.0, 0.0],
-                scale: [transform[0], transform[1]],
-            }),
+            _id if id == *BOUNDING_BOX_BOTTOM_RIGHT_ID => {
+                Some(RadiantSceneMessage::TransformNode {
+                    id: node_id,
+                    position: [0.0, 0.0],
+                    scale: [transform[0], transform[1]],
+                })
+            }
             _id if id == *BOUNDING_BOX_BOTTOM_LEFT_ID => Some(RadiantSceneMessage::TransformNode {
                 id: node_id,
                 position: [transform[0], 0.0],

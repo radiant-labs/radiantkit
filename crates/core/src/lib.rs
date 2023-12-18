@@ -1,23 +1,26 @@
 pub mod components;
+pub mod document;
 pub mod interactions;
 pub mod message;
 pub mod nodes;
 pub mod render;
-pub mod document;
 pub mod scene;
 pub mod texture;
 pub mod tools;
 pub mod utils;
 
-use std::{sync::{RwLockReadGuard, RwLockWriteGuard}, collections::HashMap};
+use std::{
+    collections::HashMap,
+    sync::{RwLockReadGuard, RwLockWriteGuard},
+};
 
 pub use components::*;
+pub use document::*;
 use epaint::Color32;
 pub use interactions::*;
 pub use message::*;
 pub use nodes::*;
 pub use render::*;
-pub use document::*;
 pub use scene::*;
 pub use texture::*;
 pub use tools::*;
@@ -75,12 +78,14 @@ pub trait Runtime<
 }
 
 use once_cell::sync::Lazy;
-use uuid::Uuid; 
 use std::sync::Mutex;
+use uuid::Uuid;
 
-static COUNTER : Lazy<Mutex<u64>> = Lazy::new(|| Mutex::new(0));
-static NODE_TO_COLORS: Lazy<Mutex<HashMap<Uuid, Color32>>> = Lazy::new(|| Mutex::new(HashMap::new()));
-static COLOR_TO_NODES: Lazy<Mutex<HashMap<Color32, Uuid>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static COUNTER: Lazy<Mutex<u64>> = Lazy::new(|| Mutex::new(0));
+static NODE_TO_COLORS: Lazy<Mutex<HashMap<Uuid, Color32>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+static COLOR_TO_NODES: Lazy<Mutex<HashMap<Color32, Uuid>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
 
 pub fn get_color_for_node(node_id: Uuid) -> Color32 {
     let mut colors = NODE_TO_COLORS.lock().unwrap();

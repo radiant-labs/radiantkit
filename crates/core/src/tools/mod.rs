@@ -25,8 +25,16 @@ pub enum KeyCode {
 }
 
 pub trait RadiantTool<M>: Send + Sync {
-    fn on_mouse_down(&mut self, _node_id: Option<Uuid>, _position: [f32; 2]) -> Option<M> { None }
-    fn on_mouse_move(&mut self, _position: [f32; 2]) -> Option<M> { None }
-    fn on_mouse_up(&mut self, _position: [f32; 2]) -> Option<M> { None }
-    fn on_key_down(&mut self, _key: KeyCode) -> Option<M> { None }
+    fn on_mouse_down(&mut self, _node_id: Option<Uuid>, _position: [f32; 2]) -> Option<M> {
+        None
+    }
+    fn on_mouse_move(&mut self, _position: [f32; 2]) -> Option<M> {
+        None
+    }
+    fn on_mouse_up(&mut self, _position: [f32; 2]) -> Option<M> {
+        None
+    }
+    fn on_key_down(&mut self, _key: KeyCode) -> Option<M> {
+        None
+    }
 }

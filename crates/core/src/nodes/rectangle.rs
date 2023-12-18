@@ -1,83 +1,38 @@
 use crate::{
-    ColorComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent, TransformComponent, Vec3, get_color_for_node,
+    get_color_for_node, BaseNode, RadiantNode, RadiantTessellatable, ScreenDescriptor, Vec3,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
-use std::{
-    any::{Any, TypeId},
-    fmt::Debug,
-};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantRectangleNode {
-    pub id: Uuid,
-    pub transform: TransformComponent,
-    pub selection: SelectionComponent,
-    pub color: ColorComponent,
-    #[serde(skip)]
-    pub primitives: Vec<ClippedPrimitive>,
-    #[serde(skip)]
-    pub selection_primitives: Vec<ClippedPrimitive>,
-    #[serde(skip)]
-    pub needs_tessellation: bool,
-    #[serde(skip)]
-    pub bounding_rect: [f32; 4],
+    base: BaseNode,
 }
 
 impl RadiantRectangleNode {
     pub fn new_wasm(id: Uuid, position: Vec3, scale: Vec3) -> Self {
-        let mut transform = TransformComponent::new();
-        transform.set_position(&position);
-        transform.set_scale(&scale);
-
-        let selection = SelectionComponent::new();
-        let color = ColorComponent::new();
-
-        Self {
-            id,
-            transform,
-            selection,
-            color,
-            primitives: Vec::new(),
-            selection_primitives: Vec::new(),
-            needs_tessellation: true,
-            bounding_rect: [0.0, 0.0, 0.0, 0.0],
-        }
+        let base = BaseNode::new(id, position, scale);
+        Self { base }
     }
 }
 
 impl RadiantRectangleNode {
     pub fn new(id: Uuid, position: [f32; 2], scale: [f32; 2]) -> Self {
-        let mut transform = TransformComponent::new();
-        transform.set_position(&position.into());
-        transform.set_scale(&scale.into());
-
-        let selection = SelectionComponent::new();
-        let color = ColorComponent::new();
-
-        Self {
-            id,
-            transform,
-            selection,
-            color,
-            primitives: Vec::new(),
-            selection_primitives: Vec::new(),
-            needs_tessellation: true,
-            bounding_rect: [0.0, 0.0, 0.0, 0.0],
-        }
+        let base = BaseNode::new(id, position.into(), scale.into());
+        Self { base }
     }
 
     fn tessellate(&mut self, screen_descriptor: &ScreenDescriptor) {
-        if !self.needs_tessellation {
+        if !self.base.needs_tessellation {
             return;
         }
-        self.needs_tessellation = false;
+        self.base.needs_tessellation = false;
 
         let pixels_per_point = screen_descriptor.pixels_per_point;
-        let position = self.transform.position();
-        let scale = self.transform.scale();
+        let position = self.base.transform.position();
+        let scale = self.base.transform.scale();
 
         let rect = epaint::Rect::from_two_pos(
             position.into(),
@@ -86,13 +41,13 @@ impl RadiantRectangleNode {
 
         let rounding = epaint::Rounding::default();
 
-        let fill_color = self.color.fill_color();
+        let fill_color = self.base.color.fill_color();
         let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
         )];
-        self.primitives = epaint::tessellator::tessellate_shapes(
+        self.base.primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
             [1, 1],
@@ -100,13 +55,13 @@ impl RadiantRectangleNode {
             shapes,
         );
 
-        let fill_color = get_color_for_node(self.id);
+        let fill_color = get_color_for_node(self.base.id);
         let rect_shape = epaint::RectShape::filled(rect, rounding, fill_color);
         let shapes = vec![ClippedShape(
             Rect::EVERYTHING,
             epaint::Shape::Rect(rect_shape),
         )];
-        self.selection_primitives = epaint::tessellator::tessellate_shapes(
+        self.base.selection_primitives = epaint::tessellator::tessellate_shapes(
             pixels_per_point,
             TessellationOptions::default(),
             [1, 1],
@@ -122,27 +77,27 @@ impl RadiantTessellatable for RadiantRectangleNode {
     }
 
     fn detach(&mut self) {
-        self.primitives.clear();
-        self.selection_primitives.clear();
+        self.base.primitives.clear();
+        self.base.selection_primitives.clear();
     }
 
     fn set_needs_tessellation(&mut self) {
-        let position = self.transform.position();
-        let scale = self.transform.scale();
+        let position = self.base.transform.position();
+        let scale = self.base.transform.scale();
 
         let rect = epaint::Rect::from_two_pos(
             position.into(),
             Vec3::new_with_added(&position, &scale).into(),
         );
 
-        self.bounding_rect = [
+        self.base.bounding_rect = [
             rect.left_top().x,
             rect.left_top().y,
             rect.right_bottom().x,
             rect.right_bottom().y,
         ];
 
-        self.needs_tessellation = true;
+        self.base.needs_tessellation = true;
     }
 
     fn tessellate(
@@ -153,49 +108,19 @@ impl RadiantTessellatable for RadiantRectangleNode {
     ) -> Vec<ClippedPrimitive> {
         self.tessellate(screen_descriptor);
         if selection {
-            self.selection_primitives.clone()
+            self.base.selection_primitives.clone()
         } else {
-            self.primitives.clone()
+            self.base.primitives.clone()
         }
     }
 }
 
 impl RadiantNode for RadiantRectangleNode {
-    fn get_id(&self) -> Uuid {
-        return self.id;
+    fn base(&self) -> &BaseNode {
+        &self.base
     }
 
-    fn set_id(&mut self, id: Uuid) {
-        self.id = id;
-    }
-
-    fn get_bounding_rect(&self) -> [f32; 4] {
-        self.bounding_rect
-    }
-}
-
-impl RadiantComponentProvider for RadiantRectangleNode {
-    fn get_component<T: crate::RadiantComponent + 'static>(&self) -> Option<&T> {
-        if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
-            unsafe { Some(&*(&self.selection as *const dyn Any as *const T)) }
-        } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
-            unsafe { Some(&*(&self.transform as *const dyn Any as *const T)) }
-        } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
-            unsafe { Some(&*(&self.color as *const dyn Any as *const T)) }
-        } else {
-            None
-        }
-    }
-
-    fn get_component_mut<T: crate::RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
-        if TypeId::of::<T>() == TypeId::of::<SelectionComponent>() {
-            unsafe { Some(&mut *(&mut self.selection as *mut dyn Any as *mut T)) }
-        } else if TypeId::of::<T>() == TypeId::of::<TransformComponent>() {
-            unsafe { Some(&mut *(&mut self.transform as *mut dyn Any as *mut T)) }
-        } else if TypeId::of::<T>() == TypeId::of::<ColorComponent>() {
-            unsafe { Some(&mut *(&mut self.color as *mut dyn Any as *mut T)) }
-        } else {
-            None
-        }
+    fn base_mut(&mut self) -> &mut BaseNode {
+        &mut self.base
     }
 }
