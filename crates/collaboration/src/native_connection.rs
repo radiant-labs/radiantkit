@@ -1,30 +1,27 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use futures_util::SinkExt;
-use futures_util::{StreamExt, stream::SplitSink, Sink, Stream, ready};
 use futures_util::stream::SplitStream;
-use tokio_tungstenite::{tungstenite, WebSocketStream, MaybeTlsStream};
-use tokio::{sync::RwLock, net::TcpStream};
-use tungstenite::Message;
-use y_sync::awareness::Awareness;
-use yrs::UpdateSubscription;
-use yrs::updates::encoder::Encode;
+use futures_util::SinkExt;
+use futures_util::{ready, stream::SplitSink, Sink, Stream, StreamExt};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use y_sync::sync::Error;
-use y_sync::net::Connection;
 use tokio::task;
+use tokio::{net::TcpStream, sync::RwLock};
+use tokio_tungstenite::{tungstenite, MaybeTlsStream, WebSocketStream};
+use tungstenite::Message;
+use y_sync::awareness::Awareness;
+use y_sync::net::Connection;
+use y_sync::sync::Error;
+use yrs::updates::encoder::Encode;
+use yrs::UpdateSubscription;
 
 struct TungsteniteSink(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>);
 
 impl Sink<Vec<u8>> for TungsteniteSink {
     type Error = Error;
 
-    fn poll_ready(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         let sink = unsafe { Pin::new_unchecked(&mut self.0) };
         let result = ready!(sink.poll_ready(cx));
         match result {
@@ -42,10 +39,7 @@ impl Sink<Vec<u8>> for TungsteniteSink {
         }
     }
 
-    fn poll_flush(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<(), Self::Error>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         let sink = unsafe { Pin::new_unchecked(&mut self.0) };
         let result = ready!(sink.poll_flush(cx));
         match result {
@@ -54,10 +48,7 @@ impl Sink<Vec<u8>> for TungsteniteSink {
         }
     }
 
-    fn poll_close(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<(), Self::Error>> {
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         let sink = unsafe { Pin::new_unchecked(&mut self.0) };
         let result = ready!(sink.poll_close(cx));
         match result {
@@ -89,10 +80,19 @@ pub struct NativeConnection {
 }
 
 impl NativeConnection {
-    pub async fn new(awareness: Arc<RwLock<Awareness>>, url: &str) -> Result<Arc<parking_lot::RwLock<Self>>, ()> {
-        let Ok((ws_stream, _)) = tokio_tungstenite::connect_async(url).await else { return Err(()) };
+    pub async fn new(
+        awareness: Arc<RwLock<Awareness>>,
+        url: &str,
+    ) -> Result<Arc<parking_lot::RwLock<Self>>, ()> {
+        let Ok((ws_stream, _)) = tokio_tungstenite::connect_async(url).await else {
+            return Err(());
+        };
         let (sink, stream) = ws_stream.split();
-        let connection = Connection::new(awareness.clone(), TungsteniteSink(sink), TungsteniteStream(stream));
+        let connection = Connection::new(
+            awareness.clone(),
+            TungsteniteSink(sink),
+            TungsteniteStream(stream),
+        );
 
         let sub = {
             let sink = connection.sink();
@@ -123,6 +123,5 @@ impl NativeConnection {
 
     pub fn awareness(&self) -> Arc<RwLock<Awareness>> {
         self.awareness.clone()
-
     }
 }

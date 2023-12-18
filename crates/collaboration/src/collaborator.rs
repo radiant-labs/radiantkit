@@ -1,15 +1,18 @@
-use radiantkit_core::{RadiantDocumentListener, RadiantDocumentNode, RadiantNode};
-use uuid::Uuid;
-use y_sync::awareness::{Awareness, UpdateSubscription as AwarenessUpdateSubscription};
-use yrs::{*, types::{map::MapEvent, EntryChange}};
-use std::sync::{Arc, Weak};
 use parking_lot::RwLock;
 use pollster::block_on;
+use radiantkit_core::{RadiantDocumentListener, RadiantDocumentNode, RadiantNode};
+use std::sync::{Arc, Weak};
+use uuid::Uuid;
+use y_sync::awareness::{Awareness, UpdateSubscription as AwarenessUpdateSubscription};
+use yrs::{
+    types::{map::MapEvent, EntryChange},
+    *,
+};
 
-#[cfg(target_arch = "wasm32")]
-use crate::wasm_connection::WasmConnection;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::native_connection::NativeConnection;
+#[cfg(target_arch = "wasm32")]
+use crate::wasm_connection::WasmConnection;
 
 pub struct Collaborator<N: RadiantNode> {
     _document: Weak<RwLock<RadiantDocumentNode<N>>>,
@@ -22,7 +25,10 @@ pub struct Collaborator<N: RadiantNode> {
 }
 
 impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N> {
-    pub async fn new(client_id: u64, document: Weak<RwLock<RadiantDocumentNode<N>>>) -> Result<Self, ()> {
+    pub async fn new(
+        client_id: u64,
+        document: Weak<RwLock<RadiantDocumentNode<N>>>,
+    ) -> Result<Self, ()> {
         let url = "ws://localhost:8000/sync";
 
         let doc = Doc::with_client_id(client_id);
@@ -30,10 +36,16 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         let document_clone = document.clone();
         let root_sub = root.observe(move |txn, event| {
             log::error!("root event received");
-            let Some(document) = document_clone.upgrade() else { return };
-            let Some(mut document) = document.try_write() else { return };
-            event.keys(txn).iter().for_each(|(key, change)| {
-                match change {
+            let Some(document) = document_clone.upgrade() else {
+                return;
+            };
+            let Some(mut document) = document.try_write() else {
+                return;
+            };
+            event
+                .keys(txn)
+                .iter()
+                .for_each(|(key, change)| match change {
                     EntryChange::Inserted(val) => {
                         log::error!("inserted");
                         let id = Uuid::parse_str(key).unwrap();
@@ -43,15 +55,12 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                         if document.get_node(id).is_none() {
                             document.add_excluding_listener(node);
                         }
-                    },
-                    EntryChange::Removed(_val) => {
-                        
-                    },
+                    }
+                    EntryChange::Removed(_val) => {}
                     EntryChange::Updated(_old, _new) => {
                         log::error!("updated");
                     }
-                }
-            });
+                });
         });
 
         let connection;
@@ -79,7 +88,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                 Err(_) => return Err(()),
             }
         }
-    
+
         Ok(Self {
             _document: document,
             connection,
@@ -97,12 +106,21 @@ impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
             #[cfg(not(target_arch = "wasm32"))]
             let awareness = awareness.write().await;
             #[cfg(target_arch = "wasm32")]
-            let Some(awareness) = awareness.try_write() else { return };
+            let Some(awareness) = awareness.try_write() else {
+                return;
+            };
             if let Some(node) = document.get_node(id) {
                 let doc = awareness.doc();
-                let Ok(mut txn) = doc.try_transact_mut() else { log::error!("Failed to transact"); return };
+                let Ok(mut txn) = doc.try_transact_mut() else {
+                    log::error!("Failed to transact");
+                    return;
+                };
                 if let Some(root) = txn.get_map("radiantkit-root") {
-                    root.insert(&mut txn, id.to_string(), serde_json::to_string(node).unwrap());
+                    root.insert(
+                        &mut txn,
+                        id.to_string(),
+                        serde_json::to_string(node).unwrap(),
+                    );
                 }
                 txn.commit();
                 log::error!("Added node {:?}", id);

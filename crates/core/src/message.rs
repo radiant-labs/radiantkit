@@ -2,7 +2,7 @@ use macro_magic::export_tokens;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{RadiantNode, KeyCode};
+use crate::{KeyCode, RadiantNode};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum RadiantSceneMessage {

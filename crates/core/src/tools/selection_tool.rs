@@ -23,12 +23,7 @@ impl<M: From<RadiantSceneMessage>> RadiantTool<M> for SelectionTool {
         self.prev_position = position;
         self.is_mouse_down = true;
         self.active_node_id = node_id;
-        Some(
-            RadiantSceneMessage::SelectNode {
-                id: node_id,
-            }
-            .into(),
-        )
+        Some(RadiantSceneMessage::SelectNode { id: node_id }.into())
     }
 
     fn on_mouse_move(&mut self, position: [f32; 2]) -> Option<M> {
