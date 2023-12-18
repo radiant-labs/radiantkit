@@ -1,25 +1,20 @@
-use crate::{
-    RadiantComponent, RadiantComponentProvider, RadiantNode, RadiantTessellatable,
-    ScreenDescriptor, SelectionComponent,
-};
+use crate::{BaseNode, RadiantNode, RadiantTessellatable, ScreenDescriptor};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::collections::BTreeMap;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantGroupNode<N: RadiantNode> {
-    pub id: Uuid,
-    pub selection: SelectionComponent,
+    pub base: BaseNode,
     pub nodes: BTreeMap<Uuid, N>,
 }
 
 impl<N: RadiantNode> RadiantGroupNode<N> {
     pub fn new(id: Uuid) -> Self {
-        let selection = SelectionComponent::new();
+        let base = BaseNode::new(id, [0.0, 0.0].into(), [0.0, 0.0].into());
         Self {
-            id,
-            selection,
+            base,
             nodes: BTreeMap::new(),
         }
     }
@@ -67,25 +62,20 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
 }
 
 impl<N: RadiantNode> RadiantNode for RadiantGroupNode<N> {
-    fn get_id(&self) -> Uuid {
-        self.id
+    fn base(&self) -> &BaseNode {
+        &self.base
     }
 
-    fn set_id(&mut self, id: Uuid) {
-        self.id = id;
+    fn base_mut(&mut self) -> &mut BaseNode {
+        &mut self.base
     }
 
-    fn get_bounding_rect(&self) -> [f32; 4] {
-        [0.0, 0.0, 0.0, 0.0]
-    }
-}
-
-impl<N: RadiantNode> RadiantComponentProvider for RadiantGroupNode<N> {
-    fn get_component<T: RadiantComponent + 'static>(&self) -> Option<&T> {
-        None
-    }
-
-    fn get_component_mut<T: RadiantComponent + 'static>(&mut self) -> Option<&mut T> {
-        None
+    fn handle_key_down(&mut self, key: crate::KeyCode) -> bool {
+        for node in &mut self.nodes.values_mut() {
+            if node.handle_key_down(key.clone()) {
+                return true;
+            }
+        }
+        false
     }
 }

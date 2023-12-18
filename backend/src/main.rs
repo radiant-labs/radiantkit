@@ -1,11 +1,14 @@
 use futures_util::{FutureExt, StreamExt};
+use std::sync::Arc;
+use tokio::sync::{Mutex, RwLock};
 use warp::Filter;
-use tokio::sync::{RwLock, Mutex};
-use yrs_warp::{AwarenessRef, ws::{WarpSink, WarpStream}};
 use y_sync::awareness::Awareness;
 use y_sync::net::BroadcastGroup;
 use yrs::Doc;
-use std::sync::Arc;
+use yrs_warp::{
+    ws::{WarpSink, WarpStream},
+    AwarenessRef,
+};
 
 #[tokio::main]
 async fn main() {
