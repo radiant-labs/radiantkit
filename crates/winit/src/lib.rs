@@ -1,5 +1,5 @@
 use radiantkit_core::{
-    RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, Vec3, View, KeyCode,
+    KeyCode, RadiantNode, RadiantScene, RadiantSceneMessage, Runtime, ScreenDescriptor, Vec3, View,
 };
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
@@ -342,9 +342,9 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
     pub fn on_key_down(&mut self, input: &Option<VirtualKeyCode>) -> Option<M> {
         if let Some(keycode) = input {
             self.scene_mut()
-            .tool_manager
-            .active_tool()
-            .on_key_down(to_keycode(keycode))
+                .tool_manager
+                .active_tool()
+                .on_key_down(to_keycode(keycode))
         } else {
             None
         }
@@ -461,7 +461,9 @@ pub fn run_wasm<
 ) {
     let event_loop;
     {
-        let Ok(mut runtime_) = runtime.write() else { return; };
+        let Ok(mut runtime_) = runtime.write() else {
+            return;
+        };
         event_loop = std::mem::replace(&mut runtime_.view_mut().event_loop, None);
     }
 
