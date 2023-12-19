@@ -15,6 +15,7 @@ use crate::native_connection::NativeConnection;
 use crate::wasm_connection::WasmConnection;
 
 pub struct Collaborator<N: RadiantNode> {
+    id: Uuid,
     _document: Weak<RwLock<RadiantDocumentNode<N>>>,
     #[cfg(target_arch = "wasm32")]
     connection: Arc<RwLock<WasmConnection>>,
@@ -29,6 +30,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         client_id: u64,
         document: Weak<RwLock<RadiantDocumentNode<N>>>,
     ) -> Result<Self, ()> {
+        let id = Uuid::new_v4();
         let url = "ws://localhost:8000/sync";
 
         let doc = Doc::with_client_id(client_id);
@@ -53,7 +55,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                         let mut node: N = serde_json::from_str(&node).unwrap();
                         node.set_needs_tessellation();
                         if document.get_node(id).is_none() {
-                            document.add_excluding_listener(node);
+                            document.add_excluding_listener(node, id);
                         }
                     }
                     EntryChange::Removed(_val) => {}
@@ -90,6 +92,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         }
 
         Ok(Self {
+            id,
             _document: document,
             connection,
             _awareness_sub: awareness_sub,
@@ -99,7 +102,11 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
 }
 
 impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
-    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: Uuid) {
+    fn get_id(&self) -> Uuid {
+        self.id
+    }
+
+    fn on_node_added(&mut self, document: &RadiantDocumentNode<N>, id: Uuid) {
         block_on(async {
             let connection = self.connection.write();
             let awareness = connection.awareness();
@@ -126,5 +133,32 @@ impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
                 log::error!("Added node {:?}", id);
             }
         });
+    }
+
+    fn on_node_changed(&mut self, _id: Uuid, _data: &str) {
+        // block_on(async {
+        //     let connection = self.connection.write();
+        //     let awareness = connection.awareness();
+        //     #[cfg(not(target_arch = "wasm32"))]
+        //     let awareness = awareness.write().await;
+        //     #[cfg(target_arch = "wasm32")]
+        //     let Some(awareness) = awareness.try_write() else {
+        //         return;
+        //     };
+        //     let doc = awareness.doc();
+        //     let Ok(mut txn) = doc.try_transact_mut() else {
+        //         log::error!("Failed to transact");
+        //         return;
+        //     };
+        //     if let Some(root) = txn.get_map("radiantkit-root") {
+        //         root.insert(
+        //             &mut txn,
+        //             id.to_string(),
+        //             data,
+        //         );
+        //     }
+        //     txn.commit();
+        //     log::error!("Updated node {:?}", id);
+        // });
     }
 }

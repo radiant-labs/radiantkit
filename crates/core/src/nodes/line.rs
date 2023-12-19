@@ -78,7 +78,8 @@ impl RadiantTessellatable for RadiantLineNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        self.base.needs_tessellation = true;
+        self.base.set_needs_tessellation();
+        self.base.notify(serde_json::to_string(self).unwrap());
     }
 
     fn tessellate(
