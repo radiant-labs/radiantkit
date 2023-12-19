@@ -1,11 +1,13 @@
-use std::any::{Any, TypeId};
+use std::{any::{Any, TypeId}, sync::Arc, fmt::Debug};
 
-use crate::{ColorComponent, SelectionComponent, TransformComponent, Vec3};
+use crate::{ColorComponent, SelectionComponent, TransformComponent, Vec3, Observer};
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub type SubscriptionCallback = dyn Fn(&str)->() + 'static;
+
+#[derive(Serialize, Deserialize, Default)]
 pub struct BaseNode {
     pub id: Uuid,
     pub transform: TransformComponent,
@@ -19,6 +21,39 @@ pub struct BaseNode {
     pub needs_tessellation: bool,
     #[serde(skip)]
     pub bounding_rect: [f32; 4],
+    #[serde(skip)]
+    pub observers: Observer<Arc<SubscriptionCallback>>,
+}
+
+impl Clone for BaseNode {
+    fn clone(&self) -> Self {
+        Self {
+            id: self.id,
+            transform: self.transform.clone(),
+            selection: self.selection.clone(),
+            color: self.color.clone(),
+            primitives: Vec::new(),
+            selection_primitives: Vec::new(),
+            needs_tessellation: true,
+            bounding_rect: [0.0, 0.0, 0.0, 0.0],
+            observers: Observer::default(),
+        }
+    }
+}
+
+impl Debug for BaseNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BaseNode")
+            .field("id", &self.id)
+            .field("transform", &self.transform)
+            .field("selection", &self.selection)
+            .field("color", &self.color)
+            .field("primitives", &self.primitives)
+            .field("selection_primitives", &self.selection_primitives)
+            .field("needs_tessellation", &self.needs_tessellation)
+            .field("bounding_rect", &self.bounding_rect)
+            .finish()
+    }
 }
 
 impl BaseNode {
@@ -39,6 +74,17 @@ impl BaseNode {
             selection_primitives: Vec::new(),
             needs_tessellation: true,
             bounding_rect: [0.0, 0.0, 0.0, 0.0],
+            observers: Observer::default(),
+        }
+    }
+
+    pub fn set_needs_tessellation(&mut self) {
+        self.needs_tessellation = true;
+    }
+
+    pub fn notify(&self, message: String) {
+        for cb in self.observers.callbacks() {
+            cb(&message);
         }
     }
 }

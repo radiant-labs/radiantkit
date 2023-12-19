@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, cell::RefCell, rc::Rc};
 
 use crate::{
     RadiantGroupNode, RadiantNode, RadiantSelectable, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent,
+    SelectionComponent, SubscriptionId,
 };
 use epaint::ClippedPrimitive;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,9 @@ pub struct RadiantDocumentNode<N: RadiantNode> {
     pub active_artboard_id: Uuid,
     pub selected_node_id: Option<Uuid>,
     #[serde(skip)]
-    listeners: Vec<Box<dyn RadiantDocumentListener<N>>>,
+    listeners: Rc<RefCell<Vec<Box<dyn RadiantDocumentListener<N>>>>>,
+    #[serde(skip)]
+    subscriptions: Vec<SubscriptionId>,
 }
 
 unsafe impl<N: RadiantNode> Send for RadiantDocumentNode<N> {}
@@ -31,16 +33,17 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
             artboards,
             active_artboard_id: artboard_id,
             selected_node_id: None,
-            listeners: Vec::new(),
+            listeners: Rc::new(Vec::new().into()),
+            subscriptions: Vec::new(),
         }
     }
 
     pub fn add_listener(&mut self, listener: Box<dyn RadiantDocumentListener<N>>) {
-        self.listeners.push(listener);
+        self.listeners.borrow_mut().push(listener);
     }
 
     pub fn remove_listener(&mut self, listener: &dyn RadiantDocumentListener<N>) {
-        self.listeners.retain(|l| !std::ptr::eq(&**l, listener));
+        self.listeners.borrow_mut().retain(|l| !std::ptr::eq(&**l, listener));
     }
 
     pub fn add_artboard(&mut self) {
@@ -50,35 +53,36 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
     }
 
     pub fn add(&mut self, node: N) {
-        if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
-            let id = node.get_id();
-            artboard.add(node);
-
-            let mut listeners = std::mem::take(&mut self.listeners);
-            listeners.iter_mut().for_each(|listener| {
-                listener.on_node_added(self, id);
-            });
-            self.listeners = listeners;
-
-            self.counter += 1;
-        }
+        self.add_node(node, None);
     }
 
-    pub fn add_excluding_listener(&mut self, node: N) {
-        //, listener: &Box<dyn RadiantDocumentListener<N>>
+    pub fn add_excluding_listener(&mut self, node: N, listener_id: Uuid) {
+        self.add_node(node, Some(listener_id));
+    }
+
+    fn add_node(&mut self, mut node: N, exclude_listener_id: Option<Uuid>) {
         if let Some(artboard) = self.artboards.get_mut(&self.active_artboard_id) {
+            let id = node.get_id();
+            let listeners = self.listeners.clone();
+            let subscription = node.observe(move |data| {
+                listeners.borrow_mut().iter_mut().for_each(|listener| {
+                    listener.on_node_changed(id, data);
+                });
+            });
             artboard.add(node);
 
-            // let id = node.get_id();
-            // let mut listeners = std::mem::take(&mut self.listeners);
-            // listeners
-            //     .iter_mut()
-            //     .filter(|l| !std::ptr::eq(&**l, listener))
-            //     .for_each(|listener| {
-            //         listener.on_node_added(self, id);
-            //     });
-            // self.listeners = listeners;
+            let listeners = self.listeners.clone();
+            listeners.borrow_mut()
+                .iter_mut()
+                .filter(|l| match exclude_listener_id {
+                    Some(id) => l.get_id() != id,
+                    None => true,
+                })
+                .for_each(|listener| {
+                    listener.on_node_added(self, id);
+                });
 
+            self.subscriptions.push(subscription.into());
             self.counter += 1;
         }
     }
@@ -170,5 +174,7 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
 }
 
 pub trait RadiantDocumentListener<N: RadiantNode> {
-    fn on_node_added(&mut self, document: &mut RadiantDocumentNode<N>, id: Uuid);
+    fn get_id(&self) -> Uuid;
+    fn on_node_added(&mut self, document: &RadiantDocumentNode<N>, node: Uuid);
+    fn on_node_changed(&mut self, id: Uuid, data: &str);
 }
