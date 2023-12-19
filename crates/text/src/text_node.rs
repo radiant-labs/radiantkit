@@ -157,8 +157,9 @@ impl RadiantTessellatable for RadiantTextNode {
     }
 
     fn set_needs_tessellation(&mut self) {
-        self.base.needs_tessellation = true;
+        self.base.set_needs_tessellation();
         self.cursor_node.set_needs_tessellation();
+        self.base.notify(serde_json::to_string(self).unwrap());
     }
 
     fn tessellate(
