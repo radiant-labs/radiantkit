@@ -108,7 +108,8 @@ impl RadiantTessellatable for RadiantImageNode {
             rect.right_bottom().y,
         ];
 
-        self.base.needs_tessellation = true;
+        self.base.set_needs_tessellation();
+        self.base.notify(serde_json::to_string(self).unwrap());
     }
 
     fn tessellate(
