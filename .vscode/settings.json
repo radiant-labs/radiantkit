@@ -1,3 +1,10 @@
 {
-    "rust-analyzer.showUnlinkedFileNotification": false
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.rustfmt.extraArgs": ["+nightly-2023-11-01"],
+    "rust-analyzer.cargo.extraEnv": {
+        "CARGO_TARGET_DIR": "target/vscode-rust-analyzer",
+        "SKIP_WASM_BUILD": "1",
+        "CHALK_OVERFLOW_DEPTH": "100000000"
+    },
 }
