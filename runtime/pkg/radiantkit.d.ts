@@ -132,6 +132,7 @@ export interface InitOutput {
   readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly radiantkitappcontroller_handleMessage: (a: number, b: number) => void;
   readonly __wbg_selectioncomponent_free: (a: number) => void;
+  readonly __wbg_colorcomponent_free: (a: number) => void;
   readonly __wbg_transformcomponent_free: (a: number) => void;
   readonly transformcomponent_transform_xy: (a: number, b: number) => void;
   readonly transformcomponent_transform_scale: (a: number, b: number) => void;
@@ -156,7 +157,6 @@ export interface InitOutput {
   readonly vec3_add_with_min: (a: number, b: number, c: number) => void;
   readonly vec3_add_scalar: (a: number, b: number) => void;
   readonly vec3_set_with_min: (a: number, b: number, c: number) => void;
-  readonly __wbg_colorcomponent_free: (a: number) => void;
   readonly wgpu_compute_pass_set_pipeline: (a: number, b: number) => void;
   readonly wgpu_compute_pass_set_bind_group: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wgpu_compute_pass_set_push_constant: (a: number, b: number, c: number, d: number) => void;

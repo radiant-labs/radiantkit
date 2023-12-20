@@ -102,10 +102,10 @@ impl BoundingBoxInteraction {
                 .set_position(&[rect[0] - 8.0, rect[1] - 8.0].into());
 
             for node in &mut self.nodes {
-                node.set_needs_tessellation();
+                node.set_needs_tessellation(true);
             }
             for node in &mut self.corner_nodes {
-                node.set_needs_tessellation();
+                node.set_needs_tessellation(true);
             }
 
             self.active_node_id = Some(node.get_id());

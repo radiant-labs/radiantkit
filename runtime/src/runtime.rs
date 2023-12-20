@@ -117,33 +117,34 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
             }
             #[cfg(all(not(target_arch = "wasm32"), feature = "video"))]
-            RadiantMessage::AddVideo { name, path } => {
-                let screen_descriptor = self.view.scene().screen_descriptor;
+            RadiantMessage::AddVideo { id, name, path } => {
                 let texture_handle = self.view.scene_mut().texture_manager.load_texture(
                     name,
                     epaint::ColorImage::example(),
                     Default::default(),
                 );
-                if let Ok(mut document) = self.view.scene_mut().document.write() {
-                    let id = document.counter;
-                    println!("Adding video node with id: {}", id);
-                    let mut node = radiantkit_video::RadiantVideoNode::new(
-                        id,
-                        [100.0, 200.0],
-                        [100.0, 100.0],
-                        path,
-                        texture_handle,
-                    );
-                    node.attach(&screen_descriptor);
-                    document.add(node.into());
-                }
+                let id = id.unwrap_or(Uuid::new_v4());
+                println!("Adding video node with id: {}", id);
+                let node = radiantkit_video::RadiantVideoNode::new(
+                    id,
+                    [100.0, 200.0],
+                    [100.0, 100.0],
+                    path,
+                    texture_handle,
+                );
+                self.view.scene_mut().add(node.into());
+                return self
+                    .handle_message(RadiantSceneMessage::SelectNode { id: Some(id) }.into());
             }
             #[cfg(all(not(target_arch = "wasm32"), feature = "video"))]
             RadiantMessage::PlayVideo { id } => {
-                if let Ok(mut document) = self.view.scene_mut().document.write() {
-                    if let Some(RadiantNodeType::Video(video_node)) = document.get_node_mut(id) {
-                        video_node.play();
-                    }
+                let mut scene = self.view.scene_mut();
+                let document = &mut scene.document;
+                let Some(mut document) = document.try_write() else {
+                    return None;
+                };
+                if let Some(RadiantNodeType::Video(video_node)) = document.get_node_mut(id) {
+                    video_node.play();
                 }
             }
         }

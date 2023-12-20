@@ -30,6 +30,10 @@ impl<N: RadiantNode> RadiantGroupNode<N> {
     pub fn get_node_mut(&mut self, id: Uuid) -> Option<&mut N> {
         self.nodes.get_mut(&id)
     }
+
+    pub fn replace_node(&mut self, id: Uuid, node: N) {
+        self.nodes.insert(id, node);
+    }
 }
 
 impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
@@ -45,7 +49,7 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
         }
     }
 
-    fn set_needs_tessellation(&mut self) {}
+    fn set_needs_tessellation(&mut self, _notify: bool) {}
 
     fn tessellate(
         &mut self,
