@@ -1,5 +1,5 @@
 use crate::{
-    get_color_for_node, BaseNode, RadiantNode, RadiantTessellatable, ScreenDescriptor, Vec3,
+    get_color_for_node, BaseNode, RadiantNode, RadiantTessellatable, ScreenDescriptor, Vec3, Observer,
 };
 use epaint::{ClippedPrimitive, ClippedShape, Rect, TessellationOptions};
 use serde::{Deserialize, Serialize};
@@ -81,7 +81,7 @@ impl RadiantTessellatable for RadiantRectangleNode {
         self.base.selection_primitives.clear();
     }
 
-    fn set_needs_tessellation(&mut self) {
+    fn set_needs_tessellation(&mut self, notify: bool) {
         let position = self.base.transform.position();
         let scale = self.base.transform.scale();
 
@@ -98,7 +98,9 @@ impl RadiantTessellatable for RadiantRectangleNode {
         ];
 
         self.base.set_needs_tessellation();
-        self.base.notify(serde_json::to_string(self).unwrap());
+        if notify {
+            self.base.notify(serde_json::to_string(self).unwrap());
+        }
     }
 
     fn tessellate(
@@ -123,5 +125,14 @@ impl RadiantNode for RadiantRectangleNode {
 
     fn base_mut(&mut self) -> &mut BaseNode {
         &mut self.base
+    }
+
+    fn replace(&mut self, node: &str) {
+        log::error!("replace rectangle node");
+        let node: Self = serde_json::from_str(node).unwrap();
+        let observers = std::mem::replace(&mut self.base.observers, Observer::default());
+        self.base = node.base;
+        self.base.observers = observers;
+        self.set_needs_tessellation(false);
     }
 }

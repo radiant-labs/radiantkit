@@ -156,10 +156,12 @@ impl RadiantTessellatable for RadiantTextNode {
         self.base.selection_primitives.clear();
     }
 
-    fn set_needs_tessellation(&mut self) {
+    fn set_needs_tessellation(&mut self, notify: bool) {
         self.base.set_needs_tessellation();
-        self.cursor_node.set_needs_tessellation();
-        self.base.notify(serde_json::to_string(self).unwrap());
+        self.cursor_node.set_needs_tessellation(notify);
+        if notify {
+            self.base.notify(serde_json::to_string(self).unwrap());
+        }
     }
 
     fn tessellate(
@@ -207,7 +209,7 @@ impl RadiantNode for RadiantTextNode {
             _ => false,
         };
         if did_update {
-            self.set_needs_tessellation();
+            self.set_needs_tessellation(true);
         }
         did_update
     }
@@ -218,7 +220,7 @@ impl RadiantTextNode {
         match message {
             RadiantTextMessage::SetText { text, .. } => {
                 self.text = text;
-                self.set_needs_tessellation();
+                self.set_needs_tessellation(true);
                 true
             }
         }

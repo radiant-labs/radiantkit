@@ -15,6 +15,8 @@ use egui_winit_platform::{Platform, PlatformDescriptor};
 static NODE_1: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 static NODE_2: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 static NODE_3: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
+#[cfg(feature = "video")]
+static NODE_4: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
 
 struct RadiantKitAppController {
     pending_messages: Vec<RadiantMessage>,
@@ -68,6 +70,7 @@ impl RadiantKitAppController {
                 #[cfg(feature = "video")]
                 if ui.button("Load Video").clicked() {
                     self.pending_messages.push(RadiantMessage::AddVideo {
+                        id: Some(*NODE_4),
                         name: "".to_string(),
                         path: "".to_string(), // Add video path here
                     });
@@ -75,7 +78,7 @@ impl RadiantKitAppController {
                 #[cfg(feature = "video")]
                 if ui.button("Play Video").clicked() {
                     self.pending_messages
-                        .push(RadiantMessage::PlayVideo { id: 4 });
+                        .push(RadiantMessage::PlayVideo { id: *NODE_4 });
                 }
                 ui.add_space(10.0);
             });

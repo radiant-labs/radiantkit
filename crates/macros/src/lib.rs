@@ -31,10 +31,10 @@ fn derive_tessellatable_internal(item: TokenStream2) -> syn::Result<TokenStream2
                 }
             }
 
-            fn set_needs_tessellation(&mut self) {
+            fn set_needs_tessellation(&mut self, notify: bool) {
                 match self {
                     #(
-                        #name::#node_names(node) => node.set_needs_tessellation(),
+                        #name::#node_names(node) => node.set_needs_tessellation(notify),
                     )*
                 }
             }
@@ -118,6 +118,14 @@ fn derive_node_internal(item: TokenStream2) -> syn::Result<TokenStream2> {
                 match self {
                     #(
                         #name::#node_names(node) => node.handle_key_down(key),
+                    )*
+                }
+            }
+
+            fn replace(&mut self, n: &str) {
+                match self {
+                    #(
+                        #name::#node_names(node) => node.replace(n),
                     )*
                 }
             }

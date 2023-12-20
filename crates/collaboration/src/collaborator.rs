@@ -14,13 +14,15 @@ use crate::native_connection::NativeConnection;
 #[cfg(target_arch = "wasm32")]
 use crate::wasm_connection::WasmConnection;
 
+#[cfg(not(target_arch = "wasm32"))]
+type Connection = NativeConnection;
+#[cfg(target_arch = "wasm32")]
+type Connection = WasmConnection;
+
 pub struct Collaborator<N: RadiantNode> {
     id: Uuid,
     _document: Weak<RwLock<RadiantDocumentNode<N>>>,
-    #[cfg(target_arch = "wasm32")]
-    connection: Arc<RwLock<WasmConnection>>,
-    #[cfg(not(target_arch = "wasm32"))]
-    connection: Arc<RwLock<NativeConnection>>,
+    connection: Arc<RwLock<Connection>>,
     _awareness_sub: Option<AwarenessUpdateSubscription>,
     _root_sub: Subscription<Arc<dyn Fn(&TransactionMut, &MapEvent)>>,
 }
@@ -30,7 +32,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         client_id: u64,
         document: Weak<RwLock<RadiantDocumentNode<N>>>,
     ) -> Result<Self, ()> {
-        let id = Uuid::new_v4();
+        let extension_id = Uuid::new_v4();
         let url = "ws://localhost:8000/sync";
 
         let doc = Doc::with_client_id(client_id);
@@ -49,18 +51,24 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                 .iter()
                 .for_each(|(key, change)| match change {
                     EntryChange::Inserted(val) => {
-                        log::error!("inserted");
+                        log::error!("inserted {} {}", key, val);
                         let id = Uuid::parse_str(key).unwrap();
                         let node: String = val.clone().cast().unwrap();
                         let mut node: N = serde_json::from_str(&node).unwrap();
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(false);
                         if document.get_node(id).is_none() {
-                            document.add_excluding_listener(node, id);
+                            document.add_excluding_listener(node, extension_id);
                         }
                     }
                     EntryChange::Removed(_val) => {}
-                    EntryChange::Updated(_old, _new) => {
-                        log::error!("updated");
+                    EntryChange::Updated(_old, new) => {
+                        log::error!("updated {} {}", key, new);
+                        let id = Uuid::parse_str(key).unwrap();
+                        if let Some(node) = document.get_node_mut(id) {
+                            log::error!("replacing node");
+                            let n: String = new.clone().cast().unwrap();
+                            node.replace(&n);
+                        }
                     }
                 });
         });
@@ -92,7 +100,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         }
 
         Ok(Self {
-            id,
+            id: extension_id,
             _document: document,
             connection,
             _awareness_sub: awareness_sub,
@@ -135,30 +143,40 @@ impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
         });
     }
 
-    fn on_node_changed(&mut self, _id: Uuid, _data: &str) {
-        // block_on(async {
-        //     let connection = self.connection.write();
-        //     let awareness = connection.awareness();
-        //     #[cfg(not(target_arch = "wasm32"))]
-        //     let awareness = awareness.write().await;
-        //     #[cfg(target_arch = "wasm32")]
-        //     let Some(awareness) = awareness.try_write() else {
-        //         return;
-        //     };
-        //     let doc = awareness.doc();
-        //     let Ok(mut txn) = doc.try_transact_mut() else {
-        //         log::error!("Failed to transact");
-        //         return;
-        //     };
-        //     if let Some(root) = txn.get_map("radiantkit-root") {
-        //         root.insert(
-        //             &mut txn,
-        //             id.to_string(),
-        //             data,
-        //         );
-        //     }
-        //     txn.commit();
-        //     log::error!("Updated node {:?}", id);
-        // });
+    fn on_node_changed(&mut self, id: Uuid, data: &str) {
+        let connection_clone = self.connection.clone();
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let data = data.to_string();
+            tokio::spawn(async move {
+               handle_node_change(connection_clone, id, &data);
+            });
+        }
+        
+        #[cfg(target_arch = "wasm32")]
+        handle_node_change(connection_clone, id, data);
     }
+}
+
+fn handle_node_change(connection: Arc<RwLock<Connection>>, id: Uuid, data: &str) {
+    let connection = connection.write();
+    let awareness = connection.awareness();
+    #[cfg(not(target_arch = "wasm32"))]
+    let Ok(awareness) = awareness.try_write() else { return };
+    #[cfg(target_arch = "wasm32")]
+    let Some(awareness) = awareness.try_write() else { return };
+    let doc = awareness.doc();
+    let Ok(mut txn) = doc.try_transact_mut() else {
+        log::error!("Failed to transact");
+        return;
+    };
+    if let Some(root) = txn.get_map("radiantkit-root") {
+        root.insert(
+            &mut txn,
+            id.to_string(),
+            data,
+        );
+    }
+    txn.commit();
+    log::error!("Updated node {:?}", id);
 }
