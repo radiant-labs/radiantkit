@@ -93,7 +93,7 @@ impl RadiantTessellatable for RadiantImageNode {
         self.base.selection_primitives.clear();
     }
 
-    fn set_needs_tessellation(&mut self) {
+    fn set_needs_tessellation(&mut self, notify: bool) {
         let position = self.base.transform.position();
         let scale = self.base.transform.scale();
 
@@ -109,7 +109,9 @@ impl RadiantTessellatable for RadiantImageNode {
         ];
 
         self.base.set_needs_tessellation();
-        self.base.notify(serde_json::to_string(self).unwrap());
+        if notify {
+            self.base.notify(serde_json::to_string(self).unwrap());
+        }
     }
 
     fn tessellate(

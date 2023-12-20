@@ -104,7 +104,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                 if let Some(node) = artboard.1.get_node_mut(prev_selected_node_id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(false);
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
                     }
                 }
             }
@@ -112,7 +112,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                 if let Some(node) = artboard.1.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(true);
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
                     }
                 }
             }
@@ -137,6 +137,15 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         }
         None
     }
+
+    pub fn replace_node(&mut self, id: Uuid, node: N) {
+        for artboard in &mut self.artboards {
+            if artboard.1.get_node_mut(id).is_some() {
+                artboard.1.replace_node(id, node);
+                return;
+            }
+        }
+    }
 }
 
 impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
@@ -152,7 +161,7 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantDocumentNode<N> {
         }
     }
 
-    fn set_needs_tessellation(&mut self) {}
+    fn set_needs_tessellation(&mut self, _notify: bool) {}
 
     fn tessellate(
         &mut self,
