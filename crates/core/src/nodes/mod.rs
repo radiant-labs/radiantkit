@@ -20,7 +20,7 @@ pub trait RadiantTessellatable {
     fn attach(&mut self, screen_descriptor: &ScreenDescriptor);
     fn detach(&mut self);
 
-    fn set_needs_tessellation(&mut self);
+    fn set_needs_tessellation(&mut self, notify: bool);
     fn tessellate(
         &mut self,
         selection: bool,
@@ -75,4 +75,6 @@ pub trait RadiantNode: 'static + Serialize + Clone + RadiantTessellatable {
     fn unobserve(&self, subscription_id: SubscriptionId) {
         self.base().observers.unsubscribe(subscription_id);
     }
+
+    fn replace(&mut self, _node: &str) {}
 }

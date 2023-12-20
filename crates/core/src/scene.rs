@@ -166,7 +166,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                             scale: component.scale().into(),
                         };
 
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
                         self.interaction_manager
                             .update_interactions(node, &self.screen_descriptor);
 
@@ -183,7 +183,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.set_position(&position.into());
                         component.set_scale(&scale.into());
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
 
                         self.interaction_manager
                             .update_interactions(node, &self.screen_descriptor);
@@ -194,7 +194,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 if let Some(node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_fill_color(fill_color);
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
                     }
                 }
             }
@@ -202,7 +202,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 if let Some(node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_stroke_color(stroke_color);
-                        node.set_needs_tessellation();
+                        node.set_needs_tessellation(true);
                     }
                 }
             }

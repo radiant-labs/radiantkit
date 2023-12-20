@@ -3,7 +3,7 @@ use epaint::{
 };
 use radiantkit_core::{
     BaseNode, ColorComponent, RadiantNode, RadiantTessellatable, ScreenDescriptor,
-    SelectionComponent, TransformComponent, Vec3,
+    TransformComponent, Vec3,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -78,7 +78,6 @@ impl RadiantVideoNode {
         transform.set_position(&position.into());
         transform.set_scale(&scale.into());
 
-        let selection = SelectionComponent::new();
         let mut tint = ColorComponent::new();
         tint.set_fill_color(Color32::WHITE);
 
@@ -158,7 +157,7 @@ impl RadiantTessellatable for RadiantVideoNode {
         self.base.selection_primitives.clear();
     }
 
-    fn set_needs_tessellation(&mut self) {
+    fn set_needs_tessellation(&mut self, _notify: bool) {
         let position = self.base.transform.position();
         let scale = self.base.transform.scale();
 
