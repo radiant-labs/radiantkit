@@ -14,7 +14,7 @@ jobs:
         run: wasm-pack build --target web --release --scope radiantkit
       - name: Publish radiantkit
         working-directory: ./runtime/pkg
-        run: wasm-pack publish --access public
+        run: wasm-pack publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # Setup .npmrc file to publish to npm
@@ -24,7 +24,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
       - name: Publish radiantkit-react
-        run: yarn publish --access public
+        run: yarn publish
         working-directory: ./runtime/web
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

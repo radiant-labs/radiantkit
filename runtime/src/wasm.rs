@@ -13,6 +13,7 @@ impl RadiantKitAppController {
     #[wasm_bindgen(constructor)]
     pub async fn new(
         client_id: u64,
+        collaborate: bool,
         f: &js_sys::Function,
         width: Option<f32>,
         height: Option<f32>,
@@ -24,7 +25,7 @@ impl RadiantKitAppController {
             (Some(width), Some(height)) => Some(Vec3::new(width, height, 0.0)),
             _ => None,
         };
-        let runtime = RadiantRuntime::new(client_id, size).await;
+        let runtime = RadiantRuntime::new(client_id, collaborate, size).await;
         let runtime = Arc::new(RwLock::new(runtime));
 
         radiantkit_winit::run_wasm(runtime.clone(), f.clone());

@@ -99,7 +99,6 @@ impl NativeConnection {
             let a = connection.awareness().write().await;
             let doc = a.doc();
             doc.observe_update_v1(move |_txn, e| {
-                log::error!("sending update");
                 let update = e.update.to_owned();
                 if let Some(sink) = sink.upgrade() {
                     task::spawn(async move {

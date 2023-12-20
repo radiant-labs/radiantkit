@@ -17,11 +17,12 @@ export class RadiantKitAppController {
   free(): void;
 /**
 * @param {bigint} client_id
+* @param {boolean} collaborate
 * @param {Function} f
 * @param {number | undefined} width
 * @param {number | undefined} height
 */
-  constructor(client_id: bigint, f: Function, width?: number, height?: number);
+  constructor(client_id: bigint, collaborate: boolean, f: Function, width?: number, height?: number);
 /**
 * @param {any} message
 */
@@ -129,9 +130,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_radiantkitappcontroller_free: (a: number) => void;
-  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
+  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly radiantkitappcontroller_handleMessage: (a: number, b: number) => void;
-  readonly __wbg_selectioncomponent_free: (a: number) => void;
   readonly __wbg_colorcomponent_free: (a: number) => void;
   readonly __wbg_transformcomponent_free: (a: number) => void;
   readonly transformcomponent_transform_xy: (a: number, b: number) => void;
@@ -157,6 +157,7 @@ export interface InitOutput {
   readonly vec3_add_with_min: (a: number, b: number, c: number) => void;
   readonly vec3_add_scalar: (a: number, b: number) => void;
   readonly vec3_set_with_min: (a: number, b: number, c: number) => void;
+  readonly __wbg_selectioncomponent_free: (a: number) => void;
   readonly wgpu_compute_pass_set_pipeline: (a: number, b: number) => void;
   readonly wgpu_compute_pass_set_bind_group: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wgpu_compute_pass_set_push_constant: (a: number, b: number, c: number, d: number) => void;
@@ -207,8 +208,8 @@ export interface InitOutput {
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h070b755b78420ec3: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h5c2b68289b262c59: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h787624fb7be6d3c7: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2bac0756e820649c: (a: number, b: number) => void;
   readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h5234d6fbfa4fe934: (a: number, b: number, c: number) => void;
   readonly wasm_bindgen__convert__closures__invoke1_mut__h1f21f321b2342d6f: (a: number, b: number, c: number) => void;
   readonly wasm_bindgen__convert__closures__invoke0_mut__h6e5c5b1e5a05efab: (a: number, b: number) => void;
