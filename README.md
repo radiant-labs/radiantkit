@@ -23,7 +23,7 @@ It introduces a node-component-system for efficient rendering, while ensuring co
 
 ## Updates
 
-RadiantKit now supports real-time collaborative editing. Check out the instructions in the section title <a href="#collaborative-editing">Collaborative Editing</a> to set it up.
+RadiantKit now supports real-time collaborative editing. Check out the instructions in the section titled <a href="#collaborative-editing">Collaborative Editing</a> to set it up.
 
 <a href="#collaborative-editing">
   <img src="CollaborativeEditing.gif" alt="Collaborative Editing Demo">
