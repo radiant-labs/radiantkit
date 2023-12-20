@@ -14,7 +14,7 @@ async fn run() {
         log::info!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(2, None).await;
+    let mut runtime = RadiantRuntime::new(2, false, None).await;
     runtime.add(RadiantRectangleNode::new(Uuid::new_v4(), [100.0, 100.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(Uuid::new_v4(), [400.0, 400.0]).into());
 

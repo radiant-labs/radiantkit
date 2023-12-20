@@ -2,7 +2,7 @@ import { RadiantKitAppController } from "@radiantkit/radiantkit";
 export declare class RadiantKitController {
     _controller: RadiantKitAppController;
     constructor(controller: RadiantKitAppController);
-    static createController(client_id: bigint, f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController>;
+    static createController(client_id: bigint, collaboration: boolean, f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController>;
     /**
      * Activates the provided tool.
      *

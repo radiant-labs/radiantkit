@@ -128,7 +128,6 @@ impl RadiantNode for RadiantRectangleNode {
     }
 
     fn replace(&mut self, node: &str) {
-        log::error!("replace rectangle node");
         let node: Self = serde_json::from_str(node).unwrap();
         let observers = std::mem::replace(&mut self.base.observers, Observer::default());
         self.base = node.base;

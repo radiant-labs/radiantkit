@@ -39,7 +39,6 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         let mut root = doc.get_or_insert_map("radiantkit-root");
         let document_clone = document.clone();
         let root_sub = root.observe(move |txn, event| {
-            log::error!("root event received");
             let Some(document) = document_clone.upgrade() else {
                 return;
             };
@@ -51,7 +50,6 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                 .iter()
                 .for_each(|(key, change)| match change {
                     EntryChange::Inserted(val) => {
-                        log::error!("inserted {} {}", key, val);
                         let id = Uuid::parse_str(key).unwrap();
                         let node: String = val.clone().cast().unwrap();
                         let mut node: N = serde_json::from_str(&node).unwrap();
@@ -62,10 +60,8 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                     }
                     EntryChange::Removed(_val) => {}
                     EntryChange::Updated(_old, new) => {
-                        log::error!("updated {} {}", key, new);
                         let id = Uuid::parse_str(key).unwrap();
                         if let Some(node) = document.get_node_mut(id) {
-                            log::error!("replacing node");
                             let n: String = new.clone().cast().unwrap();
                             node.replace(&n);
                         }
@@ -76,8 +72,8 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
         let connection;
 
         let mut awareness = Awareness::new(doc);
-        let awareness_sub = Some(awareness.on_update(|_a, e| {
-            log::error!("awareness event {:?}", e);
+        let awareness_sub = Some(awareness.on_update(|_a, _e| {
+            
         }));
 
         #[cfg(target_arch = "wasm32")]
@@ -138,7 +134,6 @@ impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
                     );
                 }
                 txn.commit();
-                log::error!("Added node {:?}", id);
             }
         });
     }
@@ -178,5 +173,4 @@ fn handle_node_change(connection: Arc<RwLock<Connection>>, id: Uuid, data: &str)
         );
     }
     txn.commit();
-    log::error!("Updated node {:?}", id);
 }

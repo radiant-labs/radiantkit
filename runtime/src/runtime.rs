@@ -16,16 +16,18 @@ pub struct RadiantRuntime {
 }
 
 impl RadiantRuntime {
-    pub async fn new(client_id: u64, size: Option<Vec3>) -> Self {
+    pub async fn new(client_id: u64, collaborate: bool, size: Option<Vec3>) -> Self {
         let mut view = RadiantView::new(size).await;
         view.scene_mut().tool_manager.register_tool(
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),
         );
-        let doc = Arc::downgrade(&view.scene_mut().document.clone());
-        if let Ok(collaborator) = Collaborator::new(client_id, doc).await {
-            if let Some(mut document) = view.scene_mut().document.try_write() {
-                document.add_listener(Box::new(collaborator));
+        if collaborate {
+            let doc = Arc::downgrade(&view.scene_mut().document.clone());
+            if let Ok(collaborator) = Collaborator::new(client_id, doc).await {
+                if let Some(mut document) = view.scene_mut().document.try_write() {
+                    document.add_listener(Box::new(collaborator));
+                }
             }
         }
         Self { view }
