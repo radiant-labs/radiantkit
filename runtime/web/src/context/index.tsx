@@ -14,21 +14,28 @@ const RadiantKitContext = createContext<RadiantKitState>({
 
 export interface RadiantKitProviderProps {
     client_id?: bigint;
+    collaborate?: boolean;
     width?: number;
     height?: number;
     children?: any;
 }
 
-function RadiantKitProvider({ client_id, width, height, children }: RadiantKitProviderProps) {
+function RadiantKitProvider({ client_id, collaborate, width, height, children }: RadiantKitProviderProps) {
     const [controller, setController] = useState<RadiantKitController | null>(null);
     const [response, setResponse] = useState<any>({});
 
     const initWasm = async () => {
         try {
             await init();
-            let controller = await RadiantKitController.createController(client_id || BigInt(2), (message: any) => {
-                setResponse(message);
-            }, width, height);
+            let controller = await RadiantKitController.createController(
+                client_id || BigInt(2), 
+                collaborate || false, 
+                (message: any) => {
+                    setResponse(message);
+                }, 
+                width, 
+                height
+            );
             setController(controller);
         } catch (error) {
             console.log(error);

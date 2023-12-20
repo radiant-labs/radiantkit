@@ -1,6 +1,6 @@
 [package]
 name = "radiantkit"
-version = "0.0.7"
+version = "0.0.9"
 edition = "2021"
 description = "Framework to build graphic applications"
 repository = "https://github.com/radiant-labs/radiantkit"

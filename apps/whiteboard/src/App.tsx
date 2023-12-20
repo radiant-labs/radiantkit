@@ -3,7 +3,7 @@ import Toolbar from './components/Toolbar';
 
 const App = () => {
   return (
-    <RadiantKitProvider client_id={BigInt(4)} width={undefined} height={undefined}>
+    <RadiantKitProvider client_id={BigInt(4)} collaborate={true} width={undefined} height={undefined}>
       <div style={{ display: 'flex' }}>
         <div style={{ zIndex: 1 }}>
           <Toolbar />

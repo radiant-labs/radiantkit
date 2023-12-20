@@ -205,7 +205,6 @@ impl WasmConnection {
                 let doc = a.doc();
                 let cloned_ws = ws.clone();
                 doc.observe_update_v1(move |_txn, e| {
-                    log::error!("sending update");
                     let update = e.update.to_owned();
                     let msg =
                         y_sync::sync::Message::Sync(y_sync::sync::SyncMessage::Update(update))
