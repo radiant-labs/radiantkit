@@ -1,5 +1,6 @@
 use crate::{BoundingBoxInteraction, RadiantNode, RadiantSceneMessage, ScreenDescriptor};
 use epaint::ClippedPrimitive;
+use parking_lot::RwLockWriteGuard;
 use uuid::Uuid;
 
 pub struct RadiantInteractionManager<M> {
@@ -21,7 +22,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>> RadiantInterac
 
     pub fn enable_interactions(
         &mut self,
-        node: &impl RadiantNode,
+        node: RwLockWriteGuard<impl RadiantNode>,
         screen_descriptor: &ScreenDescriptor,
     ) {
         self.bounding_box_interaction
@@ -34,7 +35,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>> RadiantInterac
 
     pub fn update_interactions(
         &mut self,
-        node: &impl RadiantNode,
+        node: RwLockWriteGuard<impl RadiantNode>,
         screen_descriptor: &ScreenDescriptor,
     ) {
         self.bounding_box_interaction
