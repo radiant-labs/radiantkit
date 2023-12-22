@@ -61,7 +61,7 @@ impl<'a, N: 'static + RadiantNode + serde::de::DeserializeOwned> Collaborator<N>
                     EntryChange::Removed(_val) => {}
                     EntryChange::Updated(_old, new) => {
                         let id = Uuid::parse_str(key).unwrap();
-                        if let Some(node) = document.get_node_mut(id) {
+                        if let Some(mut node) = document.get_node_mut(id) {
                             let n: String = new.clone().cast().unwrap();
                             node.replace(&n);
                         }
@@ -120,7 +120,7 @@ impl<N: RadiantNode> RadiantDocumentListener<N> for Collaborator<N> {
             let Some(awareness) = awareness.try_write() else {
                 return;
             };
-            if let Some(node) = document.get_node(id) {
+            if let Some(node) = document.node(id) {
                 let doc = awareness.doc();
                 let Ok(mut txn) = doc.try_transact_mut() else {
                     log::error!("Failed to transact");
