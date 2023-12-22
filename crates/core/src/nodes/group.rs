@@ -1,13 +1,14 @@
 use crate::{BaseNode, RadiantNode, RadiantTessellatable, ScreenDescriptor};
 use epaint::ClippedPrimitive;
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RadiantGroupNode<N: RadiantNode> {
     pub base: BaseNode,
-    pub nodes: BTreeMap<Uuid, N>,
+    pub nodes: BTreeMap<Uuid, Arc<RwLock<N>>>,
 }
 
 impl<N: RadiantNode> RadiantGroupNode<N> {
@@ -20,32 +21,36 @@ impl<N: RadiantNode> RadiantGroupNode<N> {
     }
 
     pub fn add(&mut self, node: N) {
-        self.nodes.insert(node.get_id(), node);
+        self.nodes.insert(node.get_id(), Arc::new(RwLock::new(node)));
     }
 
-    pub fn get_node(&self, id: Uuid) -> Option<&N> {
+    pub fn node(&self, id: Uuid) -> Option<&Arc<RwLock<N>>> {
         self.nodes.get(&id)
     }
 
-    pub fn get_node_mut(&mut self, id: Uuid) -> Option<&mut N> {
-        self.nodes.get_mut(&id)
+    pub fn get_node(&self, id: Uuid) -> Option<RwLockReadGuard<N>> {
+        self.nodes.get(&id).map(|n| n.read())
+    }
+
+    pub fn get_node_mut(&mut self, id: Uuid) -> Option<RwLockWriteGuard<N>> {
+        self.nodes.get_mut(&id).map(|n| n.write())
     }
 
     pub fn replace_node(&mut self, id: Uuid, node: N) {
-        self.nodes.insert(id, node);
+        self.nodes.insert(id, Arc::new(RwLock::new(node)));
     }
 }
 
 impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
     fn attach(&mut self, screen_descriptor: &ScreenDescriptor) {
         for node in &mut self.nodes.values_mut() {
-            node.attach(screen_descriptor);
+            node.write().attach(screen_descriptor);
         }
     }
 
     fn detach(&mut self) {
         for node in &mut self.nodes.values_mut() {
-            node.detach();
+            node.write().detach();
         }
     }
 
@@ -59,7 +64,7 @@ impl<N: RadiantNode> RadiantTessellatable for RadiantGroupNode<N> {
     ) -> Vec<ClippedPrimitive> {
         let mut primitives = Vec::new();
         for node in &mut self.nodes.values_mut() {
-            primitives.append(&mut node.tessellate(selection, screen_descriptor, fonts_manager));
+            primitives.append(&mut node.write().tessellate(selection, screen_descriptor, fonts_manager));
         }
         primitives
     }
@@ -76,7 +81,7 @@ impl<N: RadiantNode> RadiantNode for RadiantGroupNode<N> {
 
     fn handle_key_down(&mut self, key: crate::KeyCode) -> bool {
         for node in &mut self.nodes.values_mut() {
-            if node.handle_key_down(key.clone()) {
+            if node.write().handle_key_down(key.clone()) {
                 return true;
             }
         }
