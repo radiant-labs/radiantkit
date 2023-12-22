@@ -131,11 +131,12 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 self.document_mut().select(id);
                 if let Some(id) = id {
                     if !self.interaction_manager.is_interaction(id) {
-                        if let Some(node) = self.document.write().get_node_mut(id) {
+                        if let Some(mut node) = self.document.write().get_node_mut(id) {
                             node.tessellate(false, &self.screen_descriptor, &self.fonts_manager);
+                            let response = RadiantSceneResponse::Selected { node: node.clone() };
                             self.interaction_manager
                                 .enable_interactions(node, &self.screen_descriptor);
-                            return Some(RadiantSceneResponse::Selected { node: node.clone() });
+                            return Some(response);
                         } else {
                             self.interaction_manager.disable_interactions();
                         }
@@ -155,7 +156,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     {
                         return Some(RadiantSceneResponse::Message { message });
                     }
-                } else if let Some(node) = self.document.write().get_node_mut(id) {
+                } else if let Some(mut node) = self.document.write().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.transform_xy(&position.into());
                         component.transform_scale(&scale.into());
@@ -179,7 +180,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 position,
                 scale,
             } => {
-                if let Some(node) = self.document.write().get_node_mut(id) {
+                if let Some(mut node) = self.document.write().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<TransformComponent>() {
                         component.set_position(&position.into());
                         component.set_scale(&scale.into());
@@ -191,7 +192,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 }
             }
             RadiantSceneMessage::SetFillColor { id, fill_color } => {
-                if let Some(node) = self.document_mut().get_node_mut(id) {
+                if let Some(mut node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_fill_color(fill_color);
                         node.set_needs_tessellation(true);
@@ -199,7 +200,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 }
             }
             RadiantSceneMessage::SetStrokeColor { id, stroke_color } => {
-                if let Some(node) = self.document_mut().get_node_mut(id) {
+                if let Some(mut node) = self.document_mut().get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<ColorComponent>() {
                         component.set_stroke_color(stroke_color);
                         node.set_needs_tessellation(true);
@@ -214,7 +215,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                     Some(id) => Some(id),
                     None => self.document.read().selected_node_id,
                 } {
-                    if let Some(node) = self.document.write().get_node_mut(id) {
+                    if let Some(mut node) = self.document.write().get_node_mut(id) {
                         if node.handle_key_down(key) {
                             self.interaction_manager
                                 .update_interactions(node, &self.screen_descriptor);

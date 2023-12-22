@@ -4,6 +4,7 @@ use crate::{
 };
 use epaint::ClippedPrimitive;
 use once_cell::sync::Lazy;
+use parking_lot::RwLockWriteGuard;
 use uuid::Uuid;
 
 static BOUNDING_BOX_TOP_ID: Lazy<Uuid> = Lazy::new(|| Uuid::new_v4());
@@ -72,7 +73,7 @@ impl BoundingBoxInteraction {
             || id == *BOUNDING_BOX_TOP_LEFT_ID;
     }
 
-    pub fn enable(&mut self, node: &impl RadiantNode, _screen_descriptor: &ScreenDescriptor) {
+    pub fn enable(&mut self, node: RwLockWriteGuard<impl RadiantNode>, _screen_descriptor: &ScreenDescriptor) {
         if let Some(_component) = node.get_component::<TransformComponent>() {
             let rect = node.get_bounding_rect();
 
@@ -116,7 +117,7 @@ impl BoundingBoxInteraction {
         self.active_node_id = None;
     }
 
-    pub fn update(&mut self, node: &impl RadiantNode, screen_descriptor: &ScreenDescriptor) {
+    pub fn update(&mut self, node: RwLockWriteGuard<impl RadiantNode>, screen_descriptor: &ScreenDescriptor) {
         self.enable(node, screen_descriptor);
     }
 }
