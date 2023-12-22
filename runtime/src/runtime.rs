@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{RadiantMessage, RadiantNodeType, RadiantResponse, RadiantToolType};
+use parking_lot::RwLockWriteGuard;
 use radiantkit_collaboration::Collaborator;
 use radiantkit_core::{
     RadiantRectangleNode, RadiantSceneMessage, RadiantSceneResponse, RadiantTessellatable,
@@ -67,7 +68,13 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                     let Some(mut document) = document.try_write() else {
                         return None;
                     };
-                    let Some(RadiantNodeType::Text(text_node)) = document.get_node_mut(id) else {
+                    let Some(node) = document.get_node_mut(id) else {
+                        return None;
+                    };
+                    let Ok(mut text_node) = RwLockWriteGuard::try_map(node, |node| match node {
+                        RadiantNodeType::Text(text_node) => { Some(text_node) },
+                        _ => { None }
+                    }) else {
                         return None;
                     };
                     update_interactions = text_node.handle_message(message);
@@ -145,9 +152,16 @@ impl Runtime<'_, RadiantMessage, RadiantNodeType, RadiantResponse> for RadiantRu
                 let Some(mut document) = document.try_write() else {
                     return None;
                 };
-                if let Some(RadiantNodeType::Video(video_node)) = document.get_node_mut(id) {
-                    video_node.play();
-                }
+                let Some(node) = document.get_node_mut(id) else {
+                    return None;
+                };
+                let Ok(mut video_node) = RwLockWriteGuard::try_map(node, |node| match node {
+                    RadiantNodeType::Video(video_node) => { Some(video_node) },
+                    _ => { None }
+                }) else {
+                    return None;
+                };
+                video_node.play();
             }
         }
         None

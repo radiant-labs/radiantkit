@@ -1,5 +1,5 @@
-use std::{collections::BTreeMap, cell::RefCell, rc::Rc};
-
+use std::{collections::BTreeMap, cell::RefCell, rc::Rc, sync::Arc};
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::{
     RadiantGroupNode, RadiantNode, RadiantSelectable, RadiantTessellatable, ScreenDescriptor,
     SelectionComponent, SubscriptionId,
@@ -101,7 +101,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         }
         self.artboards.iter_mut().for_each(|artboard| {
             if let Some(prev_selected_node_id) = self.selected_node_id {
-                if let Some(node) = artboard.1.get_node_mut(prev_selected_node_id) {
+                if let Some(mut node) = artboard.1.get_node_mut(prev_selected_node_id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(false);
                         node.set_needs_tessellation(true);
@@ -109,7 +109,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
                 }
             }
             if let Some(id) = id {
-                if let Some(node) = artboard.1.get_node_mut(id) {
+                if let Some(mut node) = artboard.1.get_node_mut(id) {
                     if let Some(component) = node.get_component_mut::<SelectionComponent>() {
                         component.set_selected(true);
                         node.set_needs_tessellation(true);
@@ -120,7 +120,16 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         self.selected_node_id = id
     }
 
-    pub fn get_node(&self, id: Uuid) -> Option<&N> {
+    pub fn node(&self, id: Uuid) -> Option<&Arc<RwLock<N>>> {
+        for artboard in &self.artboards {
+            if let Some(node) = artboard.1.node(id) {
+                return Some(node);
+            }
+        }
+        None
+    }
+
+    pub fn get_node(&self, id: Uuid) -> Option<RwLockReadGuard<N>> {
         for artboard in &self.artboards {
             if let Some(node) = artboard.1.get_node(id) {
                 return Some(node);
@@ -129,7 +138,7 @@ impl<N: RadiantNode> RadiantDocumentNode<N> {
         None
     }
 
-    pub fn get_node_mut(&mut self, id: Uuid) -> Option<&mut N> {
+    pub fn get_node_mut(&mut self, id: Uuid) -> Option<RwLockWriteGuard<N>> {
         for artboard in &mut self.artboards {
             if let Some(node) = artboard.1.get_node_mut(id) {
                 return Some(node);
