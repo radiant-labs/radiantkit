@@ -1,4 +1,5 @@
 use once_cell::sync::Lazy;
+use radiantkit::Vec3;
 use radiantkit::{
     RadiantMessage, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime,
     RadiantSceneMessage, RadiantTextMessage, RadiantTextNode, Runtime, View,
@@ -96,7 +97,7 @@ async fn run(client_id: u64) {
         log::debug!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(client_id, true, None).await;
+    let mut runtime = RadiantRuntime::new(client_id, true, None, Vec3::zero()).await;
     runtime.add(RadiantRectangleNode::new(*NODE_1, [200.0, 200.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(*NODE_2, [400.0, 400.0]).into());
     runtime.add(
