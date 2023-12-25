@@ -51,6 +51,7 @@ const ImageExample = () => {
     return (
         <RadiantKitProvider width={1600} height={1200}>
             <Stack>
+                <Box height={80} />
                 <ImageLoader />
                 <Box height={10} />
                 <RadiantKitCanvas />

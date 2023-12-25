@@ -1,5 +1,5 @@
 use radiantkit::{
-    run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, Runtime,
+    run_native, RadiantPathNode, RadiantRectangleNode, RadiantResponse, RadiantRuntime, Runtime, Vec3,
 };
 use uuid::Uuid;
 
@@ -14,7 +14,7 @@ async fn run() {
         log::info!("Response: {:?}", response);
     });
 
-    let mut runtime = RadiantRuntime::new(2, false, None).await;
+    let mut runtime = RadiantRuntime::new(2, false, None, Vec3::zero()).await;
     runtime.add(RadiantRectangleNode::new(Uuid::new_v4(), [100.0, 100.0], [200.0, 200.0]).into());
     runtime.add(RadiantPathNode::new(Uuid::new_v4(), [400.0, 400.0]).into());
 

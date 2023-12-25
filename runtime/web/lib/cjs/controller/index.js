@@ -7,9 +7,9 @@ class RadiantKitController {
     constructor(controller) {
         this._controller = controller;
     }
-    static createController(client_id, collaboration, f, width, height) {
+    static createController(client_id, collaboration, f, width, height, paddingX, paddingY) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return new RadiantKitController(yield new radiantkit_1.RadiantKitAppController(client_id, collaboration, f, width, height));
+            return new RadiantKitController(yield new radiantkit_1.RadiantKitAppController(client_id, collaboration, f, width, height, paddingX, paddingY));
         });
     }
     /**

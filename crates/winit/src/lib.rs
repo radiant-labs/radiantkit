@@ -29,7 +29,7 @@ pub struct RadiantView<M, N: RadiantNode> {
 impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode>
     RadiantView<M, N>
 {
-    pub async fn new(size: Option<Vec3>) -> Self {
+    pub async fn new(size: Option<Vec3>, padding: Vec3) -> Self {
         let event_loop = EventLoop::new();
         let window;
 
@@ -37,7 +37,7 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
         {
             window = WindowBuilder::new().build(&event_loop).unwrap();
             if let Some(size) = size {
-                window.set_inner_size(PhysicalSize::new(size.x, size.y));
+                window.set_inner_size(PhysicalSize::new(size.x - padding.x, size.y - padding.y));
             }
         }
 
@@ -92,8 +92,8 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 let closure =
                     wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::Event| {
                         let win = web_sys::window().unwrap();
-                        let w = win.inner_width().unwrap().as_f64().unwrap() as u32;
-                        let h = win.inner_height().unwrap().as_f64().unwrap() as u32;
+                        let w = win.inner_width().unwrap().as_f64().unwrap() as u32 - padding.x as u32;
+                        let h = win.inner_height().unwrap().as_f64().unwrap() as u32 - padding.y as u32;
                         let scale_factor = window_clone.scale_factor() as u32;
                         window_clone
                             .set_inner_size(PhysicalSize::new(w * scale_factor, h * scale_factor));
@@ -107,8 +107,8 @@ impl<M: From<RadiantSceneMessage> + TryInto<RadiantSceneMessage>, N: RadiantNode
                 // Winit prevents sizing with CSS, so we have to set
                 // the size manually when on web.
                 let win = web_sys::window().unwrap();
-                let w = win.inner_width().unwrap().as_f64().unwrap() as u32;
-                let h = win.inner_height().unwrap().as_f64().unwrap() as u32;
+                let w = win.inner_width().unwrap().as_f64().unwrap() as u32 - padding.x as u32;
+                let h = win.inner_height().unwrap().as_f64().unwrap() as u32 - padding.y as u32;
                 let scale_factor = window.scale_factor() as u32;
                 window.set_inner_size(PhysicalSize::new(w * scale_factor, h * scale_factor));
             }
