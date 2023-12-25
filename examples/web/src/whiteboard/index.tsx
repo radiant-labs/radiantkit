@@ -1,9 +1,14 @@
 import { RadiantKitProvider } from '@radiantkit/react';
 import Toolbar from './components/Toolbar';
 
-const App = () => {
+const Whiteboard = () => {
   return (
-    <RadiantKitProvider client_id={BigInt(4)} collaborate={true} width={undefined} height={undefined}>
+    <RadiantKitProvider 
+        client_id={BigInt(4)} 
+        collaborate={true} 
+        width={undefined} 
+        height={undefined}
+    >
       <div style={{ display: 'flex' }}>
         <div style={{ zIndex: 1 }}>
           <Toolbar />
@@ -25,4 +30,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default Whiteboard;

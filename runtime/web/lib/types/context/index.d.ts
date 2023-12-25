@@ -9,9 +9,11 @@ export interface RadiantKitProviderProps {
     collaborate?: boolean;
     width?: number;
     height?: number;
+    paddingX?: number;
+    paddingY?: number;
     children?: any;
 }
-declare function RadiantKitProvider({ client_id, collaborate, width, height, children }: RadiantKitProviderProps): React.JSX.Element;
+declare function RadiantKitProvider({ client_id, collaborate, width, height, paddingX, paddingY, children }: RadiantKitProviderProps): React.JSX.Element;
 declare const useCurrentController: () => RadiantKitState;
 export { RadiantKitProvider, useCurrentController };
 //# sourceMappingURL=index.d.ts.map

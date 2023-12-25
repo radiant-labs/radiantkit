@@ -176,6 +176,7 @@ const BasicExample = () => {
     return (
         <RadiantKitProvider width={1600} height={1200}>
             <Stack>
+                <Box height={80} />
                 <Tools />
                 <Box height={10} />
                 <Transform />

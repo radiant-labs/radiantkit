@@ -21,8 +21,10 @@ export class RadiantKitAppController {
 * @param {Function} f
 * @param {number | undefined} width
 * @param {number | undefined} height
+* @param {number | undefined} padding_x
+* @param {number | undefined} padding_y
 */
-  constructor(client_id: bigint, collaborate: boolean, f: Function, width?: number, height?: number);
+  constructor(client_id: bigint, collaborate: boolean, f: Function, width?: number, height?: number, padding_x?: number, padding_y?: number);
 /**
 * @param {any} message
 */
@@ -130,7 +132,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_radiantkitappcontroller_free: (a: number) => void;
-  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
+  readonly radiantkitappcontroller_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => number;
   readonly radiantkitappcontroller_handleMessage: (a: number, b: number) => void;
   readonly __wbg_colorcomponent_free: (a: number) => void;
   readonly __wbg_transformcomponent_free: (a: number) => void;

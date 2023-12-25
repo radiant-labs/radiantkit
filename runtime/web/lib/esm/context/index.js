@@ -5,7 +5,7 @@ const RadiantKitContext = createContext({
     controller: null,
     response: {},
 });
-function RadiantKitProvider({ client_id, collaborate, width, height, children }) {
+function RadiantKitProvider({ client_id, collaborate, width, height, paddingX, paddingY, children }) {
     const [controller, setController] = useState(null);
     const [response, setResponse] = useState({});
     const initWasm = async () => {
@@ -13,7 +13,7 @@ function RadiantKitProvider({ client_id, collaborate, width, height, children })
             await init();
             let controller = await RadiantKitController.createController(client_id || BigInt(2), collaborate || false, (message) => {
                 setResponse(message);
-            }, width, height);
+            }, width, height, paddingX, paddingY);
             setController(controller);
         }
         catch (error) {
