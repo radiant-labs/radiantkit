@@ -3,8 +3,8 @@ export class RadiantKitController {
     constructor(controller) {
         this._controller = controller;
     }
-    static async createController(client_id, collaboration, f, width, height) {
-        return new RadiantKitController(await new RadiantKitAppController(client_id, collaboration, f, width, height));
+    static async createController(client_id, collaboration, f, width, height, paddingX, paddingY) {
+        return new RadiantKitController(await new RadiantKitAppController(client_id, collaboration, f, width, height, paddingX, paddingY));
     }
     /**
      * Activates the provided tool.

@@ -17,8 +17,8 @@ pub struct RadiantRuntime {
 }
 
 impl RadiantRuntime {
-    pub async fn new(client_id: u64, collaborate: bool, size: Option<Vec3>) -> Self {
-        let mut view = RadiantView::new(size).await;
+    pub async fn new(client_id: u64, collaborate: bool, size: Option<Vec3>, padding: Vec3) -> Self {
+        let mut view = RadiantView::new(size, padding).await;
         view.scene_mut().tool_manager.register_tool(
             RadiantToolType::Rectangle as u32,
             Box::new(RectangleTool::new()),

@@ -17,10 +17,12 @@ export interface RadiantKitProviderProps {
     collaborate?: boolean;
     width?: number;
     height?: number;
+    paddingX?: number;
+    paddingY?: number;
     children?: any;
 }
 
-function RadiantKitProvider({ client_id, collaborate, width, height, children }: RadiantKitProviderProps) {
+function RadiantKitProvider({ client_id, collaborate, width, height, paddingX, paddingY, children }: RadiantKitProviderProps) {
     const [controller, setController] = useState<RadiantKitController | null>(null);
     const [response, setResponse] = useState<any>({});
 
@@ -34,7 +36,9 @@ function RadiantKitProvider({ client_id, collaborate, width, height, children }:
                     setResponse(message);
                 }, 
                 width, 
-                height
+                height,
+                paddingX,
+                paddingY,
             );
             setController(controller);
         } catch (error) {
