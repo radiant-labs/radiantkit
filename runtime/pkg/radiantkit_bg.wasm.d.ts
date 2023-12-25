@@ -2,7 +2,7 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export function __wbg_radiantkitappcontroller_free(a: number): void;
-export function radiantkitappcontroller_new(a: number, b: number, c: number, d: number, e: number, f: number, g: number): number;
+export function radiantkitappcontroller_new(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number): number;
 export function radiantkitappcontroller_handleMessage(a: number, b: number): void;
 export function __wbg_colorcomponent_free(a: number): void;
 export function __wbg_transformcomponent_free(a: number): void;

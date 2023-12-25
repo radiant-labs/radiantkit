@@ -7,8 +7,18 @@ export class RadiantKitController {
         this._controller = controller;
     }
 
-    static async createController(client_id: bigint, collaboration: boolean, f: Function, width: number | undefined, height: number | undefined): Promise<RadiantKitController> {
-        return new RadiantKitController(await new RadiantKitAppController(client_id, collaboration, f, width, height));   
+    static async createController(
+        client_id: bigint, 
+        collaboration: boolean, 
+        f: Function, 
+        width: number | undefined, 
+        height: number | undefined, 
+        paddingX: number | undefined, 
+        paddingY: number | undefined,
+    ): Promise<RadiantKitController> {
+        return new RadiantKitController(
+            await new RadiantKitAppController(client_id, collaboration, f, width, height, paddingX, paddingY)
+        );   
     }
 
     /**
