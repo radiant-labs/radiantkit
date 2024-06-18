@@ -21,14 +21,6 @@ RadiantKit is an in-development framework to build graphics applications (like F
 
 It introduces a node-component-system for efficient rendering, while ensuring complete extensibility. It can support both native and web (via WebAssembly) platforms.
 
-## Updates
-
-RadiantKit now supports real-time collaborative editing. Check out the instructions in the section titled <a href="#collaborative-editing">Collaborative Editing</a> to set it up.
-
-<a href="#collaborative-editing">
-  <img src="CollaborativeEditing.gif" alt="Collaborative Editing Demo">
-</a>
-
 ## Basic Example
 
 Install rust and follow these steps:
@@ -54,6 +46,8 @@ Install yarn and follow these steps:
 Follow steps for web till #3. Then, run `yarn tauri dev`.
 
 ## Collaborative Editing
+
+RadiantKit now supports real-time collaborative editing. Follow these steps to set it up:
 
 Run the backend server:
 1. `cd backend`
