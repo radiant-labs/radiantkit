@@ -69,4 +69,4 @@ Run the whiteboard app (which runs with a default client id of 4):
 3. `yarn start`
 
 ## Contact
-Send us an email at [hello@radiantkit.xyz](mailto:hello@radiantkit.xyz). You can also [join our slack](https://join.slack.com/t/radiantkit/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q) for quick help and support.
+Send us an email at [hello@radiantkit.xyz](mailto:hello@radiantkit.xyz).
