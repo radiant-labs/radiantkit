@@ -1,5 +1,5 @@
 <p align="center">
-<a href="https://www.radiantkit.xyz?utm_source=github&utm_medium=organic&utm_campaign=readme">
+<a href="">
   <img src="banner.png" alt="RadiantKit Banner">
 </a>
 </p>
@@ -7,13 +7,6 @@
 <h2 align="center">
     <b>Build Graphics Apps 10x Faster!</b> <br />
 </h2>
-
-<h3 align="center">
-  <a href="https://www.radiantkit.xyz/">Website</a> &bull;
-  <a href="https://demo.radiantkit.xyz/">Examples</a> &bull;
-  <a href="http://docs.radiantkit.xyz/">Docs</a> &bull;
-  <a href="https://join.slack.com/t/radiantkit/shared_invite/zt-25isowtr6-jg3wHcQjRuLxyeT_fELO9Q">Community</a>
-</h3>
 
 # RadiantKit
 
@@ -61,6 +54,3 @@ Run the whiteboard app (which runs with a default client id of 4):
 1. `cd apps/whiteboard`
 2. `yarn install`
 3. `yarn start`
-
-## Contact
-Send us an email at [hello@radiantkit.xyz](mailto:hello@radiantkit.xyz).
